@@ -49,3 +49,4 @@
 .\objects\main.o: .\M5310\m5310.h
 .\objects\main.o: .\FreeRTOS-Plus\FreeRTOS-Plus-CLI\FreeRTOS_CLI.h
 .\objects\main.o: User\cli.h
+.\objects\main.o: .\HAL\LCD\lcd.h

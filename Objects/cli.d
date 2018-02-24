@@ -1,4 +1,5 @@
 .\objects\cli.o: HAL\CLI\cli.c
+.\objects\cli.o: HAL\CLI\cli.h
 .\objects\cli.o: .\CMSIS\stm32f10x.h
 .\objects\cli.o: .\CMSIS\core_cm3.h
 .\objects\cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
@@ -39,6 +40,5 @@
 .\objects\cli.o: .\FreeRTOS\include\deprecated_definitions.h
 .\objects\cli.o: .\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h
 .\objects\cli.o: .\FreeRTOS\include\mpu_wrappers.h
-.\objects\cli.o: HAL\CLI\cli.h
 .\objects\cli.o: .\HAL\COMMON\common.h
 .\objects\cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h

@@ -13,7 +13,7 @@
 #include "m5310.h"
 #include "FreeRTOS_CLI.h"
 #include "cli.h"
-
+#include "lcd.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -30,10 +30,11 @@ uint8_t   UART_CLI_RxBuffer[CLI_MAX_INPUT_LENGTH]    = {0};
 uint32_t  UART_CLI_RxBufferLen      =  0;
 
 
-TaskHandle_t start_task;   /* 开始任务 */
-TaskHandle_t cli_task;     /* CLI任务 */
-TaskHandle_t m5310_task;   /* M5310任务 */
+TaskHandle_t start_task;     /* 开始任务   */
+TaskHandle_t cli_task;       /* CLI任务    */
+TaskHandle_t m5310_task;     /* M5310任务  */
 
+extern _tftlcd_data  tftlcd_data;
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
 **----------------------------------------------------------------------------*/
@@ -71,15 +72,39 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("All uart initial ok!\r\n");
 	
-	/* 创建开始任务，开始任务在创建好其它任务后删除 */
-	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
-						  (const char*         )"start_task",
-							(uint16_t            )256,
-							(void*               )NULL,
-							(UBaseType_t         )1,
-							(TaskHandle_t*       )&start_task);
-					
-	vTaskStartScheduler();    /* 开启任务调试 */
+	TFTLCD_Init();
+	
+	while(1)
+	{
+		LCD_Clear(WHITE);
+		
+//		LCD_ShowString(10,10,tftlcd_data.width,tftlcd_data.height,12,"Hello World!");
+//		LCD_ShowString(10,30,tftlcd_data.width,tftlcd_data.height,16,"Hello World!");
+		LCD_ShowString(10,50,tftlcd_data.width,tftlcd_data.height,24,"Hello World!");
+		LCD_ShowString(10,50,tftlcd_data.width,tftlcd_data.height,24,"abcde World!");
+		
+//		LCD_ShowString(10,70,tftlcd_data.width,tftlcd_data.height,12,"Hello World!");
+//		LCD_ShowString(10,90,tftlcd_data.width,tftlcd_data.height,16,"Hello World!");
+//		LCD_ShowString(10,120,tftlcd_data.width,tftlcd_data.height,24,"Hello World!");
+//		
+//		LCD_ShowString(10,130,tftlcd_data.width,tftlcd_data.height,12,"Hello World!");
+//		LCD_ShowString(10,150,tftlcd_data.width,tftlcd_data.height,16,"Hello World!");
+//		LCD_ShowString(10,170,tftlcd_data.width,tftlcd_data.height,24,"Hello World!");
+		
+		LCD_Clear(RED);
+		
+		delay_ms(1000);
+	}
+	
+//	/* 创建开始任务，开始任务在创建好其它任务后删除 */
+//	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
+//						  (const char*         )"start_task",
+//							(uint16_t            )256,
+//							(void*               )NULL,
+//							(UBaseType_t         )1,
+//							(TaskHandle_t*       )&start_task);
+//					
+//	vTaskStartScheduler();    /* 开启任务调度 */
 }
 
 
@@ -95,6 +120,7 @@ Return Value	:
 void _CMIOT_StartTaskProc(void *pvParameters)
 {
 	taskENTER_CRITICAL();   /* 进入临界区 */
+	
 	/* 创建CLI任务 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_CliTaskProc,
 						  (const char*         )"cli_task",
@@ -131,7 +157,7 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 	/* The input and output buffers are declared static to keep them off the stack. */
 	static uint8_t pcOutputString[ CLI_MAX_OUTPUT_LENGTH ];
 
-	_CMIOT_CliInit();
+	// _CMIOT_CliInit();
 	
 	while(1)
 	{

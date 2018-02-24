@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\CMSIS;.\FWlib\inc;.\User;.\FreeRTOS\include;.\FreeRTOS\portable\RVDS\ARM_CM3;.\SYSTEM\delay;.\SYSTEM\sys;.\HAL\TIMER;.\HAL\USART;.\FreeRTOS-Plus\FreeRTOS-Plus-CLI;.\HAL\COMMON;.\M5310</IncludePath>
+              <IncludePath>.\CMSIS;.\FWlib\inc;.\User;.\FreeRTOS\include;.\FreeRTOS\portable\RVDS\ARM_CM3;.\SYSTEM\delay;.\SYSTEM\sys;.\HAL\TIMER;.\HAL\USART;.\FreeRTOS-Plus\FreeRTOS-Plus-CLI;.\HAL\COMMON;.\M5310;.\HAL\CLI;.\HAL\LCD</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -692,6 +692,16 @@
               <FileName>cli.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HAL\CLI\cli.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>LCD</GroupName>
+          <Files>
+            <File>
+              <FileName>lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HAL\LCD\lcd.c</FilePath>
             </File>
           </Files>
         </Group>
