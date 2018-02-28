@@ -150,6 +150,14 @@ static const CLI_Definition_List_Item_t *pxCommand = NULL;
 BaseType_t xReturn = pdTRUE;
 const char *pcRegisteredCommandString;
 size_t xCommandStringLength;
+	
+	/* Add By: Zhaoji 
+	 * if command is empty, return
+	 */
+	if(pcCommandInput[0] == 0x00)
+	{
+		return pdFALSE;
+	}
 
 	/* Note:  This function is not re-entrant.  It must not be called from more
 	thank one task. */

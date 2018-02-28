@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-File Name   	  :   usart.c
+File Name   	:   usart.c
 Author          :   zhaoji
 Created Time    :   2018.01.12
 Description     :   USART接口
@@ -41,9 +41,9 @@ extern TaskHandle_t cli_task;     /* CLI任务 */
 
 /*-----------------------------------------------------------------------------
 Function Name	:	Usart_Init
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2017.09
-Description 	: 初始化指定USART接口
+Description 	: 	初始化指定USART接口
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -195,9 +195,9 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate)
 
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_Uart_send
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.02.12
-Description 	: 指定UART口发送数据
+Description 	: 	指定UART口发送数据
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -222,9 +222,9 @@ void _CMIOT_Uart_send(USART_TypeDef *USARTx, uint8_t *senddata, uint32_t datalen
 
 /*-----------------------------------------------------------------------------
 Function Name	:	USART3_IRQHandler
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.02.13
-Description 	: USART3中断处理函数(UART_M5310)
+Description 	: 	USART3中断处理函数(UART_M5310)
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -252,9 +252,9 @@ void USART3_IRQHandler(void)
 
 /*-----------------------------------------------------------------------------
 Function Name	:	USART1_IRQHandler
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.02.13
-Description 	: USART1接收中断处理函数(UART_BLUETOOTH)
+Description 	: 	USART1接收中断处理函数(UART_BLUETOOTH)
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -267,9 +267,9 @@ void USART1_IRQHandler(void)
 
 /*-----------------------------------------------------------------------------
 Function Name	:	USART2_IRQHandler
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.02.13
-Description 	: USART2接收中断处理函数(UART_CLI_DEBUG)
+Description 	: 	USART2接收中断处理函数(UART_CLI_DEBUG)
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -292,7 +292,18 @@ void USART2_IRQHandler(void)
 			return;
 		}
 		
-		if((recvByte != '\r') && (recvByte != '\n') && (UART_CLI_RxBufferLen < sizeof(UART_CLI_RxBuffer)-1))
+		if(recvByte == '\b')    /* 接收删除符 */
+		{
+			USART_SendData(UART_CLI_DEBUG, recvByte);
+			if(UART_CLI_RxBufferLen > 0)
+			{
+				UART_CLI_RxBufferLen --;
+				UART_CLI_RxBuffer[UART_CLI_RxBufferLen] = '\0';
+			}
+			return;
+		}
+		
+		if(UART_CLI_RxBufferLen < sizeof(UART_CLI_RxBuffer)-1)
 		{
 			USART_SendData(UART_CLI_DEBUG, recvByte);
 			UART_CLI_RxBuffer[UART_CLI_RxBufferLen] = recvByte;

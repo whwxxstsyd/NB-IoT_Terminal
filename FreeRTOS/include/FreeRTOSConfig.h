@@ -124,17 +124,17 @@
 /***************************************************************************************************************/
 /*                                FreeRTOS可选函数配置选项                                                     */
 /***************************************************************************************************************/
-#define INCLUDE_xTaskGetSchedulerState          1                       
-#define INCLUDE_vTaskPrioritySet		            1
-#define INCLUDE_uxTaskPriorityGet		            1
-#define INCLUDE_vTaskDelete				              1
-#define INCLUDE_vTaskCleanUpResources	          1
-#define INCLUDE_vTaskSuspend			              1
-#define INCLUDE_vTaskDelayUntil			            1
-#define INCLUDE_vTaskDelay				              1
-#define INCLUDE_eTaskGetState			              1
-#define INCLUDE_xTimerPendFunctionCall	        1
-
+#define INCLUDE_xTaskGetSchedulerState				1                       
+#define INCLUDE_vTaskPrioritySet					1
+#define INCLUDE_uxTaskPriorityGet					1
+#define INCLUDE_vTaskDelete							1
+#define INCLUDE_vTaskCleanUpResources				1
+#define INCLUDE_vTaskSuspend						1
+#define INCLUDE_vTaskDelayUntil						1
+#define INCLUDE_vTaskDelay							1
+#define INCLUDE_eTaskGetState						1
+#define INCLUDE_xTimerPendFunctionCall				1
+#define INCLUDE_uxTaskGetStackHighWaterMark			1
 
 
 /***************************************************************************************************************/
@@ -164,7 +164,7 @@ NVIC value of 255. */
 
 
 
-#define	configCOMMAND_INT_MAX_OUTPUT_SIZE       1
+#define	configCOMMAND_INT_MAX_OUTPUT_SIZE       100
 
 
 #endif /* FREERTOS_CONFIG_H */

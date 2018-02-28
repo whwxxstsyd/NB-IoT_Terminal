@@ -17,10 +17,15 @@
 
 
 
+/*----------------------------------------------------------------------------*
+**                             Global Vars                                    *
+**----------------------------------------------------------------------------*/
+bool DEBUG_FLAG = true;
+
 
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_Debug
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.01.02
 Description 	:	debug函数
 Input Argv		:
@@ -37,7 +42,7 @@ void _CMIOT_Debug(const char *fmt, ...)
 	va_end(ap);
 
 	/* 如果标志位为TRUE，打印至主串口 */
-	if(1)
+	if(DEBUG_FLAG)
 	{
 		_CMIOT_Uart_send(UART_CLI_DEBUG, LogMsg, strlen((const char*)LogMsg));
 	}
@@ -57,13 +62,13 @@ Return Value	:
 int64_t _CMIOT_atoi(const uint8_t *str)
 {
 	int64_t s=0;
-	bool falg=false;
+	bool flag=false;
 
 	if(*str=='-'||*str=='+')
 	{
 		if(*str=='-')
 		{
-			falg=true;
+			flag=true;
 			str++;
 		}
 	}
@@ -80,7 +85,7 @@ int64_t _CMIOT_atoi(const uint8_t *str)
 			break;
 		}
 	}
-	return s*(falg?-1:1);
+	return s*(flag?-1:1);
 }
 
 
@@ -142,7 +147,7 @@ bool _CMIOT_Str_EndWith(uint8_t *Src, uint8_t *dst)
 
 /*-----------------------------------------------------------------------------
 Function Name	:	cm_split
-Author				:	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.02.23
 Description 	:	字符串分割，将字符串按分隔符分割后，依次放到二维数据中，并返回分割后的字符串个数
 Input Argv		:

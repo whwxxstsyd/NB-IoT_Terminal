@@ -31,7 +31,6 @@
 .\objects\lcd.o: .\FWlib\inc\misc.h
 .\objects\lcd.o: .\SYSTEM\sys\sys.h
 .\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
-.\objects\lcd.o: HAL\LCD\font.h
 .\objects\lcd.o: .\HAL\COMMON\common.h
 .\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\lcd.o: .\SYSTEM\delay\delay.h

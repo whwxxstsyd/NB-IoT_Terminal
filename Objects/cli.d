@@ -42,3 +42,7 @@
 .\objects\cli.o: .\FreeRTOS\include\mpu_wrappers.h
 .\objects\cli.o: .\HAL\COMMON\common.h
 .\objects\cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\cli.o: .\FreeRTOS\include\task.h
+.\objects\cli.o: .\FreeRTOS\include\list.h
+.\objects\cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

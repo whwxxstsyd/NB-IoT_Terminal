@@ -59,6 +59,23 @@ Description     :   LCD接口
 #define GRAY  			     0X8430 //灰色
 
 
+#define H_Reset GPIOD->BSRR = GPIO_Pin_12
+#define L_Reset GPIOD->BRR  = GPIO_Pin_12
+
+#define CHAR_FONT_W8_H16	//??????Ⱥ??d?ǌ??Ȭ?ª?CHAR_FONT_W8_H16ªo8*16ª?CHAR_FONT_W16_H21ªo16*21
+//#define CHAR_FONT_W16_H21
+#ifdef  CHAR_FONT_W8_H16	
+	#define  FONT_W  8
+	#define  FONT_H  16
+#endif
+#ifdef  CHAR_FONT_W16_H21
+	#define  FONT_W  16
+	#define  FONT_H  21
+#endif
+
+#define LCD_WIDTH 240
+#define LCD_HEIGHT 320
+
 
 typedef enum
 {
@@ -77,11 +94,9 @@ typedef struct
 }_tftlcd_data;
 
 
-void TFTLCD_Init(void);
+void DispStr(unsigned char *str,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor);
 
-void LCD_ShowString(u16 x,u16 y,u16 width,u16 height,u8 size,u8 *p);
+void GC9304_Init();
 
-void LCD_Clear(u16 color);
 
 #endif
-
