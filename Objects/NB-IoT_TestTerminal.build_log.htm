@@ -22,16 +22,34 @@ Dialog DLL:      TCM.DLL V1.14.4.0
  
 <h2>Project:</h2>
 H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\Usart.uvprojx
-Project File Date:  02/24/2018
+Project File Date:  03/05/2018
 
 <h2>Output:</h2>
 Build target 'NB-IoT_TestTerminal'
-compiling common.c...
-compiling cli.c...
+compiling main.c...
+.\HAL\LCD\lcd.h(106): warning:  #1295-D: Deprecated declaration LCD_GPIO_Init - give arg types
+  void LCD_GPIO_Init();
+.\HAL\LCD\lcd.h(122): warning:  #1295-D: Deprecated declaration ReadData - give arg types
+  u16 ReadData();
+User\main.c(197): warning:  #177-D: variable "msg" was declared but never referenced
+        uint8_t msg[32] = {0};
+User\main.c: 3 warnings, 0 errors
+compiling lcd.c...
+HAL\LCD\lcd.h(106): warning:  #1295-D: Deprecated declaration LCD_GPIO_Init - give arg types
+  void LCD_GPIO_Init();
+HAL\LCD\lcd.h(122): warning:  #1295-D: Deprecated declaration ReadData - give arg types
+  u16 ReadData();
+HAL\LCD\lcd.c(192): warning:  #940-D: missing return statement at end of non-void function "ReadData"
+  }
+HAL\LCD\lcd.c(204): warning:  #940-D: missing return statement at end of non-void function "Short_Read"
+  }
+HAL\LCD\lcd.c(226): warning:  #940-D: missing return statement at end of non-void function "Long_Read"
+  }
+HAL\LCD\lcd.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=17276 RO-data=1064 RW-data=260 ZI-data=12852  
+Program Size: Code=19772 RO-data=2600 RW-data=260 ZI-data=11828  
 FromELF: creating hex file...
-".\Objects\NB-IoT_TestTerminal.axf" - 0 Error(s), 0 Warning(s).
+".\Objects\NB-IoT_TestTerminal.axf" - 0 Error(s), 8 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE

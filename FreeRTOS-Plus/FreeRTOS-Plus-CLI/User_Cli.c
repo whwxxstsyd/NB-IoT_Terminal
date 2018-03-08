@@ -9,7 +9,7 @@ Description     :   CLI接口
 /*---------------------------------------------------------------------------*
                                Dependencies                                  *
 -----------------------------------------------------------------------------*/
-#include "cli.h"
+#include "User_Cli.h"
 #include "stm32f10x.h"
 #include "FreeRTOS_CLI.h"
 #include "common.h"
@@ -27,14 +27,13 @@ Description     :   CLI接口
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
-//FreeRTOS时间统计所用的节拍计数器
-extern volatile unsigned long long FreeRTOSRunTimeTicks;
+extern volatile unsigned long long FreeRTOSRunTimeTicks;	/* FreeRTOS时间统计所用的节拍计数器 */
 
 extern TaskHandle_t start_task;     /* 开始任务   */
 extern TaskHandle_t cli_task;       /* CLI任务    */
 extern TaskHandle_t m5310_task;     /* M5310任务  */
 
-extern bool DEBUG_FLAG;
+extern bool DEBUG_FLAG;	/* 调试信息打印标志位，为true时将调试信息打印至调试串口 */
 
 /*----------------------------------------------------------------------------*
 **                             Function Declare                               *
@@ -73,7 +72,7 @@ static CLI_Command_Definition_t CliCommandList[] =
 
 
 /*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_CliInit
+Function Name	:	_CMIOT_CLI_Init
 Author			:	zhaoji
 Created Time	:	2018.02.28
 Description 	:	CLI命令初始化
@@ -81,7 +80,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_CliInit(void)
+void _CMIOT_CLI_Init(void)
 {
 	uint8_t i;
 	/* 注册所有支持的命令 */

@@ -58,7 +58,7 @@ uint32_t _CMIOT_M5310_GetRegisterTime(void)
 	uint32_t start_time;
 	uint32_t end_time;
 	
-	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 30000);   /* 重启模组，并等待启动信息 */
+	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 5000);   /* 重启模组，并等待启动信息 */
 	
 	if(result == 1)
 	{
@@ -384,7 +384,15 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 
 
 
-
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_M5310_ICMP_Request
+Author			:	zhaoji
+Created Time	:	2018.03.05
+Description 	: 	测试ping延时
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 
 
 

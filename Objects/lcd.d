@@ -29,8 +29,7 @@
 .\objects\lcd.o: .\FWlib\inc\stm32f10x_usart.h
 .\objects\lcd.o: .\FWlib\inc\stm32f10x_wwdg.h
 .\objects\lcd.o: .\FWlib\inc\misc.h
-.\objects\lcd.o: .\SYSTEM\sys\sys.h
-.\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
-.\objects\lcd.o: .\HAL\COMMON\common.h
-.\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\lcd.o: .\SYSTEM\delay\delay.h
+.\objects\lcd.o: .\SYSTEM\sys\sys.h

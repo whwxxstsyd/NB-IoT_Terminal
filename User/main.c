@@ -21,8 +21,8 @@ Description     :   LCD接口
 #include "common.h"
 #include "m5310.h"
 #include "FreeRTOS_CLI.h"
-#include "cli.h"
 #include "lcd.h"
+#include "User_Cli.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -43,7 +43,7 @@ TaskHandle_t start_task;     /* 开始任务   */
 TaskHandle_t cli_task;       /* CLI任务    */
 TaskHandle_t m5310_task;     /* M5310任务  */
 
-extern _tftlcd_data  tftlcd_data;
+
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
 **----------------------------------------------------------------------------*/
@@ -81,22 +81,24 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
-//	GC9304_Init();
-//	
-//	while(1)
-//	{
-//		DispStr("TEST BEGIN",0,0,0x0000,0xffff);////Add Display Imformation on LCD
-//		
-//		delay_ms(1000);
-//	}
+	LCD_Init();
+	
+	DispStr("TEST BEGIN",0,0,0x0000,0xffff);////Add Display Imformation on LCD
+	
+//	LCD_ShowString(10,0,"TFT_LCD_TEST_DEMO ^_^");	
+//	LCD_ShowString(10,20,"2.4'/2.8' TFTLCD TEST");	
+//	LCD_ShowString(10,40,"WWW.51LCM.COM");
+//	LCD_ShowString(10,60,"2013/12/30"); 
+//	LCD_ShowString(10,100,"DEV_IC:");
+//	LCD_ShowString(10,80,"Model:");
 	
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
-						  (const char*         )"start_task",
-							(uint16_t            )256,
-							(void*               )NULL,
-							(UBaseType_t         )1,
-							(TaskHandle_t*       )&start_task);
+				(const char*         )"start_task",
+				(uint16_t            )256,
+				(void*               )NULL,
+				(UBaseType_t         )1,
+				(TaskHandle_t*       )&start_task);
 					
 	vTaskStartScheduler();    /* 开启任务调度 */
 }
@@ -151,8 +153,8 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 	BaseType_t xMoreDataToFollow;
 	/* The input and output buffers are declared static to keep them off the stack. */
 	static uint8_t pcOutputString[ CLI_MAX_OUTPUT_LENGTH ];
-
-	_CMIOT_CliInit();
+	
+	_CMIOT_CLI_Init();
 	
 	while(1)
 	{
@@ -160,7 +162,7 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 		
 		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
-			_CMIOT_Debug("Received a CLI Command\r\n");
+			_CMIOT_Debug("CLI Command Receive [CR][LF]\r\n");
 			memset(pcOutputString, 0, sizeof(pcOutputString));
 			do
 			{
@@ -192,8 +194,16 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_M5310TaskProc(void *pvParameters)
 {
-	_CMIOT_M5310_GetRegisterTime();
-	_CMIOT_M5310_GetSignalstrength();
+	uint8_t msg[32] = {0};
+	
+//	sprintf((char *)msg, "Register time: %d\r\n", _CMIOT_M5310_GetRegisterTime());
+//	LCD_ShowString(30,40,200,24,24,msg);
+//	
+//	sprintf((char *)msg, "CSQ VALUE: %d\r\n", _CMIOT_M5310_GetSignalstrength());
+//	LCD_ShowString(30,70,200,24,24,msg);
+	
+	
+	// _CMIOT_M5310_GetSignalstrength();
 	_CMIOT_M5310_GetUeState();
 	while(1)
 	{

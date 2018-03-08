@@ -1,68 +1,26 @@
-/*-----------------------------------------------------------------------------
-File Name   	  :   lcd.h
-Author          :   zhaoji
-Created Time    :   2018.02.24
-Description     :   LCD接口
------------------------------------------------------------------------------*/
-
-#ifndef __LCD_H__
-#define __LCD_H__
-
 #include "stm32f10x.h"
+#include <stdio.h>
+#include "stdlib.h"
+#include <delay.h>
 #include "sys.h"
-#include "stddef.h"
 
 
-/*---------------------------------------------------------------------------*
-                               Dependencies                                  *
------------------------------------------------------------------------------*/
-#define TFTLCD_R61509V
-
-#define	Data0_OUT          PDout(14)
-#define	Data1_OUT          PDout(15)
-#define	Data2_OUT          PDout(0)
-#define	Data3_OUT          PDout(1)
-#define	Data4_OUT          PEout(7)
-#define	Data5_OUT          PEout(8)
-#define	Data6_OUT          PEout(9)
-#define	Data7_OUT          PEout(10)
-#define	Data8_OUT          PEout(11)
-#define	Data9_OUT          PEout(12)
-#define	Data10_OUT         PEout(13)
-#define	Data11_OUT         PEout(14)
-#define	Data12_OUT         PEout(15)
-#define	Data13_OUT         PDout(8)
-#define	Data14_OUT         PDout(9)
-#define	Data15_OUT         PDout(10)
+#define LCD_WIDTH 240
+#define LCD_HEIGHT 320
 
 
-#define CS                 PGout(12)
-#define RS                 PGout(0)
-#define WR                 PDout(5)
-#define RD                 PDout(4)
+#define RED    0xF800		 //?����???��?3�ꨢ? 
+#define GREEN  0x07E0
+#define BLUE   0x001F
+#define WHITE  0xFFFF
+#define BLACK  0x0000
+#define GRAY   0xEF5D	     //0x2410
+#define GRAY75 0x39E7 
+#define GRAY50 0x7BEF	
+#define GRAY25 0xADB5	
 
 
-//画笔颜色
-#define WHITE         	 0xFFFF
-#define BLACK         	 0x0000	  
-#define BLUE         	   0x001F  
-#define BRED             0XF81F
-#define GRED 			       0XFFE0
-#define GBLUE			       0X07FF
-#define RED           	 0xF800
-#define MAGENTA       	 0xF81F
-#define GREEN         	 0x07E0
-#define CYAN          	 0x7FFF
-#define YELLOW        	 0xFFE0
-#define BROWN 			     0XBC40 //棕色
-#define BRRED 			     0XFC07 //棕红色
-#define GRAY  			     0X8430 //灰色
-
-
-#define H_Reset GPIOD->BSRR = GPIO_Pin_12
-#define L_Reset GPIOD->BRR  = GPIO_Pin_12
-
-#define CHAR_FONT_W8_H16	//??????Ⱥ??d?ǌ??Ȭ?ª?CHAR_FONT_W8_H16ªo8*16ª?CHAR_FONT_W16_H21ªo16*21
+#define CHAR_FONT_W8_H16	//??????¨º?¡Á?¡¤?¦Ì?¡Á?¨¬?¡ê?CHAR_FONT_W8_H16¡êo8*16¡ê?CHAR_FONT_W16_H21¡êo16*21
 //#define CHAR_FONT_W16_H21
 #ifdef  CHAR_FONT_W8_H16	
 	#define  FONT_W  8
@@ -73,30 +31,96 @@ Description     :   LCD接口
 	#define  FONT_H  21
 #endif
 
-#define LCD_WIDTH 240
-#define LCD_HEIGHT 320
+
+#define LCD_BASE0        ((u32)0x60000000)
+#define LCD_BASE1        ((u32)0x60020000)
+
+//#define LCD_CtrlWrite(cmd)	  *(vu16*) (LCD_BASE0)= (cmd)
+//#define LCD_DataWrite(data)   *(vu16*) (LCD_BASE1)= (data)
+#define	LCD_StatusRead()	 *(vu16*) (LCD_BASE0)
+#define	LCD_DataRead()   	 *(vu16*) (LCD_BASE1)
+
+//#define MCU_DIR_Write GPIOA->BSRR = GPIO_Pin_0
+//#define MCU_DIR_Read  GPIOA->BRR = GPIO_Pin_0
+
+//#define RGB_DIR_Write GPIOC->BRR = GPIO_Pin_0
+//#define RGB_DIR_Read GPIOC->BSRR = GPIO_Pin_0
+
+//#define H_Reset GPIOD->BSRR = GPIO_Pin_12
+//#define L_Reset GPIOD->BRR  = GPIO_Pin_12
 
 
-typedef enum
-{
-	CM_DISABLE,
-	CM_ENABLE
-} CM_STATE;
+//#define H_CS GPIOC->BSRR = GPIO_Pin_9
+//#define L_CS GPIOC->BRR  = GPIO_Pin_9
+
+//#define H_RS GPIOC->BSRR = GPIO_Pin_8
+//#define L_RS GPIOC->BRR  = GPIO_Pin_8
+
+//#define H_SCL GPIOB->BSRR = GPIO_Pin_13
+//#define L_SCL GPIOB->BRR  = GPIO_Pin_13
+
+//#define H_SDA GPIOB->BSRR = GPIO_Pin_15
+//#define L_SDA GPIOB->BRR  = GPIO_Pin_15
+
+#define	LCD_CS_SET  GPIOC->BSRR=1<<9    //片选端口  		PC9
+#define	LCD_RS_SET	GPIOC->BSRR=1<<8    //数据/命令 		PC8	   
+#define	LCD_WR_SET	GPIOC->BSRR=1<<7    //写数据			PC7
+#define	LCD_RD_SET	GPIOC->BSRR=1<<6    //读数据			PC6
+								    
+#define	LCD_CS_CLR  GPIOC->BRR=1<<9     //片选端口  		PC9
+#define	LCD_RS_CLR	GPIOC->BRR=1<<8     //数据/命令		PC8	   
+#define	LCD_WR_CLR	GPIOC->BRR=1<<7     //写数据			PC7
+#define	LCD_RD_CLR	GPIOC->BRR=1<<6     //读数据			PC6  
+
+#define Data0out	PBout(8)
+#define Data1out	PBout(9)
+#define Data2out	PBout(10)
+#define Data3out	PBout(11)
+#define Data4out	PBout(12)
+#define Data5out	PBout(13)
+#define Data6out	PBout(14)
+#define Data7out	PBout(15)
 
 
-//TFTLCD重要参数集
-typedef struct  
-{										    
-	u16 width;			//LCD 宽度
-	u16 height;			//LCD 高度
-	u16 id;				  //LCD ID
-	u8  dir;        //LCD 方向
-}_tftlcd_data;
+void SPI_Send(unsigned char _dat);
+
+#define LCD_CtrlWrite(cmd)\
+				LCD_RS_CLR;\
+				LCD_CS_CLR;\
+				SPI_Send(cmd);\
+				LCD_WR_CLR;\
+				LCD_WR_SET;\
+				LCD_CS_SET;
+				
 
 
+
+#define LCD_DataWrite(data)\
+				LCD_RS_SET;\
+				LCD_CS_CLR;\
+				SPI_Send(data);\
+				LCD_WR_CLR;\
+				LCD_WR_SET;\
+				LCD_CS_SET;
+
+void LCD_GPIO_Init();
+void LCD_RST(void);
+void LCD_Init(void);
+void BlockWrite(unsigned int Xstart,unsigned int Xend,unsigned int Ystart,unsigned int Yend);
+void DispColor(unsigned int color);
+void sd_showbmp(char * fname);
+u16 SPI_Read_ID(void);
+extern const unsigned char ascii[]; 
 void DispStr(unsigned char *str,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor);
 
-void GC9304_Init();
+//void SPI_CMD(unsigned int _cmd);
+//void SPI_DAT(unsigned int _dat);
 
 
-#endif
+void SPI_8BIT(void);
+void SPI_16BIT(void);
+u16 ReadData();
+u16 Long_Read(u8 adrress);
+u16 Short_Read(u8 adrress);
+
+

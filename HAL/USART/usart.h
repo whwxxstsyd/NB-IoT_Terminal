@@ -1,8 +1,8 @@
 /*-----------------------------------------------------------------------------
-File Name   	  :   usart.h
-Author          :   zhaoji
-Created Time    :   2018.01.12
-Description     :   USART接口
+File Name		:   usart.h
+Author			:   zhaoji
+Created Time	:   2018.01.12
+Description		:   USART接口
 -----------------------------------------------------------------------------*/
 
 
@@ -25,7 +25,7 @@ Description     :   USART接口
 
 /*-----------------------------------------------------------------------------
 Function Name	:	Usart_Init
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2017.09
 Description 	: 初始化指定USART接口
 Input Argv		:
@@ -37,7 +37,7 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate);
 
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_Uart_send
-Author			  :	zhaoji
+Author			:	zhaoji
 Created Time	:	2017.09
 Description 	: 指定UART口发送数据
 Input Argv		:

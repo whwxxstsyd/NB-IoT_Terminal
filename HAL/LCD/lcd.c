@@ -1,169 +1,232 @@
-/*-----------------------------------------------------------------------------
-File Name   	:   lcd.c
-Author          :   zhaoji
-Created Time    :   2018.02.24
-Description     :   LCDæŽ¥å£
------------------------------------------------------------------------------*/
+/*
+  ******************************************************************************
+  * @file    LCD
+  * @author  LCD
+  * @version V1.0
+  * @date    20170101
+  * @brief   LCD
+  ******************************************************************************
+*/
+
 #include "lcd.h"
-#include "common.h"
-#include "delay.h"
 
-/*----------------------------------------------------------------------------*
-                               Dependencies                                   *
-------------------------------------------------------------------------------*/
+#include "stm32f10x_gpio.h"
 
 
+#define SPIT_FLAG_TIMEOUT         ((uint32_t)0x1000)
+#define SPIT_LONG_TIMEOUT         ((uint32_t)(10 * SPIT_FLAG_TIMEOUT))
+static __IO uint32_t  SPITimeout = SPIT_LONG_TIMEOUT;    
 
-/*----------------------------------------------------------------------------*
-**                             Mcaro Definitions                              *
-**----------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------*
-**                             Global Vars                                    *
-**----------------------------------------------------------------------------*/
-_tftlcd_data  tftlcd_data;
-
-//LCDçš„ç”»ç¬”é¢œè‰²å’ŒèƒŒæ™¯è‰²	   
-u16 FRONT_COLOR=BLACK;	//ç”»ç¬”é¢œè‰²
-u16 BACK_COLOR=WHITE;  //èƒŒæ™¯è‰² 
-
-/*----------------------------------------------------------------------------*
-**                             Local Vars                                     *
-**----------------------------------------------------------------------------*/
-
-
-void _CMIOT_Ctrl_GPIO_Init(void)
+void SPI_Send(unsigned char _dat)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD,ENABLE);    
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOG,ENABLE);    
-
-	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_4|GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_Out_PP;       
-	GPIO_Init(GPIOD,&GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_0|GPIO_Pin_12;
-	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_Out_PP;       
-	GPIO_Init(GPIOG,&GPIO_InitStructure);
+	Data0out = (_dat>>0)&0x01;
+	Data1out = (_dat>>1)&0x01;
+	Data2out = (_dat>>2)&0x01;
+	Data3out = (_dat>>3)&0x01;
+	Data4out = (_dat>>4)&0x01;
+	Data5out = (_dat>>5)&0x01;
+	Data6out = (_dat>>6)&0x01;
+	Data7out = (_dat>>7)&0x01;
 }
 
-
-void Write_config(FunctionalState NewState)
+void SPI_8BIT(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;            
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD,ENABLE);    
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE,ENABLE);   
-	if(NewState!=DISABLE)
+	SPI_InitTypeDef  SPI_InitStructure;
+
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;  //ÉèÖÃSPIµ¥Ïò»òÕßË«ÏòµÄÊý¾ÝÄ£Ê½:SPIÉèÖÃÎªË«ÏßË«ÏòÈ«Ë«¹¤
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		//ÉèÖÃSPI¹¤×÷Ä£Ê½:ÉèÖÃÎªÖ÷SPI
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		//ÉèÖÃSPIµÄÊý¾Ý´óÐ¡:SPI·¢ËÍ½ÓÊÕ8Î»Ö¡½á¹¹
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;		//´®ÐÐÍ¬²½Ê±ÖÓµÄ¿ÕÏÐ×´Ì¬Îª¸ßµçÆ½
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	//´®ÐÐÍ¬²½Ê±ÖÓµÄµÚ¶þ¸öÌø±äÑØ£¨ÉÏÉý»òÏÂ½µ£©Êý¾Ý±»²ÉÑù
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		//NSSÐÅºÅÓÉÓ²¼þ£¨NSS¹Ü½Å£©»¹ÊÇÈí¼þ£¨Ê¹ÓÃSSIÎ»£©¹ÜÀí:ÄÚ²¿NSSÐÅºÅÓÐSSIÎ»¿ØÖÆ
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;//SPI_BaudRatePrescaler_2;		//¶¨Òå²¨ÌØÂÊÔ¤·ÖÆµµÄÖµ:²¨ÌØÂÊÔ¤·ÖÆµÖµÎª256
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	//Ö¸¶¨Êý¾Ý´«Êä´ÓMSBÎ»»¹ÊÇLSBÎ»¿ªÊ¼:Êý¾Ý´«Êä´ÓMSBÎ»¿ªÊ¼
+	SPI_InitStructure.SPI_CRCPolynomial = 7;	//CRCÖµ¼ÆËãµÄ¶àÏîÊ½
+	SPI_Init(SPI2, &SPI_InitStructure);  //¸ù¾ÝSPI_InitStructÖÐÖ¸¶¨µÄ²ÎÊý³õÊ¼»¯ÍâÉèSPIx¼Ä´æÆ÷
+ 
+	SPI_Cmd(SPI2, ENABLE); //Ê¹ÄÜSPIÍâÉè
+}	
+void SPI_16BIT(void)
+{
+	SPI_InitTypeDef  SPI_InitStructure;
+
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;  //ÉèÖÃSPIµ¥Ïò»òÕßË«ÏòµÄÊý¾ÝÄ£Ê½:SPIÉèÖÃÎªË«ÏßË«ÏòÈ«Ë«¹¤
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		//ÉèÖÃSPI¹¤×÷Ä£Ê½:ÉèÖÃÎªÖ÷SPI
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_16b;		//ÉèÖÃSPIµÄÊý¾Ý´óÐ¡:SPI·¢ËÍ½ÓÊÕ16Î»Ö¡½á¹¹
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;		//´®ÐÐÍ¬²½Ê±ÖÓµÄ¿ÕÏÐ×´Ì¬Îª¸ßµçÆ½
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	//´®ÐÐÍ¬²½Ê±ÖÓµÄµÚ¶þ¸öÌø±äÑØ£¨ÉÏÉý»òÏÂ½µ£©Êý¾Ý±»²ÉÑù
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		//NSSÐÅºÅÓÉÓ²¼þ£¨NSS¹Ü½Å£©»¹ÊÇÈí¼þ£¨Ê¹ÓÃSSIÎ»£©¹ÜÀí:ÄÚ²¿NSSÐÅºÅÓÐSSIÎ»¿ØÖÆ
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;//SPI_BaudRatePrescaler_2;		//¶¨Òå²¨ÌØÂÊÔ¤·ÖÆµµÄÖµ:²¨ÌØÂÊÔ¤·ÖÆµÖµÎª256
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	//Ö¸¶¨Êý¾Ý´«Êä´ÓMSBÎ»»¹ÊÇLSBÎ»¿ªÊ¼:Êý¾Ý´«Êä´ÓMSBÎ»¿ªÊ¼
+	SPI_InitStructure.SPI_CRCPolynomial = 7;	//CRCÖµ¼ÆËãµÄ¶àÏîÊ½
+	SPI_Init(SPI2, &SPI_InitStructure);  //¸ù¾ÝSPI_InitStructÖÐÖ¸¶¨µÄ²ÎÊý³õÊ¼»¯ÍâÉèSPIx¼Ä´æÆ÷
+ 
+	//SPI_Cmd(SPI2, ENABLE); //Ê¹ÄÜSPIÍâÉè
+}	
+
+u16 id=0;
+
+u8 SPI_FLASH_SendByte(u8 byte)
+{
+	 SPITimeout = SPIT_FLAG_TIMEOUT;
+  /* µÈ´ý·¢ËÍ»º³åÇøÎª¿Õ£¬TXEÊÂ¼þ */
+  while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET)
 	{
-		GPIO_InitStructure.GPIO_Pin=GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_8|
-									GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_14|GPIO_Pin_15;
-		GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-		GPIO_InitStructure.GPIO_Mode=GPIO_Mode_Out_PP;      
-		GPIO_Init(GPIOD,&GPIO_InitStructure);
-		GPIO_InitStructure.GPIO_Pin=GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|
-									GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|
-									GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-		GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-		GPIO_InitStructure.GPIO_Mode=GPIO_Mode_Out_PP;      
-		GPIO_Init(GPIOE,&GPIO_InitStructure);
-	}
-	else
-	{
-		GPIO_InitStructure.GPIO_Pin=GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_8|
-									GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_14|GPIO_Pin_15;
-		GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-		GPIO_InitStructure.GPIO_Mode=GPIO_Mode_IPU;       
-		GPIO_Init(GPIOD,&GPIO_InitStructure);
-		GPIO_InitStructure.GPIO_Pin=GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|
-									GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|
-									GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-		GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-		GPIO_InitStructure.GPIO_Mode=GPIO_Mode_IPU;        
-		GPIO_Init(GPIOE,&GPIO_InitStructure);
-	}
+    if((SPITimeout--) == 0) return 0;
+   }
+
+  /* Ð´ÈëÊý¾Ý¼Ä´æÆ÷£¬°ÑÒªÐ´ÈëµÄÊý¾ÝÐ´Èë·¢ËÍ»º³åÇø */
+  SPI_I2S_SendData(SPI2 , byte);
+
+	SPITimeout = SPIT_FLAG_TIMEOUT;
+  /* µÈ´ý½ÓÊÕ»º³åÇø·Ç¿Õ£¬RXNEÊÂ¼þ */
+  while (SPI_I2S_GetFlagStatus(SPI2 , SPI_I2S_FLAG_RXNE) == RESET)
+  {
+    if((SPITimeout--) == 0) return 0;
+   }
+
+  /* ¶ÁÈ¡Êý¾Ý¼Ä´æÆ÷£¬»ñÈ¡½ÓÊÕ»º³åÇøÊý¾Ý */
+  return SPI_I2S_ReceiveData(SPI2 );
 }
 
-
-void Write_data(unsigned char Data)
-{
-	unsigned char temp=0x00;
-	temp=Data;
-	Data0_OUT=(temp>>0)&0x01;
-	Data1_OUT=(temp>>1)&0x01;
-	Data2_OUT=(temp>>2)&0x01;
-	Data3_OUT=(temp>>3)&0x01;
-	Data4_OUT=(temp>>4)&0x01;
-	Data5_OUT=(temp>>5)&0x01;
-	Data6_OUT=(temp>>6)&0x01;
-	Data7_OUT=(temp>>7)&0x01;
-//	Data8_OUT=(temp>>8)&0x0001;
-//	Data9_OUT=(temp>>9)&0x0001;
-//	Data10_OUT=(temp>>10)&0x0001;
-//	Data11_OUT=(temp>>11)&0x0001;
-//	Data12_OUT=(temp>>12)&0x0001;
-//	Data13_OUT=(temp>>13)&0x0001;
-//	Data14_OUT=(temp>>14)&0x0001;
-//	Data15_OUT=(temp>>15)&0x0001;
-}
-
-
-
-
-/**
- *LCDå†™æ•°æ®
- *
- *
- */
-void LCD_DataWrite(unsigned char Data)
-{
-	Write_config(ENABLE);
-	CS=0;
-	RS=1;
-	RD=1;
-	Write_data(Data);
-	WR=0;
-	WR=1;
-	CS=1;
-}
-
-
-/**
- *LCDå†™å‘½ä»¤
- *
- *Â·
- */
-void LCD_CtrlWrite(unsigned char Cmd)
-{
-	Write_config(ENABLE);
-	CS=0;
-	RS=0;
-	RD=1;
-	Write_data(Cmd);
-	WR=0;
-	WR=1;
-	CS=1;
-}
 
 
 
 void LCD_RST(void)
 {
-	H_Reset;
-	delay_ms(20);
-	L_Reset;
-	delay_ms(20);
-	H_Reset;
-	delay_ms(120);
+//	H_Reset;
+//	delay_ms(20);
+//	L_Reset;
+//	delay_ms(20);
+//	H_Reset;
+//	delay_ms(120);
 }
 
+void BlockWrite(unsigned int Xstart,unsigned int Xend,unsigned int Ystart,unsigned int Yend)
+{
+	LCD_CtrlWrite(0x2a);   
+	LCD_DataWrite(Xstart>>8);
+	LCD_DataWrite(Xstart&0xff);
+	LCD_DataWrite(Xend>>8);
+	LCD_DataWrite(Xend&0xff);
+
+	LCD_CtrlWrite(0x2b);   
+	LCD_DataWrite(Ystart>>8);
+	LCD_DataWrite(Ystart&0xff);
+	LCD_DataWrite(Yend>>8);
+	LCD_DataWrite(Yend&0xff);
+
+	LCD_CtrlWrite(0x2c);
+}
+
+#if 1
+void DispColor(unsigned int color)
+{
+	unsigned int i,j;
+
+	BlockWrite(0,LCD_WIDTH-1,0,LCD_HEIGHT-1);
+
+	for(i=0;i<LCD_WIDTH;i++)
+	{
+	    for(j=0;j<LCD_HEIGHT;j++)
+		{    
+			LCD_DataWrite((color>>16)&0xFF);  ////RGB666 mode
+			LCD_DataWrite((color>>8)&0xFF);
+			LCD_DataWrite(color&0xFF);
+		}
+	}
+
+}	
+#else
+void DispColor(unsigned int color)
+{
+	unsigned int i,j;
+
+	BlockWrite(0,LCD_WIDTH-1,0,LCD_HEIGHT-1);
+
+	for(i=0;i<LCD_WIDTH;i++)
+	{
+	    for(j=0;j<LCD_HEIGHT;j++)
+		{    
+			 LCD_DataWrite(color>>8);    /////RGB565 mode
+			 LCD_DataWrite(color&0xFF);
+		}
+	}
+
+}	
+#endif
+u16 SPI_Read_ID()
+{
+	unsigned char lcd_id_h=0,lcd_id_l=0;
+    u16 lcd_id=0;
+
+	LCD_CtrlWrite(0xdb);
+	lcd_id_h = ReadData(); 
+
+	LCD_CtrlWrite(0xdc);
+	lcd_id_l = ReadData(); 
+	
+	lcd_id=lcd_id_h<<8|lcd_id_l;
+	return lcd_id;
+}
+
+u16 ReadData()
+{
+//	u8 i=0,dat=0;
+
+//	for(i=0;i<8;i++)
+//	{
+//		L_SCL;
+//		MCU_DIR_Read;
+//		RGB_DIR_Read;
+//		__NOP;__NOP;__NOP;
+//		dat=(dat<<1)|GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_15);
+
+//		MCU_DIR_Write;
+//		RGB_DIR_Write;
+//		__NOP;__NOP;__NOP;
+//		H_SCL;
+//		__NOP;__NOP;__NOP;
+//	}
+//	return dat;
+}
+
+u16 Short_Read(u8 adrress)
+{
+//	u8 dat=0;
+//	L_CS;
+//	L_RS;
+//	SPI_Send(adrress);
+//	H_RS;
+//	dat=ReadData();
+//	H_CS;
+//	return dat;
+}
+
+u16 Long_Read(u8 adrress)
+{
+//	u16 data=0x00,Read_1,Read_2,Read_3,Read_4;
+//	
+//	L_CS;
+//	L_RS;
+//	SPI_Send(adrress);
+//	H_RS;
+//	
+//	L_SCL;
+//	H_SCL; ////dummy read 
+//	
+//	Read_1=ReadData();
+//	Read_2=ReadData();
+//	Read_3=ReadData();
+////	Read_4=ReadData();
+
+//	H_CS;
+//	data=Read_2<<8|Read_3;
+//	return data;
+}
 
 void GC9304_Init()
 {
-	LCD_RST();
-	
 	LCD_CtrlWrite(0xfe);// internal reg enable	
 	LCD_CtrlWrite(0xef);//// internal reg enable	
 	LCD_CtrlWrite(0x36);
@@ -261,6 +324,128 @@ void GC9304_Init()
 	LCD_CtrlWrite(0x2c);
 }
 
+void GC9305_Init()
+{
+	LCD_CtrlWrite(0xfe);
+	LCD_CtrlWrite(0xef);
+	LCD_CtrlWrite(0x36);
+	LCD_DataWrite(0x48);
+	LCD_CtrlWrite(0x3a);
+	LCD_DataWrite(0x06);
+	//------end display control setting----//
+	//------Power Control Registers Initial----//
+	LCD_CtrlWrite(0xa4);
+	LCD_DataWrite(0x44);
+	LCD_DataWrite(0x44);
+	LCD_CtrlWrite(0xa5);
+	LCD_DataWrite(0x42);
+	LCD_DataWrite(0x42);
+	LCD_CtrlWrite(0xaa);
+	LCD_DataWrite(0x88);
+	LCD_DataWrite(0x88);
+	LCD_CtrlWrite(0xe8);
+	LCD_DataWrite(0x11);
+	LCD_DataWrite(0x0b);
+	LCD_CtrlWrite(0xe3);
+	LCD_DataWrite(0x01);
+	LCD_DataWrite(0x10);
+	LCD_CtrlWrite(0xff);
+	LCD_DataWrite(0x61);
+	LCD_CtrlWrite(0xAC);
+	LCD_DataWrite(0x00);
+	LCD_CtrlWrite(0xAd);//ldo enable
+	LCD_DataWrite(0x33);
+	
+	LCD_CtrlWrite(0xae);
+	LCD_DataWrite(0x2b);
+	
+	LCD_CtrlWrite(0xAf);//DIG_VREFAD_VRDD[2]
+	LCD_DataWrite(0x55);
+	
+	LCD_CtrlWrite(0xa6);
+	LCD_DataWrite(0x2a);
+	LCD_DataWrite(0x2a);
+	LCD_CtrlWrite(0xa7);
+	LCD_DataWrite(0x2b);
+	LCD_DataWrite(0x2b);
+	LCD_CtrlWrite(0xa8);
+	LCD_DataWrite(0x18);
+	LCD_DataWrite(0x18);
+	LCD_CtrlWrite(0xa9);
+	LCD_DataWrite(0x2a);
+	LCD_DataWrite(0x2a);
+	
+	//-----display window 240X320---------//
+	LCD_CtrlWrite(0x2a);
+	LCD_DataWrite(0x00);
+	LCD_DataWrite(0x00);
+	LCD_DataWrite(0x00);
+	LCD_DataWrite(0xef);
+	LCD_CtrlWrite(0x2b);
+	LCD_DataWrite(0x00);
+	LCD_DataWrite(0x00);
+	LCD_DataWrite(0x01);
+	LCD_DataWrite(0x3f);
+	LCD_CtrlWrite(0x2c);
+	//--------end display window --------------//
+	//------------gamma setting------------------//
+	LCD_CtrlWrite(0xf0);
+	LCD_DataWrite(0x2);
+	LCD_DataWrite(0x0);
+	LCD_DataWrite(0x0);
+	LCD_DataWrite(0x25);
+	LCD_DataWrite(0x26);
+	LCD_DataWrite(0x5);
+	LCD_CtrlWrite(0xf1);
+	LCD_DataWrite(0x1);
+	LCD_DataWrite(0x3);
+	LCD_DataWrite(0x0);
+	LCD_DataWrite(0x33);
+	LCD_DataWrite(0x33);
+	LCD_DataWrite(0xA);
+	LCD_CtrlWrite(0xf2);
+	LCD_DataWrite(0x5);
+	LCD_DataWrite(0x3);
+	LCD_DataWrite(0x3C);
+	LCD_DataWrite(0x4);
+	LCD_DataWrite(0x4);
+	LCD_DataWrite(0x4C);
+	LCD_CtrlWrite(0xf3);
+	LCD_DataWrite(0x9);
+	LCD_DataWrite(0x4);
+	LCD_DataWrite(0x47);
+	LCD_DataWrite(0x3);
+	LCD_DataWrite(0x2);
+	LCD_DataWrite(0x52);
+	LCD_CtrlWrite(0xf4);
+	LCD_DataWrite(0xA);
+	LCD_DataWrite(0x17);
+	LCD_DataWrite(0x16);
+	LCD_DataWrite(0x1F);
+	LCD_DataWrite(0x21);
+	LCD_DataWrite(0xF);
+	LCD_CtrlWrite(0xf5);
+	LCD_DataWrite(0x7);
+	LCD_DataWrite(0x12);
+	LCD_DataWrite(0x12);
+	LCD_DataWrite(0x1F);
+	LCD_DataWrite(0x20);
+	LCD_DataWrite(0xF);
+	//--------end gamma setting--------------//
+	LCD_CtrlWrite(0x11);
+	delay_ms(120);
+	LCD_CtrlWrite(0x29);
+	LCD_CtrlWrite(0x2c);
+}
+
+void LCD_Init(void)
+{
+	LCD_RST();
+	GC9304_Init();
+
+}
+
+
 
 void WriteOneDot(unsigned int color)
 { 
@@ -270,31 +455,174 @@ void WriteOneDot(unsigned int color)
 
 }
 
+#if 1//def STRING_FUNCTION
 
-void BlockWrite(unsigned int Xstart,unsigned int Xend,unsigned int Ystart,unsigned int Yend)
+//ascii 32~90(!~Z), (32~47)¿Õ¸ñ~/,(48~57)0~9,(58~64):~@,(65~126)A~~
+//ord 0~95, (48~57)0~9,(65~126)A~z,(33~47)!~/,(58~64):~@
+unsigned char ToOrd(unsigned char ch)
 {
-	LCD_CtrlWrite(0x2a);   
-	LCD_DataWrite(Xstart>>8);
-	LCD_DataWrite(Xstart&0xff);
-	LCD_DataWrite(Xend>>8);
-	LCD_DataWrite(Xend&0xff);
+	if(ch<32)
+	{
+		ch=95;
+	}
+	else if((ch>=32)&&(ch<=47)) //(32~47)¿Õ¸ñ~/
+	{
+		ch=(ch-32)+10+62;
+	}
+	else if((ch>=48)&&(ch<=57))//(48~57)0~9
+	{
+		ch=ch-48;
+	}
+	else if((ch>=58)&&(ch<=64))//(58~64):~@
+	{
+		ch=(ch-58)+10+62+16;
+	}
+	else if((ch>=65)&&(ch<=126))//(65~126)A~~
+	{
+		ch=(ch-65)+10;
+	}
+	else if(ch>126)
+	{		
+		ch=95;
+	}
 
-	LCD_CtrlWrite(0x2b);   
-	LCD_DataWrite(Ystart>>8);
-	LCD_DataWrite(Ystart&0xff);
-	LCD_DataWrite(Yend>>8);
-	LCD_DataWrite(Yend&0xff);
+	return ch;
+}
 
-	LCD_CtrlWrite(0x2c);
+void  DispOneChar(unsigned char ord,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor)	 // ord:0~95
+{													  
+   unsigned char i,j;
+   unsigned char  *p;
+   unsigned char dat;
+   unsigned int index;
+
+   BlockWrite(Xstart,Xstart+(FONT_W-1),Ystart,Ystart+(FONT_H-1));
+
+   index = ord;
+
+   if(index>95)	   //95:ASCII CHAR NUM
+   		index=95;
+
+   index = index*((FONT_W/8)*FONT_H);	 
+
+   p = (uint8_t *)ascii;
+   p = p+index;
+
+   for(i=0;i<(FONT_W/8*FONT_H);i++)
+    {
+       dat=*p++;
+       for(j=0;j<8;j++)
+        {
+           if((dat<<j)&0x80)
+             {
+                WriteOneDot(TextColor);
+             }      
+           else 
+             {
+                WriteOneDot(BackColor);	  
+             }
+         }
+     }
+}
+
+void DispStr(unsigned char *str,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor)
+{
+
+	while(!(*str=='\0'))
+	{
+		DispOneChar(ToOrd(*str++),Xstart,Ystart,TextColor,BackColor);
+
+		if(Xstart>((LCD_WIDTH-1)-FONT_W))
+		{
+			Xstart=0;
+		    Ystart=Ystart+FONT_H;
+		}
+		else
+		{
+			Xstart=Xstart+FONT_W;
+		}
+
+		if(Ystart>((LCD_HEIGHT-1)-FONT_H))
+		{
+			Ystart=0;
+		}
+	}	
+	
+	BlockWrite(0,LCD_WIDTH-1,0,LCD_HEIGHT-1);
+}
+
+void DispInt(unsigned int i,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor)
+{
+	if(Xstart>((LCD_WIDTH-1)-FONT_W*4))
+	{
+		Xstart=(LCD_WIDTH-1)-FONT_W*4;
+	}
+	if(Ystart>((LCD_HEIGHT-1)-FONT_H))
+	{
+		Ystart=(Ystart-1)-FONT_H;
+	}
+			
+	DispOneChar((i>>12)%16,Xstart,Ystart,TextColor,BackColor); //ID value
+	DispOneChar((i>>8)%16,Xstart+FONT_W,Ystart,TextColor,BackColor);
+	DispOneChar((i>>4)%16,Xstart+FONT_W*2,Ystart,TextColor,BackColor);
+	DispOneChar(i%16,Xstart+FONT_W*3,Ystart,TextColor,BackColor); 
+
+	BlockWrite(0,LCD_WIDTH-1,0,LCD_HEIGHT-1);
+}
+
+
+
+void DispRegValue_TEST(u8 RegIndex,u16 ParNum)
+{
+//	u8  i,a,b,c,d;
+//	u16  ID=0;
+//	unsigned int reg_data[20];	
+
+//		c=Short_Read(0xdb);
+//		d=Short_Read(0xdc);
+
+//		MCU_DIR_Write;
+//		ID=c<<8|d;
+//		DispStr("READ ID REG04= ",0,0,BLACK,WHITE);
+
+//	//DispStr("READ REG:0X",0,0,BLACK,WHITE);
+//	//DispInt(i,FONT_W*11,0,BLACK,WHITE);
+//    for(i=0;i<ParNum;i++)
+//	{
+//		DispStr("0X",0,(FONT_H+1)*(i+1),BLUE,WHITE);
+//		DispInt(ID,FONT_W*2,(FONT_H+1)*(i+1),BLUE,WHITE);
+//	}
+
+}
+
+#endif
+
+void LCD_GPIO_Init()
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE); //ä½¿èƒ½PORTB,Cæ—¶é’Ÿå’ŒAFIOæ—¶é’Ÿ
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable , ENABLE);//å¼€å¯SWDï¼Œå¤±èƒ½JTAG
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10|GPIO_Pin_9|GPIO_Pin_8|GPIO_Pin_7|GPIO_Pin_6;	   ///PORTC6~10å¤ç”¨æŽ¨æŒ½è¾“å‡º
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIO_InitStructure); //GPIOC	
+
+	GPIO_SetBits(GPIOC,GPIO_Pin_10|GPIO_Pin_9|GPIO_Pin_8|GPIO_Pin_7|GPIO_Pin_6);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15|GPIO_Pin_14|GPIO_Pin_13|GPIO_Pin_12|GPIO_Pin_11|GPIO_Pin_10|GPIO_Pin_9|GPIO_Pin_8;	//  PORTBæŽ¨æŒ½è¾“å‡º
+	GPIO_Init(GPIOB, &GPIO_InitStructure); //GPIOB
+	
+	GPIO_SetBits(GPIOB,GPIO_Pin_15|GPIO_Pin_14|GPIO_Pin_13|GPIO_Pin_12|GPIO_Pin_11|GPIO_Pin_10|GPIO_Pin_9|GPIO_Pin_8);
 }
 
 
 #ifdef CHAR_FONT_W8_H16
-//ascii 32~90(!~Z), (32~47)à •Ù±~/,(48~57)0~9,(58~64):~@,(65~126)A~~
+//ascii 32~90(!~Z), (32~47)¿Õ¸ñ~/,(48~57)0~9,(58~64):~@,(65~126)A~~
 //ord 0~95, (48~57)0~9,(65~126)A~z,(33~47)!~/,(58~64):~@
 unsigned char const ascii[]=
 {
-//ÌŽÍ¥12,Ö£Ö³ÎªÃºà ­xÙŸ=8x16 
+//ËÎÌå12,µãÕóÎª£º¿íx¸ß=8x16 
 //0(ord:0)
 0x00,0x00,0x00,0x18,0x24,0x42,0x42,0x42,0x42,0x42,0x42,0x42,0x24,0x18,0x00,0x00,
 
@@ -325,7 +653,7 @@ unsigned char const ascii[]=
 //(ord:0)~9
 0x00,0x00,0x00,0x18,0x24,0x42,0x42,0x42,0x26,0x1A,0x02,0x02,0x24,0x38,0x00,0x00,
 
-// A~Z,ÌŽÍ¥12;  Õ‹Ø–Í¥Ð‚×”Ó¦Ö„Ö£Ö³ÎªÃºà ­xÙŸ=8x16 
+// A~Z,ËÎÌå12;  ´Ë×ÖÌåÏÂ¶ÔÓ¦µÄµãÕóÎª£º¿íx¸ß=8x16 
 //(ord:10)~A 
 0x00,0x00,0x00,0x10,0x10,0x18,0x28,0x28,0x24,0x3C,0x44,0x42,0x42,0xE7,0x00,0x00,
 
@@ -513,7 +841,7 @@ unsigned char const ascii[]=
 0x30,0x4C,0x43,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 
 
-//(ord:72)~ à •Ù± 
+//(ord:72)~ ¿Õ¸ñ 
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 
 //(ord:73)~ !  
@@ -587,106 +915,5 @@ unsigned char const ascii[]=
 
 };
 #endif
-
-
-
-
-
-
-void  DispOneChar(unsigned char ord,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor)	 // ord:0~95
-{													  
-   unsigned char i,j;
-   unsigned char  *p;
-   unsigned char dat;
-   unsigned int index;
-
-   BlockWrite(Xstart,Xstart+(FONT_W-1),Ystart,Ystart+(FONT_H-1));
-
-   index = ord;
-
-   if(index>95)	   //95:ASCII CHAR NUM
-   		index=95;
-
-   index = index*((FONT_W/8)*FONT_H);	 
-
-   p = (uint8_t *)ascii;
-   p = p+index;
-
-   for(i=0;i<(FONT_W/8*FONT_H);i++)
-    {
-       dat=*p++;
-       for(j=0;j<8;j++)
-        {
-           if((dat<<j)&0x80)
-             {
-                WriteOneDot(TextColor);
-             }      
-           else 
-             {
-                WriteOneDot(BackColor);	  
-             }
-         }
-     }
-}
-
-
-unsigned char ToOrd(unsigned char ch)
-{
-	if(ch<32)
-	{
-		ch=95;
-	}
-	else if((ch>=32)&&(ch<=47)) //(32~47)à •Ù±~/
-	{
-		ch=(ch-32)+10+62;
-	}
-	else if((ch>=48)&&(ch<=57))//(48~57)0~9
-	{
-		ch=ch-48;
-	}
-	else if((ch>=58)&&(ch<=64))//(58~64):~@
-	{
-		ch=(ch-58)+10+62+16;
-	}
-	else if((ch>=65)&&(ch<=126))//(65~126)A~~
-	{
-		ch=(ch-65)+10;
-	}
-	else if(ch>126)
-	{		
-		ch=95;
-	}
-
-	return ch;
-}
-
-
-
-void DispStr(unsigned char *str,unsigned int Xstart,unsigned int Ystart,unsigned int TextColor,unsigned int BackColor)
-{
-
-	while(!(*str=='\0'))
-	{
-		DispOneChar(ToOrd(*str++),Xstart,Ystart,TextColor,BackColor);
-
-		if(Xstart>((LCD_WIDTH-1)-FONT_W))
-		{
-			Xstart=0;
-		    Ystart=Ystart+FONT_H;
-		}
-		else
-		{
-			Xstart=Xstart+FONT_W;
-		}
-
-		if(Ystart>((LCD_HEIGHT-1)-FONT_H))
-		{
-			Ystart=0;
-		}
-	}	
-	
-	BlockWrite(0,LCD_WIDTH-1,0,LCD_HEIGHT-1);
-}
-
 
 

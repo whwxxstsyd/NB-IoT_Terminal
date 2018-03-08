@@ -68,7 +68,7 @@ bool _CMIOT_Str_EndWith(uint8_t *Src, uint8_t *dst);
 
 /*-----------------------------------------------------------------------------
 Function Name	:	cm_split
-Author				:	zhaoji
+Author			:	zhaoji
 Created Time	:	2018.02.23
 Description 	:	字符串分割，将字符串按分隔符分割后，依次放到二维数据中，并返回分割后的字符串个数
 Input Argv		:
