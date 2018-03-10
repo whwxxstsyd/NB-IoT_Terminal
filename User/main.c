@@ -2,7 +2,7 @@
 File Name   	:   main.c
 Author          :   zhaoji
 Created Time    :   2018.02.24
-Description     :   LCD接口
+Description     :   主程序入口
 -----------------------------------------------------------------------------*/
 
 
@@ -21,7 +21,7 @@ Description     :   LCD接口
 #include "common.h"
 #include "m5310.h"
 #include "FreeRTOS_CLI.h"
-#include "lcd.h"
+#include "tft_lcd.h"
 #include "User_Cli.h"
 
 /*----------------------------------------------------------------------------*
@@ -81,16 +81,8 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
-	LCD_Init();
+	// LCD_Init();
 	
-	DispStr("TEST BEGIN",0,0,0x0000,0xffff);////Add Display Imformation on LCD
-	
-//	LCD_ShowString(10,0,"TFT_LCD_TEST_DEMO ^_^");	
-//	LCD_ShowString(10,20,"2.4'/2.8' TFTLCD TEST");	
-//	LCD_ShowString(10,40,"WWW.51LCM.COM");
-//	LCD_ShowString(10,60,"2013/12/30"); 
-//	LCD_ShowString(10,100,"DEV_IC:");
-//	LCD_ShowString(10,80,"Model:");
 	
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,

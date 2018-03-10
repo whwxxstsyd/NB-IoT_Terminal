@@ -797,7 +797,7 @@
       <GroupNumber>8</GroupNumber>
       <FileNumber>40</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
@@ -919,8 +919,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\HAL\LCD\ILI93xx.c</PathWithFileName>
-      <FilenameWithoutPath>ILI93xx.c</FilenameWithoutPath>
+      <PathWithFileName>.\HAL\LCD\tft_lcd.c</PathWithFileName>
+      <FilenameWithoutPath>tft_lcd.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

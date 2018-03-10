@@ -694,9 +694,9 @@
           <GroupName>LCD</GroupName>
           <Files>
             <File>
-              <FileName>ILI93xx.c</FileName>
+              <FileName>tft_lcd.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\HAL\LCD\ILI93xx.c</FilePath>
+              <FilePath>.\HAL\LCD\tft_lcd.c</FilePath>
             </File>
           </Files>
         </Group>
