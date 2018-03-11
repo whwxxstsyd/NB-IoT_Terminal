@@ -25,7 +25,7 @@ Description     :   M5310接口
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
-
+#define	ATTACH_TIMEOUT		(3*60*1000)
 
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
@@ -57,23 +57,27 @@ uint32_t _CMIOT_M5310_GetRegisterTime(void)
 	uint32_t result;
 	uint32_t start_time;
 	uint32_t end_time;
+	uint32_t retryCount = 0;
 	
 	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 5000);   /* 重启模组，并等待启动信息 */
 	
 	if(result == 1)
 	{
 		start_time = FreeRTOSRunTimeTicks;   /* M5310启动完成时间点 */
-		
 		while(1)
 		{
 			result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGATT?\r\n"), attach_MatchStr, 2, 5000);
-			
 			if(result == 2)
 			{
 				break;
 			}
-			
+			if(retryCount * 500 > ATTACH_TIMEOUT)
+			{
+				_CMIOT_Debug("%s(Attach timeout!)\r\n", __func__);
+				return 0;
+			}
 			delay_ms(500);
+			retryCount++;
 		}
 		end_time = FreeRTOSRunTimeTicks;   /* M5310附着成功时间点 */
 		_CMIOT_Debug("%s(return: %ld ms)\r\n", __func__, end_time - start_time);
@@ -102,7 +106,7 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 {
 	uint8_t i;
 	uint32_t retryCounts = 0;        /* 检索次数 */
-	uint32_t timeslice_ms = 500;     /* 检索M5310串口响应时间精度 */
+	uint32_t timeslice_ms = 100;     /* 检索M5310串口响应时间精度 */
 	
 	memset(UART_M5310_RxBuffer, 0, sizeof(UART_M5310_RxBuffer));     /* 清空接收Buffer */
 	UART_M5310_RxBufferLen = 0;
@@ -400,7 +404,115 @@ Return Value	:
 
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetModuleName
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	: 	获取模组型号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName)
+{
+	uint8_t cgmm_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGMM\r\n"), cgmm_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n");
+			memset(ModuleName, 0, sizeof((unsigned char *)ModuleName));
+			strncat((char *)ModuleName, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
 
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetModuleVersion
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	: 	获取模组版本号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion)
+{
+	uint8_t cmver_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CMVER\r\n"), cmver_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n");
+			memset(ModuleVersion, 0, sizeof((unsigned char *)ModuleVersion));
+			strncat((char *)ModuleVersion, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetICCID
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	: 	获取模组型号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetICCID(uint8_t *ICCID)
+{
+	uint8_t ccid_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCCID\r\n"), ccid_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "+NCCID:") + strlen("+NCCID:");
+			p_end  = strstr((const char *)p_head, "\r\n");
+			memset(ICCID, 0, sizeof((unsigned char *)ICCID));
+			strncat((char *)ICCID, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
 
 
 

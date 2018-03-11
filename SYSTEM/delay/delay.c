@@ -27,7 +27,7 @@
 
 static u8  fac_us=0;							//us延时倍乘数			   
 // static u16 fac_ms=0;							//ms延时倍乘数,在ucos下,代表每个节拍的ms数
- 
+
 extern void xPortSysTickHandler(void);
 
 //systick中断服务函数,使用ucos时用到
@@ -39,7 +39,7 @@ void SysTick_Handler(void)
     }
 }
 
-			   
+
 //初始化延迟函数
 //SYSTICK的时钟固定为AHB时钟，基础例程里面SYSTICK时钟频率为AHB/8
 //这里为了兼容FreeRTOS，所以将SYSTICK的时钟频率改为AHB的频率！
