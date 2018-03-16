@@ -44,7 +44,9 @@
 ".\objects\freertos_cli.o"
 ".\objects\user_cli.o"
 ".\objects\m5310.o"
-".\objects\tft_lcd.o"
+".\objects\st7789s.o"
+".\objects\ui.o"
+".\objects\key.o"
 --library_type=microlib --strict --scatter ".\Objects\NB-IoT_TestTerminal.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

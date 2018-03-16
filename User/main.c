@@ -21,8 +21,10 @@ Description     :   主程序入口
 #include "common.h"
 #include "m5310.h"
 #include "FreeRTOS_CLI.h"
-#include "tft_lcd.h"
+#include "lcd.h"
 #include "User_Cli.h"
+#include "ui.h"
+#include "key.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -42,7 +44,10 @@ uint32_t  UART_CLI_RxBufferLen      =  0;
 TaskHandle_t start_task;     /* 开始任务   */
 TaskHandle_t cli_task;       /* CLI任务    */
 TaskHandle_t m5310_task;     /* M5310任务  */
+TaskHandle_t lcd_task;       /* LCD任务    */
 
+uint8_t menuNewIndex = 0;
+uint8_t menuOldIndex = 0;
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -75,14 +80,19 @@ int main(void)
 	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	
+	cm_key_init();
+	
 	/* 初始化串口 */
 	_CMIOT_Uart_Init(UART_CLI_DEBUG, 115200);
 	_CMIOT_Uart_Init(UART_M5310, 115200);
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
-	// LCD_Init();
+	LCD_Init();
 	
+	_CMIOT_UI_BootPage();
+	
+	_CMIOT_GUI_Init();
 	
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
@@ -176,6 +186,23 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 
 
 /*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_LcdTaskProc
+Author			:	zhaoji
+Created Time	:	2018.03.16
+Description 	:	LCD显示任务入口函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_LcdTaskProc(void *pvParameters)
+{
+	_CMIOT_TabIndex(menuNewIndex, menuOldIndex);
+	while(1);
+}
+
+
+
+/*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_M5310TaskProc
 Author			:	zhaoji
 Created Time	:	2018.02.23
@@ -186,22 +213,50 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_M5310TaskProc(void *pvParameters)
 {
-	uint8_t msg[32] = {0};
+	uint32_t notifyValue;
 	
-//	sprintf((char *)msg, "Register time: %d\r\n", _CMIOT_M5310_GetRegisterTime());
-//	LCD_ShowString(30,40,200,24,24,msg);
-//	
-//	sprintf((char *)msg, "CSQ VALUE: %d\r\n", _CMIOT_M5310_GetSignalstrength());
-//	LCD_ShowString(30,70,200,24,24,msg);
+	taskENTER_CRITICAL();   /* 进入临界区 */
 	
+	/* 创建LCD任务 */
+	xTaskCreate((TaskFunction_t      )_CMIOT_LcdTaskProc,
+				(const char*         )"lcd_task",
+				(uint16_t            )512,
+				(void*               )NULL,
+				(UBaseType_t         )1,
+				(TaskHandle_t*       )&lcd_task);
+				
+	taskEXIT_CRITICAL();   /* 退出临界区 */
 	
-	// _CMIOT_M5310_GetSignalstrength();
-	_CMIOT_M5310_GetUeState();
 	while(1)
 	{
-		//
+		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
+		
+		if(notifyValue == 1)   /* 获取到任务通知 */
+		{
+			_CMIOT_Debug("%s(Recv keydown event)\r\n", __func__);
+			
+			/* 当用户通过按钮切换功能菜单时，删除重新创建线程 */
+			if(lcd_task != NULL)
+			{
+				vTaskDelete(lcd_task);   /* 删除任务 */
+				_CMIOT_Debug("%s(Delete Lcd task)\r\n", __func__);
+			}
+			
+			taskENTER_CRITICAL();   /* 进入临界区 */
+	
+			/* 创建LCD任务 */
+			xTaskCreate((TaskFunction_t      )_CMIOT_LcdTaskProc,
+						(const char*         )"lcd_task",
+						(uint16_t            )512,
+						(void*               )NULL,
+						(UBaseType_t         )1,
+						(TaskHandle_t*       )&lcd_task);
+						
+			taskEXIT_CRITICAL();   /* 退出临界区 */
+		}
 	}
 }
+
 
 
 

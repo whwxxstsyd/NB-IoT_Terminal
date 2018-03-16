@@ -46,3 +46,4 @@
 .\objects\m5310.o: .\FreeRTOS\include\mpu_wrappers.h
 .\objects\m5310.o: .\FreeRTOS\include\task.h
 .\objects\m5310.o: .\FreeRTOS\include\list.h
+.\objects\m5310.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

@@ -240,7 +240,7 @@ void LCD_Init(void)
 	LCD_WR_REG(0x2C);
 	delay_ms(20);
 	
-	LCD_Clear(WHITE);
+	LCD_Clear(BLUE);
 	LCD_LED=1;//点亮背光
 }
 

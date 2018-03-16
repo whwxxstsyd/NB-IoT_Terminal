@@ -21,6 +21,7 @@ Description     :   M5310接口
 #include "sys.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "stdio.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -74,7 +75,7 @@ uint32_t _CMIOT_M5310_GetRegisterTime(void)
 			if(retryCount * 500 > ATTACH_TIMEOUT)
 			{
 				_CMIOT_Debug("%s(Attach timeout!)\r\n", __func__);
-				return 0;
+				return 1;
 			}
 			delay_ms(500);
 			retryCount++;
@@ -165,9 +166,10 @@ uint8_t _CMIOT_M5310_GetSignalstrength(void)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			csq = strstr((const char *)UART_M5310_RxBuffer, "+CSQ:") + strlen("+CSQ:");
+			csq = strstr((const char *)UART_M5310_RxBuffer, "+CSQ:");
 			while(1)
 			{
+				csq += strlen("+CSQ:");
 				if(*csq == ' ')	/* 忽略空格 */
 				{
 					csq++;
@@ -209,12 +211,13 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 {
-	CMIOT_UE_State ue_state = {0,0,0,0};
+	CMIOT_UE_State ue_state = {0,0,0,0,""};
 	char *index;
 	uint8_t maxRetryCounts = 5;
 	uint32_t result;
 	uint8_t uestate_MatchStr[2][20] = {"\r\nOK\r\n","\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
 	bool flag = false;
+	char *pSta, *pEnd;
 	
 	while(maxRetryCounts > 0)
 	{
@@ -224,9 +227,10 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 		if(result == 1)
 		{
 			/* 从UESTATE信息中获取NB频点 */
-			index = strstr((const char *)UART_M5310_RxBuffer, "EARFCN:") + strlen("EARFCN:");
+			index = strstr((const char *)UART_M5310_RxBuffer, "EARFCN:");
 			if(index != NULL)
 			{
+				index += strlen("EARFCN:");
 				flag = false;
 				while(1)
 				{
@@ -262,9 +266,10 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 			}
 			
 			/* 从UESTATE信息中获取RSRQ */
-			index = strstr((const char *)UART_M5310_RxBuffer, "RSRQ:") + strlen("RSRQ:");
+			index = strstr((const char *)UART_M5310_RxBuffer, "RSRQ:");
 			if(index != NULL)
 			{
+				index += strlen("RSRQ:");
 				flag = false;
 				while(1)
 				{
@@ -300,9 +305,10 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 			}
 			
 			/* 从UESTATE信息中获取SNR */
-			index = strstr((const char *)UART_M5310_RxBuffer, "SNR:") + strlen("SNR:");
+			index = strstr((const char *)UART_M5310_RxBuffer, "SNR:");
 			if(index != NULL)
 			{
+				index += strlen("SNR:");
 				flag = false;
 				while(1)
 				{
@@ -338,9 +344,10 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 			}
 			
 			/* 从UESTATE信息中获取ECL */
-			index = strstr((const char *)UART_M5310_RxBuffer, "ECL:") + strlen("ECL:");
+			index = strstr((const char *)UART_M5310_RxBuffer, "ECL:");
 			if(index != NULL)
 			{
+				index += strlen("ECL:");
 				flag = false;
 				while(1)
 				{
@@ -374,15 +381,29 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 			{
 				_CMIOT_Debug("%s(ECL Not Found!)\r\n", __func__);
 			}
-			break;
+			
+			/* CELL ID*/
+			pSta = strstr((const char *)UART_M5310_RxBuffer, "Cell ID:") + strlen("Cell ID:");
+			if(pSta != NULL)
+			{
+				pEnd = strstr(pSta, "\r\n");
+				memcpy(ue_state.cellid, pSta, pEnd-pSta);
+				_CMIOT_Debug("%s(CELLID: %s)\r\n", __func__, ue_state.cellid);
+			}
+			else
+			{
+				memcpy(ue_state.cellid, "Invalid", strlen("Invalid"));
+				_CMIOT_Debug("%s(CELLID Not Found!)\r\n", __func__);
+			}
+			
+			return ue_state;
 		}
 		else
 		{
 			_CMIOT_Debug("%s(AT RSP ERROR!)\r\n", __func__);
 		}
-		
 	}
-	
+	strncpy((char *)ue_state.cellid, "ERROR", sizeof(ue_state.cellid));
 	return ue_state;
 }
 
@@ -413,13 +434,14 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName)
+uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 {
 	uint8_t cgmm_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
 	
+	memset(ModuleName, 0, buffersize);
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
@@ -429,13 +451,13 @@ uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName)
 		{
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
 			p_end  = strstr((const char *)p_head, "\r\n");
-			memset(ModuleName, 0, sizeof((unsigned char *)ModuleName));
 			strncat((char *)ModuleName, p_head, p_end - p_head);
 			return 1;
 		}
 		delay_ms(500);
 	}
 	/* 获取失败 */
+	strncpy((char *)ModuleName, "ERROR", buffersize);
 	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 	return 0;
 }
@@ -450,13 +472,14 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion)
+uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion, uint32_t buffersize)
 {
 	uint8_t cmver_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
 	
+	memset(ModuleVersion, 0, buffersize);
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
@@ -466,9 +489,233 @@ uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion)
 		{
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
 			p_end  = strstr((const char *)p_head, "\r\n");
-			memset(ModuleVersion, 0, sizeof((unsigned char *)ModuleVersion));
 			strncat((char *)ModuleVersion, p_head, p_end - p_head);
 			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	strncpy((char *)ModuleVersion, "ERROR", buffersize);
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetICCID
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	: 	获取ICCID号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetICCID(uint8_t *ICCID, uint32_t buffersize)
+{
+	uint8_t ccid_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	memset(ICCID, 0, buffersize);
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCCID\r\n"), ccid_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "+NCCID:") + strlen("+NCCID:");
+			p_end  = strstr((const char *)p_head, "\r\n");
+			strncat((char *)ICCID, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	strncpy((char *)ICCID, "ERROR", buffersize);
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetIMSI
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	: 	获取IMSI号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
+{
+	uint8_t imsi_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	memset(IMSI, 0, buffersize);
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CIMI\r\n"), imsi_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n");
+			strncat((char *)IMSI, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	strncpy((char *)IMSI, "ERROR", buffersize);
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetIMEI
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	: 	获取IMSI号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
+{
+	uint8_t imei_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	memset(IMEI, 0, buffersize);
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGSN=1\r\n"), imei_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n");
+			strncat((char *)IMEI, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	strncpy((char *)IMEI, "ERROR", buffersize);
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetPLMN
+Author			:	zhaoji
+Created Time	:	2018.03.14
+Description 	: 	获取PLMN号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint8_t _CMIOT_GetPLMN(uint8_t *plmn, uint32_t buffersize)
+{
+	uint8_t cops_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head, *p_end;
+	
+	memset(plmn, 0, buffersize);
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+COPS?\r\n"), cops_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "\"") + strlen("\"");
+			p_end  = strstr((const char *)p_head, "\"");
+			strncat((char *)plmn, p_head, p_end - p_head);
+			return 1;
+		}
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	strncpy((char *)plmn, "ERROR", buffersize);
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
+
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetNB_Band
+Author			:	zhaoji
+Created Time	:	2018.03.14
+Description 	: 	获取频段号
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint32_t _CMIOT_GetNB_Band(void)
+{
+	uint8_t band_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *index;
+	bool flag;
+	uint32_t band = 0;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NBAND?\r\n"), band_MatchStr, 2, 2000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			index = strstr((char *)UART_M5310_RxBuffer, "+NBAND:");
+			if(index != NULL)
+			{
+				index += strlen("+NBAND:");
+				flag = false;
+				while(1)
+				{
+					if(*index == ' ')	/* 忽略空格 */
+					{
+						index++;
+						continue;
+					}
+					
+					if(*index == '-')	/* 正负 */
+					{
+						flag = true;
+						index++;
+						continue;
+					}
+					
+					if(*index >= '0' && *index <= '9')	/* 计算BAND绝对值 */
+					{
+						band = band*10 + *index - '0';
+						index++;
+					}
+					else
+					{
+						break;
+					}
+				}
+				band = band * (flag ? -1 : 1);
+				return band;
+			}
+			else
+			{
+				_CMIOT_Debug("%s(BAND Not Found!)\r\n", __func__);
+			}
 		}
 		delay_ms(500);
 	}
@@ -479,40 +726,161 @@ uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion)
 
 
 /*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_GetICCID
+Function Name	:	_CMIOT_Get_PSM_TIMER_Value
 Author			:	zhaoji
-Created Time	:	2018.02.23
-Description 	: 	获取模组型号
+Created Time	:	2018.03.14
+Description 	: 	获取T3412 T3324定时器内容
 Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-uint8_t _CMIOT_GetICCID(uint8_t *ICCID)
+uint8_t _CMIOT_Get_PSM_TIMER_Value(uint8_t *t3324, uint8_t *t3412, uint32_t buffersize)
 {
-	uint8_t ccid_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t cpsms_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
-	
+	char unit[10] = {0};
+	uint32_t timerValue;
+	memset(t3324, 0, buffersize);
+	memset(t3412, 0, buffersize);
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCCID\r\n"), ccid_MatchStr, 2, 2000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CPSMS?\r\n"), cpsms_MatchStr, 2, 2000);
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "+NCCID:") + strlen("+NCCID:");
+			/* T3412 */
+			p_head = strstr((const char *)UART_M5310_RxBuffer, ",") + strlen(",");
+			p_head = strstr((const char *)p_head, ",") + strlen(",");
+			p_head = strstr((const char *)p_head, ",") + strlen(",");
+			p_end  = strstr((const char *)p_head, ",");
+			
+			if(strncmp(p_head, "000", strlen("000")) == 0) { strncpy(unit, "10min", sizeof(unit)); }
+			else if(strncmp(p_head, "001", strlen("001")) == 0) { strncpy(unit, "1h", sizeof(unit)); }
+			else if(strncmp(p_head, "010", strlen("010")) == 0) { strncpy(unit, "10h", sizeof(unit)); }
+			else if(strncmp(p_head, "011", strlen("011")) == 0) { strncpy(unit, "2s", sizeof(unit)); }
+			else if(strncmp(p_head, "100", strlen("100")) == 0) { strncpy(unit, "30s", sizeof(unit)); }
+			else if(strncmp(p_head, "101", strlen("101")) == 0) { strncpy(unit, "1min", sizeof(unit)); }
+			else if(strncmp(p_head, "110", strlen("110")) == 0) { strncpy(unit, "320h", sizeof(unit)); }
+			else if(strncmp(p_head, "111", strlen("111")) == 0) { strncpy(unit, "Invalid", sizeof(unit)); }
+			else { strncpy(unit, "Invalid", sizeof("unknow")); };
+			
+			p_head += 3;
+			timerValue = 0;
+			while(p_head < p_end)
+			{
+				timerValue = timerValue * 2 + *p_head - '0';
+				p_head++;
+			}
+			
+			sprintf((char *)t3412, "%d * %s", timerValue, unit);
+			
+			/* T3324 */
+			p_head = strstr((const char *)p_head, ",") + strlen(",");
 			p_end  = strstr((const char *)p_head, "\r\n");
-			memset(ICCID, 0, sizeof((unsigned char *)ICCID));
-			strncat((char *)ICCID, p_head, p_end - p_head);
+			
+			if(strncmp(p_head, "000", strlen("000")) == 0) { strncpy(unit, "2s", sizeof(unit)); }
+			else if(strncmp(p_head, "001", strlen("001")) == 0) { strncpy(unit, "1min", sizeof(unit)); }
+			else if(strncmp(p_head, "010", strlen("010")) == 0) { strncpy(unit, "decihours", sizeof(unit)); }
+			else if(strncmp(p_head, "111", strlen("111")) == 0) { strncpy(unit, "Invalid", sizeof(unit)); }
+			else { strncpy(unit, "Invalid", sizeof("unknow")); };
+			
+			timerValue = 0;
+			p_head += 3;
+			while(p_head < p_end)
+			{
+				timerValue = timerValue * 2 + *p_head - '0';
+				p_head++;
+			}
+			sprintf((char *)t3324, "%d * %s", timerValue, unit);
+			
 			return 1;
 		}
 		delay_ms(500);
 	}
 	/* 获取失败 */
+	strncpy((char *)t3412, "ERROR", buffersize);
+	strncpy((char *)t3324, "ERROR", buffersize);
 	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 	return 0;
 }
+
+
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetNetworkDelay
+Author			:	zhaoji
+Created Time	:	2018.03.16
+Description 	: 	获取PING延迟时间
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+//uint32_t _CMIOT_GetNetworkDelay()
+//{
+//	uint8_t nping_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+//	uint8_t maxRetryCounts = 5;
+//	uint8_t result;
+//	char *index;
+//	bool flag;
+//	uint32_t band = 0;
+//	
+//	while(maxRetryCounts > 0)
+//	{
+//		maxRetryCounts--;
+//		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NBAND?\r\n"), band_MatchStr, 2, 2000);
+//		
+//		if(result == 1)	/* 指令执行OK */
+//		{
+//			index = strstr((char *)UART_M5310_RxBuffer, "+NBAND:");
+//			if(index != NULL)
+//			{
+//				index += strlen("+NBAND:");
+//				flag = false;
+//				while(1)
+//				{
+//					if(*index == ' ')	/* 忽略空格 */
+//					{
+//						index++;
+//						continue;
+//					}
+//					
+//					if(*index == '-')	/* 正负 */
+//					{
+//						flag = true;
+//						index++;
+//						continue;
+//					}
+//					
+//					if(*index >= '0' && *index <= '9')	/* 计算BAND绝对值 */
+//					{
+//						band = band*10 + *index - '0';
+//						index++;
+//					}
+//					else
+//					{
+//						break;
+//					}
+//				}
+//				band = band * (flag ? -1 : 1);
+//				return band;
+//			}
+//			else
+//			{
+//				_CMIOT_Debug("%s(BAND Not Found!)\r\n", __func__);
+//			}
+//		}
+//		delay_ms(500);
+//	}
+//	/* 获取失败 */
+//	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+//	return 0;
+//}
+
+
 
 
 

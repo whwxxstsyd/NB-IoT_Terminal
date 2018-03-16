@@ -1,5 +1,5 @@
 .\objects\st7789s.o: HAL\LCD\st7789s.c
-.\objects\st7789s.o: HAL\LCD\st7789s.h
+.\objects\st7789s.o: HAL\LCD\lcd.h
 .\objects\st7789s.o: .\SYSTEM\sys\sys.h
 .\objects\st7789s.o: .\CMSIS\stm32f10x.h
 .\objects\st7789s.o: .\CMSIS\core_cm3.h

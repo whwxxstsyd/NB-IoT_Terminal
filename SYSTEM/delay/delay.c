@@ -95,7 +95,7 @@ void delay_ms(u32 nms)
 	else
 	{
 		delay_us((u32)(nms*1000));				//普通方式延时
-		_CMIOT_Debug("Enter Nomal Delay Mode, Because taskSCHEDULER_NOT_STARTED\r\n");
+		// _CMIOT_Debug("Enter Nomal Delay Mode, Because taskSCHEDULER_NOT_STARTED\r\n");
 	}
 }
 

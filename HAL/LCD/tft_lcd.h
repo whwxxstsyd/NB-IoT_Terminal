@@ -12,8 +12,8 @@ Description		:   LCD 接口(驱动IC: ST7789S)
 /*---------------------------------------------------------------------------*
                                Dependencies                                  *
 -----------------------------------------------------------------------------*/	 
-
-
+#include "stdlib.h"
+#include "sys.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -110,6 +110,36 @@ LCD_CS_SET;\
 
 #define LGRAYBLUE        0XA651 //浅灰蓝色(中间层颜色)
 #define LBBLUE           0X2B12 //浅棕蓝色(选择条目的反色)
+
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	LCD_Init
+Author			:	zhaoji
+Created Time	:	2018.03.08
+Description 	:	LCD初始化函数(适用于ST7789S)
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void LCD_Init(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	LCD_Clear
+Author			:	zhaoji
+Created Time	:	2018.03.08
+Description 	:	LCD 清屏函数
+Input Argv		:	Color 清屏的填充色
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void LCD_Clear(u16 Color);
+
+
+
+
+
 
 #endif
 

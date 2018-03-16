@@ -48,5 +48,8 @@
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\main.o: .\M5310\m5310.h
 .\objects\main.o: .\FreeRTOS-Plus\FreeRTOS-Plus-CLI\FreeRTOS_CLI.h
-.\objects\main.o: .\HAL\LCD\tft_lcd.h
+.\objects\main.o: .\HAL\LCD\lcd.h
+.\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\main.o: .\FreeRTOS-Plus\FreeRTOS-Plus-CLI\User_Cli.h
+.\objects\main.o: .\HAL\GUI\ui.h
+.\objects\main.o: .\HAL\KEY\key.h

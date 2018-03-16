@@ -1,6 +1,6 @@
 .\objects\tft_lcd.o: HAL\LCD\tft_lcd.c
 .\objects\tft_lcd.o: HAL\LCD\tft_lcd.h
-.\objects\tft_lcd.o: .\SYSTEM\delay\delay.h
+.\objects\tft_lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\tft_lcd.o: .\SYSTEM\sys\sys.h
 .\objects\tft_lcd.o: .\CMSIS\stm32f10x.h
 .\objects\tft_lcd.o: .\CMSIS\core_cm3.h
@@ -31,4 +31,5 @@
 .\objects\tft_lcd.o: .\FWlib\inc\stm32f10x_usart.h
 .\objects\tft_lcd.o: .\FWlib\inc\stm32f10x_wwdg.h
 .\objects\tft_lcd.o: .\FWlib\inc\misc.h
+.\objects\tft_lcd.o: .\SYSTEM\delay\delay.h
 .\objects\tft_lcd.o: HAL\LCD\font.h

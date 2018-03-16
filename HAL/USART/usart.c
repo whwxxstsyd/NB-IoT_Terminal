@@ -244,7 +244,7 @@ void USART3_IRQHandler(void)
 		}
 		else
 		{
-			_CMIOT_Debug("UART3_RxBuffer(UART_M5310) is full!");
+			// _CMIOT_Debug("UART3_RxBuffer(UART_M5310) is full!");
 		}
 	}
 }

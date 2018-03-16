@@ -32,6 +32,7 @@ extern volatile unsigned long long FreeRTOSRunTimeTicks;	/* FreeRTOS时间统计
 extern TaskHandle_t start_task;     /* 开始任务   */
 extern TaskHandle_t cli_task;       /* CLI任务    */
 extern TaskHandle_t m5310_task;     /* M5310任务  */
+extern TaskHandle_t lcd_task;       /* LCD任务    */
 
 extern bool DEBUG_FLAG;	/* 调试信息打印标志位，为true时将调试信息打印至调试串口 */
 
@@ -169,7 +170,7 @@ BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer,
                                 const char *pcCommandString)
 {
 	char *msg;
-	msg = pvPortMalloc(32 * sizeof(char));
+	msg = pvPortMalloc(64 * sizeof(char));
 	
 	sprintf(msg, "\r\nFreeHeapSize: %d\r\n", xPortGetFreeHeapSize());	/* 剩余堆大小 */
 	strncat(pcWriteBuffer, msg, strlen(msg));
@@ -178,6 +179,9 @@ BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer,
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
 	sprintf(msg, "M5310 TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(m5310_task));	/* M5310任务栈空间的高水线(High Water Mark) */
+	strncat(pcWriteBuffer, msg, strlen(msg));
+	
+	sprintf(msg, "LCD TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(lcd_task));	/* M5310任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
