@@ -32,7 +32,7 @@ Description     :   M5310接口
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
 /* USART3(UART_M5310)数据接收buffer */
-uint8_t   UART_M5310_RxBuffer[128] = {0};
+uint8_t   UART_M5310_RxBuffer[512] = {0};
 uint32_t  UART_M5310_RxBufferLen   =  0;
 
 
@@ -53,12 +53,11 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 uint32_t _CMIOT_M5310_GetRegisterTime(void)
 {
-	uint8_t boot_MatchStr[2][20] = {"M5310\r\nOK\r\n", ""};	/* 指令响应完成匹配字符串 */
-	uint8_t attach_MatchStr[2][20] = {"+CGATT:0", "+CGATT:1"};	/* 指令响应完成匹配字符串 */
+	uint8_t boot_MatchStr[2][20] = {"OK", ""};	/* 指令响应完成匹配字符串 */
+	uint8_t attach_MatchStr[2][20] = {"CGATT:0", "CGATT:1"};	/* 指令响应完成匹配字符串 */
 	uint32_t result;
 	uint32_t start_time;
 	uint32_t end_time;
-	uint32_t retryCount = 0;
 	
 	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 5000);   /* 重启模组，并等待启动信息 */
 	
@@ -72,13 +71,12 @@ uint32_t _CMIOT_M5310_GetRegisterTime(void)
 			{
 				break;
 			}
-			if(retryCount * 500 > ATTACH_TIMEOUT)
+			if(FreeRTOSRunTimeTicks - start_time > ATTACH_TIMEOUT)
 			{
 				_CMIOT_Debug("%s(Attach timeout!)\r\n", __func__);
 				return 1;
 			}
 			delay_ms(500);
-			retryCount++;
 		}
 		end_time = FreeRTOSRunTimeTicks;   /* M5310附着成功时间点 */
 		_CMIOT_Debug("%s(return: %ld ms)\r\n", __func__, end_time - start_time);
@@ -119,13 +117,6 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 	/* 检索M5310串口返回内容是否匹配目标字符串数组，匹配成功返回数组索引号+1，超时匹配失败返回0 */
 	while(1)
 	{
-		// _CMIOT_Debug("retryCounts: %ld\r\n", retryCounts);
-		if(retryCounts * timeslice_ms >= timeout_ms)   /* 匹配超时返回 */
-		{
-			_CMIOT_Debug("%s(execute timeout!)\r\n", __func__);
-			return 0;
-		}
-		
 		for(i=0; i<MatchRsp_Num; i++)
 		{
 			if(strstr((const char *)UART_M5310_RxBuffer, (const char *)MatchRsp[i]) != NULL)  /* 检索匹配字符串 */
@@ -133,6 +124,13 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 				_CMIOT_Debug("%s(return: %d)\r\n", __func__, i+1);
 				return i + 1;
 			}
+		}
+		
+		// _CMIOT_Debug("retryCounts: %ld\r\n", retryCounts);
+		if(retryCounts * timeslice_ms >= timeout_ms)   /* 匹配超时返回 */
+		{
+			_CMIOT_Debug("%s(execute timeout!)\r\n", __func__);
+			return 0;
 		}
 		
 		delay_ms(timeslice_ms);
@@ -153,7 +151,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 uint8_t _CMIOT_M5310_GetSignalstrength(void)
 {
-	uint8_t csq_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t csq_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
 	uint32_t result;
 	uint8_t maxRetryCounts = 5;
 	char *csq;
@@ -162,14 +160,15 @@ uint8_t _CMIOT_M5310_GetSignalstrength(void)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CSQ?\r\n"), csq_MatchStr, 2, 2000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CSQ\r\n"), csq_MatchStr, 2, 2000);
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			csq = strstr((const char *)UART_M5310_RxBuffer, "+CSQ:");
+			csq = strstr((const char *)UART_M5310_RxBuffer, "CSQ:");
+
+			csq += strlen("CSQ:");
 			while(1)
 			{
-				csq += strlen("+CSQ:");
 				if(*csq == ' ')	/* 忽略空格 */
 				{
 					csq++;
@@ -215,7 +214,7 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 	char *index;
 	uint8_t maxRetryCounts = 5;
 	uint32_t result;
-	uint8_t uestate_MatchStr[2][20] = {"\r\nOK\r\n","\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t uestate_MatchStr[2][20] = {"OK","ERROR"};	/* 指令响应完成匹配字符串 */
 	bool flag = false;
 	char *pSta, *pEnd;
 	
@@ -436,7 +435,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 {
-	uint8_t cgmm_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t cgmm_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
@@ -449,8 +448,16 @@ uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
-			p_end  = strstr((const char *)p_head, "\r\n");
+			p_head = (char *)UART_M5310_RxBuffer;
+			while(1)
+			{
+				if(*p_head == ' ' || *p_head == '\r' || *p_head == '\n')
+				{
+					p_head++;
+				}
+				else{break;}
+			}
+			p_end  = strstr((const char *)p_head, "\r\nOK");
 			strncat((char *)ModuleName, p_head, p_end - p_head);
 			return 1;
 		}
@@ -487,8 +494,16 @@ uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion, uint32_t buffersize)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
-			p_end  = strstr((const char *)p_head, "\r\n");
+			p_head = (char *)UART_M5310_RxBuffer;
+			while(1)
+			{
+				if(*p_head == ' ' || *p_head == '\r' || *p_head == '\n')
+				{
+					p_head++;
+				}
+				else{break;}
+			}
+			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)ModuleVersion, p_head, p_end - p_head);
 			return 1;
 		}
@@ -512,7 +527,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 uint8_t _CMIOT_GetICCID(uint8_t *ICCID, uint32_t buffersize)
 {
-	uint8_t ccid_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t ccid_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
@@ -525,8 +540,8 @@ uint8_t _CMIOT_GetICCID(uint8_t *ICCID, uint32_t buffersize)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "+NCCID:") + strlen("+NCCID:");
-			p_end  = strstr((const char *)p_head, "\r\n");
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "NCCID:") + strlen("NCCID:");
+			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)ICCID, p_head, p_end - p_head);
 			return 1;
 		}
@@ -563,8 +578,16 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
-			p_end  = strstr((const char *)p_head, "\r\n");
+			p_head = (char *)UART_M5310_RxBuffer;
+			while(1)
+			{
+				if(*p_head == ' ' || *p_head == '\r' || *p_head == '\n')
+				{
+					p_head++;
+				}
+				else{break;}
+			}
+			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)IMSI, p_head, p_end - p_head);
 			return 1;
 		}
@@ -581,14 +604,14 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 Function Name	:	_CMIOT_GetIMEI
 Author			:	zhaoji
 Created Time	:	2018.02.23
-Description 	: 	获取IMSI号
+Description 	: 	获取IMEI号
 Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 {
-	uint8_t imei_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t imei_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
@@ -601,8 +624,8 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "\r\n") + strlen("\r\n");
-			p_end  = strstr((const char *)p_head, "\r\n");
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "CGSN:") + strlen("CGSN:");
+			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)IMEI, p_head, p_end - p_head);
 			return 1;
 		}
@@ -879,6 +902,38 @@ Return Value	:
 //	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 //	return 0;
 //}
+
+
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	cm_IsModuleAlive
+Author			:	zhaoji
+Created Time	:	2018.03.22
+Description 	: 	检测模块是否启动正常
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool cm_IsModuleAlive()
+{
+	uint8_t at_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT\r\n"), at_MatchStr, 2, 2000);
+		
+		if(maxRetryCounts == 0 && result == 1)
+		{
+			return true;
+		}
+		delay_ms(1000);
+	}
+	return false;
+}
 
 
 

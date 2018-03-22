@@ -24,7 +24,7 @@ Description     :   USART接口
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
 /* USART3(UART_M5310)数据接收buffer */
-extern uint8_t   UART_M5310_RxBuffer[128];
+extern uint8_t   UART_M5310_RxBuffer[512];
 extern uint32_t  UART_M5310_RxBufferLen;
 
 /* USART2(UART_CLI_DEBUG)数据接收buffer */
@@ -87,7 +87,7 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate)
 		/* 初始化NVIC */
 		NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;
-		NVIC_InitStructure.NVIC_IRQChannelSubPriority =3; 
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority =2; 
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
 		
@@ -131,7 +131,7 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate)
 		/* 初始化NVIC */
 		NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;
-		NVIC_InitStructure.NVIC_IRQChannelSubPriority =3; 
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority =1; 
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
 		
@@ -237,6 +237,12 @@ void USART3_IRQHandler(void)
 	{
 		/* 接收数据并存储到UART3_RxBuffer中 */
 		recvByte = USART_ReceiveData(USART3);
+		
+		if(recvByte == '\0')
+		{
+			return;
+		}
+		
 		if(UART_M5310_RxBufferLen < sizeof(UART_M5310_RxBuffer)-1)
 		{
 			UART_M5310_RxBuffer[UART_M5310_RxBufferLen] = recvByte;
@@ -244,7 +250,7 @@ void USART3_IRQHandler(void)
 		}
 		else
 		{
-			// _CMIOT_Debug("UART3_RxBuffer(UART_M5310) is full!");
+			_CMIOT_Debug("UART3_RxBuffer(UART_M5310) is full!");
 		}
 	}
 }
@@ -261,7 +267,14 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void USART1_IRQHandler(void)
 {
-	//Bluetooth COM Port
+	// 
+	uint8_t recvByte;
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+	{
+		/* 接收数据并存储到UART3_RxBuffer中 */
+		recvByte = USART_ReceiveData(USART1);
+	}
+	// USART_ClearITPendingBit(UART_BLUETOOTH, USART_IT_RXNE);
 }
 
 

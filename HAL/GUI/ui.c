@@ -1763,7 +1763,7 @@ void _CMIOT_ShowNetworkRegTime()
 		/* 显示成功率 */
 		if(TestCount > 0)
 		{
-			sprintf((char *)msg, "%.2f%%", (float)(TestCount - FailCount)/TestCount);
+			sprintf((char *)msg, "%.2f%%", (float)((TestCount - FailCount)/TestCount)*100);
 			LCD_Fill(165, 180, 239, 150, WHITE);
 			LCD_ShowString(165, 180, 16,  msg);
 		}
@@ -1782,7 +1782,7 @@ void _CMIOT_ShowNetworkRegTime()
 		LCD_ShowString(165, 230, 16,  msg);
 		/* 最短时长 */
 		if(((result < MinRegisterTime) || (MinRegisterTime == 0)) && (result > 1)) { MinRegisterTime = result; }
-		sprintf((char *)msg, "%07.3fs", (float)MaxRegisterTime/1000);
+		sprintf((char *)msg, "%07.3fs", (float)MinRegisterTime/1000);
 		LCD_Fill(165, 255, 239, 150, WHITE);
 		LCD_ShowString(165, 255, 16,  msg);
 	}

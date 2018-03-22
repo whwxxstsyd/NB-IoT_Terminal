@@ -6,7 +6,7 @@
 /////////////////////////////////////用户配置区///////////////////////////////////	 
 //以下2个宏定义，定义屏幕的显示方式及IO速度
 #define USE_HORIZONTAL  0	//定义是否使用横屏 		0,不使用.1,使用.
-#define LCD_FAST_IO     0 	//定义是否使用快速IO	0,不实用.1,使用
+#define LCD_FAST_IO     1 	//定义是否使用快速IO	0,不实用.1,使用
 //////////////////////////////////////////////////////////////////////////////////	 
 
 
@@ -28,29 +28,28 @@ extern u16  BACK_COLOR; //背景颜色.默认为白色
 //普通IO，只能14帧每秒！   
 
 //-----------------LCD端口定义---------------- 
-#define	LCD_LED PCout(10) //LCD背光    		 PA12
-#define	LCD_CS	PCout(9)  //片选端口  	     PA1
-#define	LCD_RS	PCout(8)  //数据/命令        PA2	   
-#define	LCD_WR	PCout(7)  //写数据			 PA3
-#define	LCD_RD	PCout(6)  //读数据			 PA4
-#define LCD_RST PCout(4)  //LCD复位          PA0
+#define	LCD_CS	PBout(15)  //片选端口
+#define	LCD_RS	PBout(14)  //数据/命令
+#define	LCD_WR	PBout(13)  //写数据
+#define	LCD_RD	PBout(12)  //读数据
+#define LCD_RST PBout(0)   //LCD复位
 
 
-#define	LCD_CS_SET  GPIOC->BSRR=1<<9    //片选端口  		PC9
-#define	LCD_RS_SET	GPIOC->BSRR=1<<8    //数据/命令 		PC8	   
-#define	LCD_WR_SET	GPIOC->BSRR=1<<7    //写数据			PC7
-#define	LCD_RD_SET	GPIOC->BSRR=1<<6    //读数据			PC6
-#define	LCD_RST_SET	GPIOC->BSRR=1<<4
+#define	LCD_CS_SET  GPIOB->BSRR=1<<15    //片选端口
+#define	LCD_RS_SET	GPIOB->BSRR=1<<14    //数据/命令
+#define	LCD_WR_SET	GPIOB->BSRR=1<<13    //写数据
+#define	LCD_RD_SET	GPIOB->BSRR=1<<12    //读数据
+#define	LCD_RST_SET	GPIOB->BSRR=1<<0
 							    
-#define	LCD_CS_CLR  GPIOC->BRR=1<<9     //片选端口  		PC9
-#define	LCD_RS_CLR	GPIOC->BRR=1<<8     //数据/命令			PC8	   
-#define	LCD_WR_CLR	GPIOC->BRR=1<<7     //写数据			PC7
-#define	LCD_RD_CLR	GPIOC->BRR=1<<6     //读数据			PC6   
-#define	LCD_RST_CLR	GPIOC->BRR=1<<4
+#define	LCD_CS_CLR  GPIOB->BRR=1<<15     //片选端口
+#define	LCD_RS_CLR	GPIOB->BRR=1<<14     //数据/命令
+#define	LCD_WR_CLR	GPIOB->BRR=1<<13     //写数据
+#define	LCD_RD_CLR	GPIOB->BRR=1<<12     //读数据
+#define	LCD_RST_CLR	GPIOB->BRR=1<<0
 
-//PB0~15,作为数据线
-#define DATAOUT(x) GPIOB->ODR=(x); //数据输出
-#define DATAIN     GPIOB->IDR;   //数据输入
+//PC0-7,作为数据线
+#define DATAOUT(x) GPIOC->ODR=(x>>8);  //数据输出
+#define DATAIN     GPIOC->IDR;         //数据输入
 //////////////////////////////////////////////////////////////////////
 //画笔颜色
 #define WHITE         	 0xFFFF
@@ -67,13 +66,15 @@ extern u16  BACK_COLOR; //背景颜色.默认为白色
 #define BROWN 			 0XBC40 //棕色
 #define BRRED 			 0XFC07 //棕红色
 #define GRAY  			 0X8430 //灰色
+
+
 //GUI颜色
 
 //#define DARKBLUE      	 0X01CF	//深蓝色
 //#define LIGHTBLUE      	 0X7D7C	//浅蓝色  
-#define GRAYBLUE       	 0X5458 //灰蓝色
-#define DARKBLUE      	  0x4398	//深蓝色
-#define LIGHTBLUE      	 0x059E	//浅蓝色
+#define GRAYBLUE		0X5458 //灰蓝色
+#define DARKBLUE		0x4398	//深蓝色
+#define LIGHTBLUE		0x059E	//浅蓝色
 #define TITLEBLUE		0x0419
 
 //以上三色为PANEL的颜色 
@@ -121,7 +122,7 @@ void LCD_ShowPicture(u16 x, u16 y, u16 wide, u16 high,u8 *pic);
 #define LCD_WR_DATA(data){\
 LCD_RS_SET;\
 LCD_CS_CLR;\
-DATAOUT(data);\
+DATAOUT(data<<8);\
 LCD_WR_CLR;\
 LCD_WR_SET;\
 LCD_CS_SET;\

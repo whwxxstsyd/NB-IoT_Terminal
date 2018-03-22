@@ -40,6 +40,7 @@ Description     :   主程序入口
 uint8_t   UART_CLI_RxBuffer[CLI_MAX_INPUT_LENGTH]    = {0};
 uint32_t  UART_CLI_RxBufferLen      =  0;
 
+extern uint8_t   UART_M5310_RxBuffer[512];
 
 TaskHandle_t start_task;     /* 开始任务   */
 TaskHandle_t cli_task;       /* CLI任务    */
@@ -84,7 +85,7 @@ int main(void)
 	
 	/* 初始化串口 */
 	_CMIOT_Uart_Init(UART_CLI_DEBUG, 115200);
-	_CMIOT_Uart_Init(UART_M5310, 115200);
+	_CMIOT_Uart_Init(UART_M5310, 9600);
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
@@ -117,6 +118,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_StartTaskProc(void *pvParameters)
 {
+	_CMIOT_Debug("%s...\r\n", __func__);
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
 	/* 创建CLI任务 */
@@ -129,7 +131,7 @@ void _CMIOT_StartTaskProc(void *pvParameters)
 	/* 创建M5310任务 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_M5310TaskProc,
 				(const char*         )"m5310_task",
-				(uint16_t            )256,
+				(uint16_t            )512,
 				(void*               )NULL,
 				(UBaseType_t         )1,
 				(TaskHandle_t*       )&m5310_task);
@@ -156,6 +158,7 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 	/* The input and output buffers are declared static to keep them off the stack. */
 	static uint8_t pcOutputString[ CLI_MAX_OUTPUT_LENGTH ];
 	
+	_CMIOT_Debug("%s...\r\n", __func__);
 	_CMIOT_CLI_Init();
 	
 	while(1)
@@ -196,6 +199,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_LcdTaskProc(void *pvParameters)
 {
+	_CMIOT_Debug("%s...\r\n", __func__);
 	_CMIOT_TabIndex(menuNewIndex, menuOldIndex);
 	while(1);
 }
@@ -214,6 +218,10 @@ Return Value	:
 void _CMIOT_M5310TaskProc(void *pvParameters)
 {
 	uint32_t notifyValue;
+	
+	// delay_ms(5000);
+	
+	_CMIOT_Debug("%s...\r\n", __func__);
 	
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
