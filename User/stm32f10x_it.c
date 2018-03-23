@@ -63,10 +63,11 @@ __asm void wait()
 void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
-//  while (1)
-//  {
-//  }
-	wait();
+  while (1)
+  {
+  }
+	
+//	wait();
 }
 
 /**

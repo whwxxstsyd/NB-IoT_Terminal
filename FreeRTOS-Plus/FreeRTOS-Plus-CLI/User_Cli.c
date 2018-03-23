@@ -51,7 +51,7 @@ static CLI_Command_Definition_t CliCommandList[] =
 {
 	{
 		"at+debuglevel",
-		"debuglevel <level>, level can be: 0 or 1\r\n",
+		"at+debuglevel <level>, level can be: 0 or 1\r\n",
 		prvDebugLevelCommand,
 		1
 	},

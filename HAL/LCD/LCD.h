@@ -82,6 +82,7 @@ extern u16  BACK_COLOR; //背景颜色.默认为白色
 #define LIGHTGREEN     	 0X841F //浅绿色
 //#define LIGHTGRAY        0XEF5B //浅灰色(PANNEL)
 #define LGRAY 			 0XC618 //浅灰色(PANNEL),窗体背景色
+#define DBROWN			0X2144
 
 #define LGRAYBLUE        0XA651 //浅灰蓝色(中间层颜色)
 #define LBBLUE           0X2B12 //浅棕蓝色(选择条目的反色)

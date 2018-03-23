@@ -47,8 +47,16 @@ TaskHandle_t cli_task;       /* CLI任务    */
 TaskHandle_t m5310_task;     /* M5310任务  */
 TaskHandle_t lcd_task;       /* LCD任务    */
 
-uint8_t menuNewIndex = 0;
-uint8_t menuOldIndex = 0;
+CM_MENU_POSITION currentPosition = {0, 0, 0};
+CM_MENU_POSITION oldPosition     = {0, 0, 1};
+
+int8_t xNew = 0;
+int8_t yNew = 0;
+int8_t zNew = 0;
+
+int8_t xOld = 0;
+int8_t yOld = 0;
+int8_t zOld = 1;
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -93,7 +101,9 @@ int main(void)
 	
 	_CMIOT_UI_BootPage();
 	
-	_CMIOT_GUI_Init();
+	// _CMIOT_GUI_Init(&currentPosition);
+	
+	// _CMIOT_ShowSignalStrength(25);
 	
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
@@ -199,9 +209,18 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_LcdTaskProc(void *pvParameters)
 {
+	uint32_t i = 100000;
 	_CMIOT_Debug("%s...\r\n", __func__);
-	_CMIOT_TabIndex(menuNewIndex, menuOldIndex);
-	while(1);
+	_CMIOT_TabIndex(xNew, yNew, zNew, xOld, yOld, zOld);
+	while(1)
+	{
+//		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+//		// delay_ms(2000);
+//		while(i>0)
+//		{
+//			i--;
+//		}
+	}
 }
 
 
