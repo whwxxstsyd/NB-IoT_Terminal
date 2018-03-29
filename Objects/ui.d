@@ -29,6 +29,7 @@
 .\objects\ui.o: .\FWlib\inc\stm32f10x_usart.h
 .\objects\ui.o: .\FWlib\inc\stm32f10x_wwdg.h
 .\objects\ui.o: .\FWlib\inc\misc.h
+.\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 .\objects\ui.o: .\HAL\LCD\lcd.h
 .\objects\ui.o: .\SYSTEM\sys\sys.h
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
@@ -36,4 +37,5 @@
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\ui.o: .\SYSTEM\delay\delay.h
 .\objects\ui.o: .\M5310\m5310.h
-.\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\ui.o: .\HAL\LCD\image.h
+.\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

@@ -45,3 +45,4 @@
 .\objects\key.o: .\HAL\COMMON\common.h
 .\objects\key.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\key.o: .\HAL\GUI\ui.h
+.\objects\key.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

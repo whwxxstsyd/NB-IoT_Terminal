@@ -9,16 +9,30 @@ Description     :   UI接口
 #define	__UI_H__
 
 #include "stm32f10x.h"
-
+#include "stdio.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
+
+typedef enum
+{
+	KEYPAD_UP = 0,
+	KEYPAD_DOWN,
+	KEYPAD_LEFT,
+	KEYPAD_RIGHT,
+	KEYPAD_ENTER,
+}CM_KEY;
+
+
 typedef struct
 {
-	int8_t xIndex;	/* 菜单横坐标 */
-	int8_t yIndex;	/* 菜单纵坐标 */
-	int8_t zIndex;	/* 子菜单深度 */
+	uint8_t xPosition;			/* 首页菜单横坐标 */
+	uint8_t yPosition;			/* 首页菜单纵坐标 */
+	uint8_t xSubPosition;		/* 子功能菜单纵坐标 */
+	uint8_t ySubPosition;		/* 子功能菜单纵坐标 */
+	uint8_t	subMenu;			/* 子菜单深度 */
+	CM_KEY	pressKey;			/* 当前按下的按键 */
 	
 }CM_MENU_POSITION;
 
@@ -32,7 +46,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_GUI_Init(int8_t x, int8_t y, int8_t z);
+void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex);
 
 
 /*-----------------------------------------------------------------------------
@@ -44,7 +58,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_TabIndex(int8_t xNew, int8_t yNew, int8_t zNew, int8_t xOld, int8_t yOld, int8_t zOld);
+void _CMIOT_TabIndex(CM_MENU_POSITION *position);
 
 
 /*-----------------------------------------------------------------------------
@@ -83,6 +97,30 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowSignalStrength(uint8_t csqValue);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BootProgressBar
+Author			:	zhaoji
+Created Time	:	2018.03.23
+Description 	: 	显示启动百分比进度条
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BootProgressBar(uint8_t percentValue);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_ShowBatteryLevel
+Author			:	zhaoji
+Created Time	:	2018.03.29
+Description 	: 	显示电池电量
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_ShowBatteryLevel(uint8_t percentValue);
 
 
 

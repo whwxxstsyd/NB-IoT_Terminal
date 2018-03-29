@@ -182,7 +182,16 @@ uint8_t _CMIOT_Get_PSM_TIMER_Value(uint8_t *t3324, uint8_t *t3412, uint32_t buff
 
 
 
-
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetNetworkDelay
+Author			:	zhaoji
+Created Time	:	2018.03.16
+Description 	: 	获取PING延迟时间
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+uint32_t _CMIOT_GetNetworkDelay(void);
 
 
 

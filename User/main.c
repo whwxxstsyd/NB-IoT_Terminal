@@ -47,16 +47,8 @@ TaskHandle_t cli_task;       /* CLI任务    */
 TaskHandle_t m5310_task;     /* M5310任务  */
 TaskHandle_t lcd_task;       /* LCD任务    */
 
-CM_MENU_POSITION currentPosition = {0, 0, 0};
-CM_MENU_POSITION oldPosition     = {0, 0, 1};
+CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};
 
-int8_t xNew = 0;
-int8_t yNew = 0;
-int8_t zNew = 0;
-
-int8_t xOld = 0;
-int8_t yOld = 0;
-int8_t zOld = 1;
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -89,21 +81,15 @@ int main(void)
 	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	
-	cm_key_init();
+	LCD_Init();
+	
+	_CMIOT_UI_BootPage();
 	
 	/* 初始化串口 */
 	_CMIOT_Uart_Init(UART_CLI_DEBUG, 115200);
 	_CMIOT_Uart_Init(UART_M5310, 9600);
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
-	
-	LCD_Init();
-	
-	_CMIOT_UI_BootPage();
-	
-	// _CMIOT_GUI_Init(&currentPosition);
-	
-	// _CMIOT_ShowSignalStrength(25);
 	
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
@@ -209,18 +195,8 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_LcdTaskProc(void *pvParameters)
 {
-	uint32_t i = 100000;
 	_CMIOT_Debug("%s...\r\n", __func__);
-	_CMIOT_TabIndex(xNew, yNew, zNew, xOld, yOld, zOld);
-	while(1)
-	{
-//		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-//		// delay_ms(2000);
-//		while(i>0)
-//		{
-//			i--;
-//		}
-	}
+	_CMIOT_TabIndex(&menuPosition);
 }
 
 
@@ -238,7 +214,7 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 {
 	uint32_t notifyValue;
 	
-	// delay_ms(5000);
+	cm_key_init();	/* 初始化按键 */
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	

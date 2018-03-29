@@ -30,17 +30,8 @@ Description     :   按键接口
 **----------------------------------------------------------------------------*/
 extern TaskHandle_t m5310_task;     /* M5310任务  */
 
-extern CM_MENU_POSITION currentPosition;
-extern CM_MENU_POSITION oldPosition;
+extern CM_MENU_POSITION menuPosition;
 
-
-extern int8_t xNew;
-extern int8_t yNew;
-extern int8_t zNew;
-
-extern int8_t xOld;
-extern int8_t yOld;
-extern int8_t zOld;
 
 
 /*-----------------------------------------------------------------------------
@@ -169,21 +160,14 @@ void EXTI2_IRQHandler(void)
 		return;
 	}
 	_CMIOT_Debug("%s(KEY_DOWN Pressed Down)\r\n", __func__);
-	delay_ms(10);//延时消抖
+	delay_ms(5);//延时消抖
 	if(KEY_DOWN==0)    //按键真的被按下
 	{
-		if(yNew == 1)
+		if(menuPosition.yPosition < 1 || (menuPosition.yPosition == 1 && menuPosition.xPosition == 0))
 		{
-			while(KEY_DOWN!=0);//等待松手
-			EXTI_ClearITPendingBit(EXTI_Line2); //清楚中断标志位 
-			return;
+			menuPosition.yPosition++;
 		}
-		
-		xOld = xNew;
-		yOld = yNew;
-		zOld = zNew;
-
-		yNew ++;
+		menuPosition.pressKey = KEYPAD_DOWN;
 		
 		while(KEY_DOWN!=0);//等待松手
 		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
@@ -202,28 +186,17 @@ void EXTI3_IRQHandler(void)
 	{
 		return;
 	}
-	_CMIOT_Debug("%s(KEY_UP Pressed Down)\r\n", __func__);
-	delay_ms(10);//延时消抖
+	delay_ms(5);//延时消抖
 	if(KEY_UP==0)    //按键真的被按下
 	{
-//		if(yNew == 0)
-//		{
-//			while(KEY_UP==0);//等待松手
-//			EXTI_ClearITPendingBit(EXTI_Line3); //清楚中断标志位 
-//			return;
-//		}
-//		else
-//		{
-			xOld = xNew;
-			yOld = yNew;
-			zOld = zNew;
-//			
-//		
-//			if(yNew >0)
-//			{
-//				yNew --;
-//			}
-//		}
+		_CMIOT_Debug("%s(KEY_UP Pressed Down)\r\n", __func__);
+
+		if(menuPosition.yPosition > 0)
+		{
+			menuPosition.yPosition--;
+		}
+		menuPosition.pressKey = KEYPAD_UP;
+
 		while(KEY_UP==0);//等待松手
 		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
@@ -243,21 +216,14 @@ void EXTI4_IRQHandler(void)
 		return;
 	}
 	_CMIOT_Debug("%s(KEY_LEFT Pressed Down)\r\n", __func__);
-	delay_ms(10);//延时消抖
+	delay_ms(5);//延时消抖
 	if(KEY_LEFT==0)    //按键真的被按下
 	{
-		if(xNew == 0)
+		if(menuPosition.xPosition > 0)
 		{
-			while(KEY_LEFT!=0);//等待松手
-			EXTI_ClearITPendingBit(EXTI_Line4); //清楚中断标志位 
-			return;
+			menuPosition.xPosition--;
 		}
-		
-		xOld = xNew;
-		yOld = yNew;
-		zOld = zNew;
-
-		xNew --;
+		menuPosition.pressKey = KEYPAD_LEFT;
 		
 		while(KEY_LEFT!=0);//等待松手
 		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
@@ -275,21 +241,14 @@ void EXTI15_10_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line12) != RESET)
 	{
 		_CMIOT_Debug("%s(KEY_RIGHT Pressed Down)\r\n", __func__);
-		delay_ms(10);//延时消抖
+		delay_ms(5);//延时消抖
 		if(KEY_RIGHT==0)    //按键真的被按下
 		{
-			if(xNew == 2)
+			if(menuPosition.yPosition < 2 && menuPosition.xPosition < 2)
 			{
-				while(KEY_RIGHT!=0);//等待松手
-				EXTI_ClearITPendingBit(EXTI_Line12); //清楚中断标志位 
-				return;
+				menuPosition.xPosition++;
 			}
-			
-			xOld = xNew;
-			yOld = yNew;
-			zOld = zNew;
-
-			xNew ++;
+			menuPosition.pressKey = KEYPAD_RIGHT;
 			
 			while(KEY_RIGHT!=0);//等待松手
 			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
@@ -301,18 +260,18 @@ void EXTI15_10_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line11) != RESET)
 	{
 		_CMIOT_Debug("%s(KEY_ENTER Pressed Down)\r\n", __func__);
-		delay_ms(10);//延时消抖
+		delay_ms(5);//延时消抖
 		if(KEY_ENTER==0)    //按键真的被按下
 		{
-			oldPosition = currentPosition;
-			if(zNew == 0)
+			if(menuPosition.subMenu == 0)
 			{
-				zNew = 1;
+				menuPosition.subMenu = 1;
 			}
-			else if(zNew == 1)
+			else
 			{
-				zNew = 0;
+				menuPosition.subMenu = 0;
 			}
+			menuPosition.pressKey = KEYPAD_ENTER;
 			
 			while(KEY_ENTER!=0);//等待松手
 			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);

@@ -44,4 +44,3 @@
 .\objects\tasks.o: .\FreeRTOS\include\list.h
 .\objects\tasks.o: .\FreeRTOS\include\timers.h
 .\objects\tasks.o: .\FreeRTOS\include\stack_macros.h
-.\objects\tasks.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

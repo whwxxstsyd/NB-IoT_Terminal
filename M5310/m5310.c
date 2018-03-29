@@ -126,7 +126,6 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 			}
 		}
 		
-		// _CMIOT_Debug("retryCounts: %ld\r\n", retryCounts);
 		if(retryCounts * timeslice_ms >= timeout_ms)   /* 匹配超时返回 */
 		{
 			_CMIOT_Debug("%s(execute timeout!)\r\n", __func__);
@@ -409,22 +408,6 @@ CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
 
 
 /*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_M5310_ICMP_Request
-Author			:	zhaoji
-Created Time	:	2018.03.05
-Description 	: 	测试ping延时
-Input Argv		:
-Output Argv 	:
-Return Value	:
------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-/*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_GetModuleName
 Author			:	zhaoji
 Created Time	:	2018.02.23
@@ -565,7 +548,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 {
-	uint8_t imsi_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t imsi_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *p_head, *p_end;
@@ -574,6 +557,7 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
+		delay_ms(1000);
 		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CIMI\r\n"), imsi_MatchStr, 2, 2000);
 		
 		if(result == 1)	/* 指令执行OK */
@@ -587,8 +571,9 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 				}
 				else{break;}
 			}
-			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
-			strncat((char *)IMSI, p_head, p_end - p_head);
+			p_end  = strstr((const char *)p_head, "\r\n");
+			strncat((char *)IMSI, p_head, p_end - p_head + 1);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, IMSI);
 			return 1;
 		}
 		delay_ms(500);
@@ -842,66 +827,58 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-//uint32_t _CMIOT_GetNetworkDelay()
-//{
-//	uint8_t nping_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
-//	uint8_t maxRetryCounts = 5;
-//	uint8_t result;
-//	char *index;
-//	bool flag;
-//	uint32_t band = 0;
-//	
-//	while(maxRetryCounts > 0)
-//	{
-//		maxRetryCounts--;
-//		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NBAND?\r\n"), band_MatchStr, 2, 2000);
-//		
-//		if(result == 1)	/* 指令执行OK */
-//		{
-//			index = strstr((char *)UART_M5310_RxBuffer, "+NBAND:");
-//			if(index != NULL)
-//			{
-//				index += strlen("+NBAND:");
-//				flag = false;
-//				while(1)
-//				{
-//					if(*index == ' ')	/* 忽略空格 */
-//					{
-//						index++;
-//						continue;
-//					}
-//					
-//					if(*index == '-')	/* 正负 */
-//					{
-//						flag = true;
-//						index++;
-//						continue;
-//					}
-//					
-//					if(*index >= '0' && *index <= '9')	/* 计算BAND绝对值 */
-//					{
-//						band = band*10 + *index - '0';
-//						index++;
-//					}
-//					else
-//					{
-//						break;
-//					}
-//				}
-//				band = band * (flag ? -1 : 1);
-//				return band;
-//			}
-//			else
-//			{
-//				_CMIOT_Debug("%s(BAND Not Found!)\r\n", __func__);
-//			}
-//		}
-//		delay_ms(500);
-//	}
-//	/* 获取失败 */
-//	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
-//	return 0;
-//}
+uint32_t _CMIOT_GetNetworkDelay(void)
+{
+	uint8_t nping_MatchStr[3][20] = {"NPING:", "NPINGERR","ERROR"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *index;
+	uint32_t pingDelay = 0;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NPING=47.93.217.230,100,10000,1\r\n"), nping_MatchStr, 3, 12000);
+		
+		if(result == 1)	/* 指令执行OK */
+		{
+			delay_ms(1000);
+			index = strstr((const char *)UART_M5310_RxBuffer, "=") + strlen("=");
+			while(1)
+			{
+				if(*index == ' ')
+				{
+					index++;
+					continue;
+				}
+				
+				if(*index >= '0' && *index <= '9')
+				{
+					pingDelay = pingDelay*10 + *index - '0';
+					index++;
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}
+			_CMIOT_Debug("%s(%d)\r\n", __func__, pingDelay);
+			return pingDelay;
+		}
+		
+		if(result ==2)
+		{
+			_CMIOT_Debug("%s(NPINGERR!)\r\n", __func__);
+			return 0;
+		}
+		
+		delay_ms(500);
+	}
+	/* 获取失败 */
+	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
+	return 0;
+}
 
 
 
@@ -924,9 +901,9 @@ bool cm_IsModuleAlive()
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT\r\n"), at_MatchStr, 2, 2000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT\r\n"), at_MatchStr, 2, 1000);
 		
-		if(maxRetryCounts == 0 && result == 1)
+		if(result == 1)
 		{
 			return true;
 		}

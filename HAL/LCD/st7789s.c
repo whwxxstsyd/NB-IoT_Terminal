@@ -558,12 +558,11 @@ void LCD_ShowString(u16 x,u16 y, u8 size, const u8 *p)
 		}
 		if(*p == '\n')
 		{
-			x=75;
-			y+=16;
+			x=x+6;
 			p++;
 			continue;
 		}
-        if(x>MAX_CHAR_POSX){x=75;y+=16;}
+        if(x>MAX_CHAR_POSX){x=85;y+=16;}
 		if(y>MAX_CHAR_POSY){return;}
         // if(y>MAX_CHAR_POSY){y=x=0;LCD_Clear(WHITE);}
         LCD_ShowChar(x,y,*p,size,0);
@@ -848,7 +847,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while (*cn != '\0')
 				{
-					for (wordNum=0; wordNum<12; wordNum++)
+					for (wordNum=0; wordNum<13; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((Arial24x27[wordNum].Index[0]==*cn)
 							 &&(Arial24x27[wordNum].Index[1]==*(cn+1))&&(Arial24x27[wordNum].Index[2]==*(cn+2)))
@@ -991,7 +990,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while (*cn != '\0')
 				{
-					for (wordNum=0; wordNum<44; wordNum++)
+					for (wordNum=0; wordNum<94; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((newArialCnChar16x16[wordNum].Index[0]==*cn)
 							 &&(newArialCnChar16x16[wordNum].Index[1]==*(cn+1))&&(newArialCnChar16x16[wordNum].Index[2]==*(cn+2)))
@@ -1044,7 +1043,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while(*cn != '\0')
 				{
-					for (wordNum=0; wordNum<18; wordNum++)
+					for (wordNum=0; wordNum<21; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((Yahei16x21[wordNum].Index[0]==*cn)
 							 &&(Yahei16x21[wordNum].Index[1]==*(cn+1))&&(Yahei16x21[wordNum].Index[2]==*(cn+2)))

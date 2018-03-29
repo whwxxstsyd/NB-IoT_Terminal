@@ -77,6 +77,8 @@ extern u16  BACK_COLOR; //背景颜色.默认为白色
 #define LIGHTBLUE		0x059E	//浅蓝色
 #define TITLEBLUE		0x0419
 
+#define PROGRESS_BAR_COLOR 0X1905
+
 //以上三色为PANEL的颜色 
 
 #define LIGHTGREEN     	 0X841F //浅绿色
