@@ -79,7 +79,7 @@ int main(void)
 {
 	delay_init();    /* 初始化systick实现普通延时 */
 	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
 	
 	LCD_Init();
 	

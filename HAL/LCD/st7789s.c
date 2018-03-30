@@ -767,7 +767,7 @@ void LCD_ShowFontEN(u16 x, u16 y, u8 *cn, u8 size, u16 fontColor, u16 backColor)
 	{
 		if(size == 24)
 		{
-			for (wordNum=0; wordNum<29; wordNum++)
+			for (wordNum=0; wordNum<31; wordNum++)
 			{	//wordNum扫描字库的字数
 				if (EnChar24x24[wordNum].Index[0]==*cn)
 				{
@@ -990,7 +990,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while (*cn != '\0')
 				{
-					for (wordNum=0; wordNum<94; wordNum++)
+					for (wordNum=0; wordNum<101; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((newArialCnChar16x16[wordNum].Index[0]==*cn)
 							 &&(newArialCnChar16x16[wordNum].Index[1]==*(cn+1))&&(newArialCnChar16x16[wordNum].Index[2]==*(cn+2)))

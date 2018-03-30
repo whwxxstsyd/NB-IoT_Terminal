@@ -28,11 +28,9 @@ Description     :   按键接口
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
-extern TaskHandle_t m5310_task;     /* M5310任务  */
-
-extern CM_MENU_POSITION menuPosition;
-
-
+extern	TaskHandle_t m5310_task;     	/* M5310任务  */
+extern	CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
+bool	busyFlag = false;				/* 标识上次按键基本任务是否完成（UI是否绘制完成） */
 
 /*-----------------------------------------------------------------------------
 Function Name	:	cm_key_init
@@ -69,8 +67,8 @@ void cm_key_init(void)
 	EXTI_Init(&EXTI_InitStructure);//根据结构体信息进行初始化
 
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI3_IRQn; //使能外部中断所在的通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02; //抢占优先级 2
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02; //子优先级 2
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; //抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4; //子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure); //根据结构体信息进行优先级初始化
 	
@@ -89,8 +87,8 @@ void cm_key_init(void)
 	EXTI_Init(&EXTI_InitStructure);//根据结构体信息进行初始化
 
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn; //使能外部中断所在的通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02; //抢占优先级 2
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02; //子优先级 2
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; //抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 5; //子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure); //根据结构体信息进行优先级初始化
 	
@@ -123,8 +121,8 @@ void cm_key_init(void)
 	EXTI_Init(&EXTI_InitStructure);//根据结构体信息进行初始化
 	
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn; //使能外部中断所在的通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02; //抢占优先级 2
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02; //子优先级 2
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; //抢占优先级 2
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 7; //子优先级 2
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure); //根据结构体信息进行优先级初始化
 	
@@ -144,13 +142,23 @@ void cm_key_init(void)
 	EXTI_Init(&EXTI_InitStructure);//根据结构体信息进行初始化
 	
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn; //使能外部中断所在的通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02; //抢占优先级 2
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02; //子优先级 2
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; //抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 6; //子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure); //根据结构体信息进行优先级初始化
 }
 
 
+
+/*-----------------------------------------------------------------------------
+Function Name	:	EXTI2_IRQHandler
+Author			:	zhaoji
+Created Time	:	2018.03.30
+Description 	: 	EXTI_Line2中断处理函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 void EXTI2_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
@@ -177,7 +185,15 @@ void EXTI2_IRQHandler(void)
 }
 
 
-
+/*-----------------------------------------------------------------------------
+Function Name	:	EXTI3_IRQHandler
+Author			:	zhaoji
+Created Time	:	2018.03.30
+Description 	: 	EXTI_Line3中断处理函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 void EXTI3_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
@@ -206,7 +222,15 @@ void EXTI3_IRQHandler(void)
 
 
 
-
+/*-----------------------------------------------------------------------------
+Function Name	:	EXTI4_IRQHandler
+Author			:	zhaoji
+Created Time	:	2018.03.30
+Description 	: 	EXTI_Line4中断处理函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 void EXTI4_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
@@ -234,6 +258,15 @@ void EXTI4_IRQHandler(void)
 
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	EXTI15_10_IRQHandler
+Author			:	zhaoji
+Created Time	:	2018.03.30
+Description 	: 	EXTI_Line10~15中断处理函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 void EXTI15_10_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
@@ -280,4 +313,7 @@ void EXTI15_10_IRQHandler(void)
 		EXTI_ClearITPendingBit(EXTI_Line11); //清楚中断标志位 
 	}
 }
+
+
+
 

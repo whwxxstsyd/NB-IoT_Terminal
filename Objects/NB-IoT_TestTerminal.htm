@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\NB-IoT_TestTerminal.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\NB-IoT_TestTerminal.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Thu Mar 29 19:15:41 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Fri Mar 30 13:04:06 2018
 <BR><P>
 <H3>Maximum Stack Usage =        640 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -753,7 +753,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawPoint
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowPingResult
+<BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowRadioInfo
+<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowPingResult
 <LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowNetworkRegTime
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GUI_Init
 <LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ComprehensiveTest
@@ -853,6 +854,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawPoint
 </UL>
 <BR>[Called By]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_TabIndex
+<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowRadioInfo
 <LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowPingResult
 <LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowNetworkRegTime
 <LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowInstructionMsg
@@ -1509,7 +1511,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_NBIOT_Measurement
 </UL>
 
-<P><STRONG><a name="[c9]"></a>_CMIOT_ShowRadioInfo</STRONG> (Thumb, 514 bytes, Stack size 128 bytes, ui.o(i._CMIOT_ShowRadioInfo))
+<P><STRONG><a name="[c9]"></a>_CMIOT_ShowRadioInfo</STRONG> (Thumb, 672 bytes, Stack size 128 bytes, ui.o(i._CMIOT_ShowRadioInfo))
 <BR><BR>[Stack]<UL><LI>Max Depth = 584<LI>Call Chain = _CMIOT_ShowRadioInfo &rArr; _CMIOT_M5310_GetUeState &rArr; _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_M5310_GetUeState
@@ -1523,7 +1525,9 @@ Global Symbols
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy4
 <LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSignalStrength
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowString
+<LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowChinese
 <LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
+<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawLine
 </UL>
 <BR>[Called By]<UL><LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_NBIOT_Measurement
 </UL>
@@ -1656,7 +1660,7 @@ Global Symbols
 
 <P><STRONG><a name="[13b]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
 
-<P><STRONG><a name="[c1]"></a>cm_key_init</STRONG> (Thumb, 452 bytes, Stack size 24 bytes, key.o(i.cm_key_init))
+<P><STRONG><a name="[c1]"></a>cm_key_init</STRONG> (Thumb, 460 bytes, Stack size 24 bytes, key.o(i.cm_key_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = cm_key_init &rArr; GPIO_Init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;NVIC_Init

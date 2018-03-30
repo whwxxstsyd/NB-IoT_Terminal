@@ -329,22 +329,25 @@ void _CMIOT_ShowRadioInfo()
 	uint8_t t3412[32] = {0};
 	uint8_t t3324[32] = {0};
 	
+	LCD_ShowChinese(5, 45, newArial, 16, (u8 *)"信号质量评估：正在获取", BLACK, WHITE);
+	POINT_COLOR = BLACK;
+	LCD_DrawLine(0, 69, 239, 69);
 	/* 左侧蓝条 */
-	LCD_Fill(0,40,79,319, LIGHTBLUE);
+	LCD_Fill(0,70,79,319, LIGHTBLUE);
 	
 	/* 显示参数名 */
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(5, 50, 16,  (u8 *)"CSQ    :");
-	LCD_ShowString(5, 75, 16,  (u8 *)"SNR    :");
-	LCD_ShowString(5, 100, 16, (u8 *)"RSRQ   :");
-	LCD_ShowString(5, 125, 16, (u8 *)"EARFCN :");
-	LCD_ShowString(5, 150, 16, (u8 *)"ECL    :");
-	LCD_ShowString(5, 175, 16, (u8 *)"PLMN   :");
-	LCD_ShowString(5, 200, 16, (u8 *)"BAND   :");
-	LCD_ShowString(5, 225, 16, (u8 *)"T3324  :");
-	LCD_ShowString(5, 250, 16, (u8 *)"T3412  :");
-	LCD_ShowString(5, 275, 16, (u8 *)"CELLID :");
+	LCD_ShowString(5, 75,  16, (u8 *)"CSQ    :");
+	LCD_ShowString(5, 100, 16, (u8 *)"SNR    :");
+	LCD_ShowString(5, 125, 16, (u8 *)"RSRQ   :");
+	LCD_ShowString(5, 150, 16, (u8 *)"EARFCN :");
+	LCD_ShowString(5, 175, 16, (u8 *)"ECL    :");
+	LCD_ShowString(5, 200, 16, (u8 *)"PLMN   :");
+	LCD_ShowString(5, 225, 16, (u8 *)"BAND   :");
+	LCD_ShowString(5, 250, 16, (u8 *)"T3324  :");
+	LCD_ShowString(5, 275, 16, (u8 *)"T3412  :");
+	LCD_ShowString(5, 300, 16, (u8 *)"CELLID :");
 	
 	while(1)
 	{
@@ -356,47 +359,57 @@ void _CMIOT_ShowRadioInfo()
 		
 		_CMIOT_ShowSignalStrength(CsqValue);
 		sprintf((char *)msg, "%-3d", CsqValue);
-		// LCD_Fill(85, 50, 239, 70, WHITE);
-		LCD_ShowString(95, 50, 16,  (u8 *)msg);
+		LCD_ShowString(95, 75, 16,  (u8 *)msg);
 		
 		/* 刷新NUESTATS参数 */
 		/* SNR */
 		ue_state = _CMIOT_M5310_GetUeState();
 		sprintf((char *)msg, "%-10d", ue_state.snr);
-		// LCD_Fill(85, 75, 239, 95, WHITE);
-		LCD_ShowString(95, 75, 16,  (u8 *)msg);
+		LCD_ShowString(95, 100, 16,  (u8 *)msg);
 		/* RSRQ */
 		sprintf((char *)msg, "%-10d", ue_state.rsrq);
-		// LCD_Fill(85, 100, 239, 120, WHITE);
-		LCD_ShowString(95, 100, 16,  (u8 *)msg);
+		LCD_ShowString(95, 125, 16,  (u8 *)msg);
 		/* EARFCN */
 		sprintf((char *)msg, "%-10d", ue_state.earfcn);
-		// LCD_Fill(85, 125, 239, 150, WHITE);
-		LCD_ShowString(95, 125, 16,  (u8 *)msg);
-		/* ECL */
-		sprintf((char *)msg, "%-10d", ue_state.ecl);
-		// LCD_Fill(85, 150, 239, 170, WHITE);
 		LCD_ShowString(95, 150, 16,  (u8 *)msg);
+		/* ECL */
+		sprintf((char *)msg, "%-2d", ue_state.ecl);
+		LCD_ShowString(95, 175, 16,  (u8 *)msg);
 		/* CELLID */
-		LCD_Fill(95, 275, 239, 295, WHITE);
-		LCD_ShowString(95, 275, 16,  ue_state.cellid);
+		LCD_Fill(95, 300, 239, 295, WHITE);
+		LCD_ShowString(95, 300, 16,  ue_state.cellid);
 		
+		/* 刷新信号评估结果 */
+		if(CsqValue > 20 && ue_state.snr > 100)
+		{
+			LCD_Fill(117,45,239,65,WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"好", BLACK, WHITE);
+		}
+		else
+		{
+			LCD_Fill(117,45,239,65,WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"一般", BLACK, WHITE);
+		}
+		
+		
+		POINT_COLOR = BLACK;
+		BACK_COLOR = WHITE;
 		/* 刷新PLMN号 */
 		_CMIOT_GetPLMN(msg, sizeof(msg));
-		LCD_Fill(95, 175, 239, 195, WHITE);
-		LCD_ShowString(95, 175, 16,  msg);
+		LCD_Fill(95, 200, 239, 195, WHITE);
+		LCD_ShowString(95, 200, 16,  msg);
 		
 		/* 刷新BAND频段号 */
 		sprintf((char *)msg, "%-5d", _CMIOT_GetNB_Band());
-		LCD_ShowString(95, 200, 16, msg);
+		LCD_ShowString(95, 225, 16, msg);
 		
 		/* 刷新T3412 T3324定时器值 */
 		_CMIOT_Get_PSM_TIMER_Value(t3324, t3412, sizeof(t3324));
-		LCD_Fill(95, 225, 239, 245, WHITE);
-		LCD_ShowString(95, 225, 16,  t3324);
+		LCD_Fill(95, 250, 239, 245, WHITE);
+		LCD_ShowString(95, 250, 16,  t3324);
 		
-		LCD_Fill(95, 250, 239, 270, WHITE);
-		LCD_ShowString(95, 250, 16,  t3412);
+		LCD_Fill(95, 275, 239, 270, WHITE);
+		LCD_ShowString(95, 275, 16,  t3412);
 		
 		delay_ms(1000);
 	}
@@ -421,8 +434,8 @@ void _CMIOT_ShowNetworkRegTime()
 	uint32_t MinRegisterTime = 0;
 	uint32_t result;
 	
-	LCD_ShowChinese(65, 55, Arial, 24, (u8 *)"驻网时间", LIGHTBLUE, WHITE);
-	LCD_ShowFontEN(55, 85, (u8 *)"---.---", 24, BRRED, WHITE);
+	LCD_ShowChinese(65, 50, Arial, 24, (u8 *)"驻网时间", LIGHTBLUE, WHITE);
+	LCD_ShowFontEN(55, 80, (u8 *)"---.---", 24, BRRED, WHITE);
 	/* 分割线 */
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0,129,239,129);
@@ -455,25 +468,28 @@ void _CMIOT_ShowNetworkRegTime()
 	LCD_ShowString(70, 290, 16,  (u8 *)":");
 	while(1)
 	{
+		//LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"正在驻网", BLACK, WHITE);
 		result = _CMIOT_M5310_GetRegisterTime();
 		// LCD_Fill(95, 90, 239, 120, WHITE);
 		delay_ms(50);
 		
 		if(result > 1)
 		{
+			//LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网成功", BLACK, WHITE);
 			TestCount++;	/* 测试次数+1 */
 			sprintf((char *)msg, "%07.3fs", (float)result/1000);
-			LCD_ShowFontEN(55, 85, (u8 *)msg, 24, BRRED, WHITE);
+			LCD_ShowFontEN(55, 80, (u8 *)msg, 24, BRRED, WHITE);
 		}
 		else if(result == 1)
 		{
-			LCD_ShowFontEN(55, 85, (u8 *)"timeout ", 24, RED, WHITE);
+			//LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网失败", BLACK, WHITE);
+			LCD_ShowFontEN(55, 80, (u8 *)"timeout ", 24, RED, WHITE);
 			TestCount++;	/* 测试次数+1 */
 			FailCount++;	/* 失败次数+1 */
 		}
 		else
 		{
-			LCD_ShowFontEN(55, 85, (u8 *)"booterr ", 24, RED, WHITE);
+			LCD_ShowFontEN(55, 80, (u8 *)"booterr ", 24, RED, WHITE);
 		}
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
@@ -512,7 +528,7 @@ void _CMIOT_ShowNetworkRegTime()
 		LCD_ShowString(95, 290, 16,  msg);
 		
 		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		delay_ms(1000);
+		delay_ms(5000);
 	}
 }
 
@@ -742,7 +758,15 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 }
 
 
-
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_ShowInstructionMsg
+Author			:	zhaoji
+Created Time	:	2018.03.30
+Description 	: 	使用说明界面
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 void _CMIOT_ShowInstructionMsg(void)
 {
 	LCD_ShowChinese(5, 45, Yahei, 16, (u8 *)"驻网测试", LIGHTBLUE, WHITE);

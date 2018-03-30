@@ -86,8 +86,8 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate)
 		
 		/* 初始化NVIC */
 		NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;
-		NVIC_InitStructure.NVIC_IRQChannelSubPriority =2; 
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority =1; 
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
 		
@@ -130,8 +130,8 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate)
 		
 		/* 初始化NVIC */
 		NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;
-		NVIC_InitStructure.NVIC_IRQChannelSubPriority =1; 
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority =2; 
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
 		
@@ -174,8 +174,8 @@ void _CMIOT_Uart_Init(USART_TypeDef *USARTx, uint32_t bandrate)
 		
 		/* 初始化NVIC */
 		NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
-		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;
-		NVIC_InitStructure.NVIC_IRQChannelSubPriority =3; 
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority =0; 
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
 		

@@ -23,6 +23,7 @@ Description     :   M5310接口
 #include "task.h"
 #include "stdio.h"
 
+
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
@@ -60,7 +61,6 @@ uint32_t _CMIOT_M5310_GetRegisterTime(void)
 	uint32_t end_time;
 	
 	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 5000);   /* 重启模组，并等待启动信息 */
-	
 	if(result == 1)
 	{
 		start_time = FreeRTOSRunTimeTicks;   /* M5310启动完成时间点 */
