@@ -769,11 +769,11 @@ void LCD_ShowFontEN(u16 x, u16 y, u8 *cn, u8 size, u16 fontColor, u16 backColor)
 		{
 			for (wordNum=0; wordNum<31; wordNum++)
 			{	//wordNum扫描字库的字数
-				if (EnChar24x24[wordNum].Index[0]==*cn)
+				if (EnChar16x24[wordNum].Index[0]==*cn)
 				{
-					for(i=0; i<72; i++) 
+					for(i=0; i<48; i++) 
 					{	//MSK的位数
-						color=EnChar24x24[wordNum].Msk[i];
+						color=EnChar16x24[wordNum].Msk[i];
 						for(j=0;j<8;j++) 
 						{
 							if((color&0x80)==0x80)
@@ -790,7 +790,7 @@ void LCD_ShowFontEN(u16 x, u16 y, u8 *cn, u8 size, u16 fontColor, u16 backColor)
 							} 
 							color<<=1;
 							x++;
-							if((x-x0)==24)
+							if((x-x0)==16)
 							{
 								x=x0;
 								y++;
@@ -990,7 +990,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while (*cn != '\0')
 				{
-					for (wordNum=0; wordNum<101; wordNum++)
+					for (wordNum=0; wordNum<106; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((newArialCnChar16x16[wordNum].Index[0]==*cn)
 							 &&(newArialCnChar16x16[wordNum].Index[1]==*(cn+1))&&(newArialCnChar16x16[wordNum].Index[2]==*(cn+2)))

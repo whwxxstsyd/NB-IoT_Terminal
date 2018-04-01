@@ -25,6 +25,7 @@ Description     :   主程序入口
 #include "User_Cli.h"
 #include "ui.h"
 #include "key.h"
+#include "timers.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -47,7 +48,9 @@ TaskHandle_t cli_task;       /* CLI任务    */
 TaskHandle_t m5310_task;     /* M5310任务  */
 TaskHandle_t lcd_task;       /* LCD任务    */
 
-CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};
+TimerHandle_t watchDogTimer;	/* 看门狗定时器 */
+
+CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};	/* 菜单位置 */
 
 
 /*----------------------------------------------------------------------------*
@@ -64,6 +67,7 @@ void _CMIOT_CliTaskProc(void *pvParameters);
 void _CMIOT_M5310TaskProc(void *pvParameters);
 void _CMIOT_StartTaskProc(void *pvParameters);
 
+void IWDG_Configuration(void);	/* 初始化看门狗 */
 
 
 /*-----------------------------------------------------------------------------
@@ -91,6 +95,13 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
+	/* 检查是否被看门狗重启 */
+	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
+	{
+		_CMIOT_Debug("*****<ERROR>Reset by stm32 IWDG!<ERROR>*****\r\n");
+		RCC_ClearFlag();
+	}
+	
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
 				(const char*         )"start_task",
@@ -115,6 +126,9 @@ Return Value	:
 void _CMIOT_StartTaskProc(void *pvParameters)
 {
 	_CMIOT_Debug("%s...\r\n", __func__);
+	
+	IWDG_Configuration();	/* 初始化看门狗及喂狗定时器 */
+
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
 	/* 创建CLI任务 */
@@ -200,7 +214,6 @@ void _CMIOT_LcdTaskProc(void *pvParameters)
 }
 
 
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_M5310TaskProc
 Author			:	zhaoji
@@ -234,9 +247,11 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 	{
 		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
 		
-		if(notifyValue == 1)   /* 获取到任务通知 */
+		if(notifyValue >= 1)   /* 获取到任务通知 */
 		{
-			_CMIOT_Debug("%s(Recv keydown event)\r\n", __func__);
+			taskENTER_CRITICAL();   /* 进入临界区 */
+			
+			_CMIOT_Debug("%s(Recv NotifyValue)\r\n", __func__);
 			
 			/* 当用户通过按钮切换功能菜单时，删除重新创建线程 */
 			if(lcd_task != NULL)
@@ -245,8 +260,6 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 				_CMIOT_Debug("%s(Delete Lcd task)\r\n", __func__);
 			}
 			
-			taskENTER_CRITICAL();   /* 进入临界区 */
-	
 			/* 创建LCD任务 */
 			xTaskCreate((TaskFunction_t      )_CMIOT_LcdTaskProc,
 						(const char*         )"lcd_task",
@@ -260,6 +273,37 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 	}
 }
 
+
+/*-----------------------------------------------------------------------------
+Function Name	:	IWDG_Configuration
+Author			:	zhaoji
+Created Time	:	2018.03.31
+Description 	:	独立看门狗初始化
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void IWDG_Configuration(void)  
+{
+	/* 喂狗时间计算： T =  (IWDG_Prescaler*Reload)/40(ms)      */
+    RCC_LSICmd(ENABLE);	//打开LSI  
+    while(RCC_GetFlagStatus(RCC_FLAG_LSIRDY)==RESET);  
+  
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);  
+    IWDG_SetPrescaler(IWDG_Prescaler_256);  
+    IWDG_SetReload(782);	/* 782*256/40 = 5000ms */
+    IWDG_ReloadCounter();  
+    IWDG_Enable();
+	
+	/* 每3秒喂一次狗 */
+	watchDogTimer = xTimerCreate((const char*   )"WatchDogTimer",
+								(TickType_t     )3000,
+								(UBaseType_t    )pdTRUE,
+								(void*          )1,
+								(TimerCallbackFunction_t)IWDG_ReloadCounter);
+								
+	xTimerStart(watchDogTimer, 0);
+}
 
 
 

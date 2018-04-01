@@ -36,6 +36,7 @@ Description     :   M5310接口
 uint8_t   UART_M5310_RxBuffer[512] = {0};
 uint32_t  UART_M5310_RxBufferLen   =  0;
 
+uint8_t PING_ADDR[] = "47.93.217.230";
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -112,7 +113,7 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 	
 	_CMIOT_Uart_send(UART_M5310, AtCmd, strlen((const char *)AtCmd));    /* 发送AT指令 */
 	
-	_CMIOT_Debug("%s(Send->%s\r\n", __func__, AtCmd);
+	_CMIOT_Debug("%s(Send->%s", __func__, AtCmd);
 	
 	/* 检索M5310串口返回内容是否匹配目标字符串数组，匹配成功返回数组索引号+1，超时匹配失败返回0 */
 	while(1)
@@ -185,7 +186,7 @@ uint8_t _CMIOT_M5310_GetSignalstrength(void)
 				}
 			}
 			/* 返回信号值 */
-			_CMIOT_Debug("%s(return: %d)\r\n", __func__, signal);
+			_CMIOT_Debug("%s(%d)\r\n", __func__, signal);
 			return signal;
 		}
 		delay_ms(500);
@@ -442,6 +443,7 @@ uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 			}
 			p_end  = strstr((const char *)p_head, "\r\nOK");
 			strncat((char *)ModuleName, p_head, p_end - p_head);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, ModuleName);
 			return 1;
 		}
 		delay_ms(500);
@@ -488,6 +490,7 @@ uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion, uint32_t buffersize)
 			}
 			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)ModuleVersion, p_head, p_end - p_head);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, ModuleVersion);
 			return 1;
 		}
 		delay_ms(500);
@@ -526,12 +529,13 @@ uint8_t _CMIOT_GetICCID(uint8_t *ICCID, uint32_t buffersize)
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "NCCID:") + strlen("NCCID:");
 			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)ICCID, p_head, p_end - p_head);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, ICCID);
 			return 1;
 		}
 		delay_ms(500);
 	}
 	/* 获取失败 */
-	strncpy((char *)ICCID, "ERROR", buffersize);
+	strncpy((char *)ICCID, "NO SIM", buffersize);
 	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 	return 0;
 }
@@ -557,7 +561,6 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		delay_ms(1000);
 		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CIMI\r\n"), imsi_MatchStr, 2, 2000);
 		
 		if(result == 1)	/* 指令执行OK */
@@ -579,7 +582,7 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 		delay_ms(500);
 	}
 	/* 获取失败 */
-	strncpy((char *)IMSI, "ERROR", buffersize);
+	strncpy((char *)IMSI, "NO SIM", buffersize);
 	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 	return 0;
 }
@@ -612,12 +615,13 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "CGSN:") + strlen("CGSN:");
 			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
 			strncat((char *)IMEI, p_head, p_end - p_head);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, IMEI);
 			return 1;
 		}
 		delay_ms(500);
 	}
 	/* 获取失败 */
-	strncpy((char *)IMEI, "ERROR", buffersize);
+	strncpy((char *)IMEI, "NO Module", buffersize);
 	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 	return 0;
 }
@@ -650,6 +654,7 @@ uint8_t _CMIOT_GetPLMN(uint8_t *plmn, uint32_t buffersize)
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "\"") + strlen("\"");
 			p_end  = strstr((const char *)p_head, "\"");
 			strncat((char *)plmn, p_head, p_end - p_head);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, plmn);
 			return 1;
 		}
 		delay_ms(500);
@@ -718,6 +723,7 @@ uint32_t _CMIOT_GetNB_Band(void)
 					}
 				}
 				band = band * (flag ? -1 : 1);
+				_CMIOT_Debug("%s(%d)\r\n", __func__, band);
 				return band;
 			}
 			else
@@ -759,6 +765,7 @@ uint8_t _CMIOT_Get_PSM_TIMER_Value(uint8_t *t3324, uint8_t *t3412, uint32_t buff
 		
 		if(result == 1)	/* 指令执行OK */
 		{
+			_CMIOT_Debug("%s(%s)", __func__, UART_M5310_RxBuffer);
 			/* T3412 */
 			p_head = strstr((const char *)UART_M5310_RxBuffer, ",") + strlen(",");
 			p_head = strstr((const char *)p_head, ",") + strlen(",");
@@ -834,11 +841,16 @@ uint32_t _CMIOT_GetNetworkDelay(void)
 	uint8_t result;
 	char *index;
 	uint32_t pingDelay = 0;
+	uint8_t pingAtCmd[64] = {0};
+	
+	strcat((char *)pingAtCmd, "AT+NPING=");
+	strcat((char *)pingAtCmd, (char *)PING_ADDR);
+	strcat((char *)pingAtCmd, ",100,10000,1\r\n");
 	
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NPING=47.93.217.230,100,10000,1\r\n"), nping_MatchStr, 3, 12000);
+		result = _CMIOT_ExecuteAtCmd(pingAtCmd, nping_MatchStr, 3, 12000);
 		
 		if(result == 1)	/* 指令执行OK */
 		{

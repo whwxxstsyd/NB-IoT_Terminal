@@ -168,7 +168,7 @@ void EXTI2_IRQHandler(void)
 		return;
 	}
 	_CMIOT_Debug("%s(KEY_DOWN Pressed Down)\r\n", __func__);
-	delay_ms(5);//延时消抖
+	delay_ms(10);//延时消抖
 	if(KEY_DOWN==0)    //按键真的被按下
 	{
 		if(menuPosition.yPosition < 1 || (menuPosition.yPosition == 1 && menuPosition.xPosition == 0))
@@ -202,7 +202,7 @@ void EXTI3_IRQHandler(void)
 	{
 		return;
 	}
-	delay_ms(5);//延时消抖
+	delay_ms(10);//延时消抖
 	if(KEY_UP==0)    //按键真的被按下
 	{
 		_CMIOT_Debug("%s(KEY_UP Pressed Down)\r\n", __func__);
@@ -240,7 +240,7 @@ void EXTI4_IRQHandler(void)
 		return;
 	}
 	_CMIOT_Debug("%s(KEY_LEFT Pressed Down)\r\n", __func__);
-	delay_ms(5);//延时消抖
+	delay_ms(10);//延时消抖
 	if(KEY_LEFT==0)    //按键真的被按下
 	{
 		if(menuPosition.xPosition > 0)
@@ -274,7 +274,7 @@ void EXTI15_10_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line12) != RESET)
 	{
 		_CMIOT_Debug("%s(KEY_RIGHT Pressed Down)\r\n", __func__);
-		delay_ms(5);//延时消抖
+		delay_ms(10);//延时消抖
 		if(KEY_RIGHT==0)    //按键真的被按下
 		{
 			if(menuPosition.yPosition < 2 && menuPosition.xPosition < 2)
@@ -293,7 +293,7 @@ void EXTI15_10_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line11) != RESET)
 	{
 		_CMIOT_Debug("%s(KEY_ENTER Pressed Down)\r\n", __func__);
-		delay_ms(5);//延时消抖
+		delay_ms(10);//延时消抖
 		if(KEY_ENTER==0)    //按键真的被按下
 		{
 			if(menuPosition.subMenu == 0)

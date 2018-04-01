@@ -85,8 +85,6 @@ Return Value	:
 void _CMIOT_NBIOT_Measurement(uint8_t index);
 
 
-
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_ShowSignalStrength
 Author			:	zhaoji
@@ -97,18 +95,6 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowSignalStrength(uint8_t csqValue);
-
-
-/*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_BootProgressBar
-Author			:	zhaoji
-Created Time	:	2018.03.23
-Description 	: 	显示启动百分比进度条
-Input Argv		:
-Output Argv 	:
-Return Value	:
------------------------------------------------------------------------------*/
-void _CMIOT_BootProgressBar(uint8_t percentValue);
 
 
 /*-----------------------------------------------------------------------------

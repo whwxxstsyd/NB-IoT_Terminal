@@ -25,7 +25,7 @@ Description     :   UI接口
 **----------------------------------------------------------------------------*/
 static uint8_t msg[128];
 
-
+extern uint8_t PING_ADDR[];
 
 
 /*-----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ void _CMIOT_UI_BootPage(void)
 	LCD_ShowPicture(70,50,100,100,(u8 *)BootImage);
 	LCD_ShowFontHZ(60, 170, (u8 *)"中移物联网", 24, TITLEBLUE, WHITE);
 	POINT_COLOR = TITLEBLUE;
-	LCD_ShowFontEN(15, 210, (u8 *)"NB-IOT", 24, TITLEBLUE, WHITE);
+	LCD_ShowFontEN(15, 210, (u8 *)"NB-IoT", 24, TITLEBLUE, WHITE);
 	LCD_ShowFontHZ(110, 210, (u8 *)"网络测试仪", 24, TITLEBLUE, WHITE);
 	delay_ms(1000);
 }
@@ -253,57 +253,63 @@ Return Value	:
 void _CMIOT_ShowDeviceInfo()
 {
 	/* 左侧蓝条 */
-	LCD_Fill(0,40,79,319, LIGHTBLUE);
+	LCD_Fill(0,40,77,319, LIGHTBLUE);
 	
 	/* 模组型号 */
-	LCD_ShowChinese(5, 60, newArial, 16, (u8 *)"模组型号", BLACK, LIGHTBLUE);
+	LCD_ShowChinese(3, 60, newArial, 16, (u8 *)"模组型号", BLACK, LIGHTBLUE);
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(70, 60, 16,  (u8 *)":");
+	LCD_ShowString(68, 60, 16,  (u8 *)":");
 	
 	/* 模组版本 */
-	LCD_ShowChinese(5, 100, newArial, 16, (u8 *)"模组版本", BLACK, LIGHTBLUE);
+	LCD_ShowChinese(3, 100, newArial, 16, (u8 *)"模组版本", BLACK, LIGHTBLUE);
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(70, 100, 16,  (u8 *)":");
+	LCD_ShowString(68, 100, 16,  (u8 *)":");
 	
 	/* MCU版本 */
-	LCD_ShowChinese(5, 140, newArial, 16, (u8 *)"软件版本", BLACK, LIGHTBLUE);
+	LCD_ShowChinese(3, 140, newArial, 16, (u8 *)"软件版本", BLACK, LIGHTBLUE);
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(70, 140, 16,  (u8 *)":");
+	LCD_ShowString(68, 140, 16,  (u8 *)":");
 	
 	/* IMEI */
-	LCD_ShowString(5, 180, 16, (u8 *)"IMEI");
-	LCD_ShowString(70, 180, 16,  (u8 *)":");
+	LCD_ShowString(3, 180, 16, (u8 *)"IMEI");
+	LCD_ShowString(68, 180, 16,  (u8 *)":");
 	
 	/* ICCID */
-	LCD_ShowString(5, 220, 16, (u8 *)"ICCID");
-	LCD_ShowString(70, 220, 16,  (u8 *)":");
+	LCD_ShowString(3, 220, 16, (u8 *)"ICCID");
+	LCD_ShowString(68, 220, 16,  (u8 *)":");
 	
 	/* IMSI */
-	LCD_ShowString(5, 260, 16, (u8 *)"IMSI");
-	LCD_ShowString(70, 260, 16,  (u8 *)":");
+	LCD_ShowString(3, 260, 16, (u8 *)"IMSI");
+	LCD_ShowString(68, 260, 16,  (u8 *)":");
+	
+	/* 蓝牙状态 */
+	LCD_ShowChinese(3, 300, newArial, 16, (u8 *)"蓝牙状态", BLACK, LIGHTBLUE);
+	POINT_COLOR = BLACK;
+	BACK_COLOR = LIGHTBLUE;
+	LCD_ShowString(68, 300, 16,  (u8 *)":");
 	
 	POINT_COLOR = BLACK;
 	BACK_COLOR = WHITE;
 	
 	_CMIOT_GetModuleName(msg, sizeof(msg));
-	LCD_ShowString(85, 60, 16, (u8 *)msg);
+	LCD_ShowString(80, 60, 16, (u8 *)msg);
 	
 	_CMIOT_GetModuleVersion(msg, sizeof(msg));
-	LCD_ShowString(85, 100, 16, (u8 *)msg);
+	LCD_ShowString(80, 100, 16, (u8 *)msg);
 	
-	LCD_ShowString(85, 140, 16, (u8 *)VERSION_STRING);
+	LCD_ShowString(80, 140, 16, (u8 *)VERSION_STRING);
 	
 	_CMIOT_GetIMEI(msg, sizeof(msg));
-	LCD_ShowString(85, 180, 16, (u8 *)msg);
+	LCD_ShowString(80, 180, 16, (u8 *)msg);
 		
 	_CMIOT_GetICCID(msg, sizeof(msg));
-	LCD_ShowString(85, 220, 16, (u8 *)msg);
+	LCD_ShowString(80, 220, 16, (u8 *)msg);
 	
 	_CMIOT_GetIMSI(msg, sizeof(msg));
-	LCD_ShowString(85, 260, 16, (u8 *)msg);
+	LCD_ShowString(80, 260, 16, (u8 *)msg);
 
 	while(1)
 	{
@@ -380,10 +386,15 @@ void _CMIOT_ShowRadioInfo()
 		LCD_ShowString(95, 300, 16,  ue_state.cellid);
 		
 		/* 刷新信号评估结果 */
-		if(CsqValue > 20 && ue_state.snr > 100)
+		if(CsqValue == 99)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
-			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"好", BLACK, WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"无信号", RED, WHITE);
+		}
+		else if(CsqValue > 20 && ue_state.snr > 100)
+		{
+			LCD_Fill(117,45,239,65,WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"好", GREEN, WHITE);
 		}
 		else
 		{
@@ -434,8 +445,8 @@ void _CMIOT_ShowNetworkRegTime()
 	uint32_t MinRegisterTime = 0;
 	uint32_t result;
 	
-	LCD_ShowChinese(65, 50, Arial, 24, (u8 *)"驻网时间", LIGHTBLUE, WHITE);
-	LCD_ShowFontEN(55, 80, (u8 *)"---.---", 24, BRRED, WHITE);
+	LCD_ShowChinese(75, 50, Arial, 24, (u8 *)"驻网时间", LIGHTBLUE, WHITE);
+	LCD_ShowFontEN(65, 80, (u8 *)"---.---", 24, BRRED, WHITE);
 	/* 分割线 */
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0,129,239,129);
@@ -468,28 +479,27 @@ void _CMIOT_ShowNetworkRegTime()
 	LCD_ShowString(70, 290, 16,  (u8 *)":");
 	while(1)
 	{
-		//LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"正在驻网", BLACK, WHITE);
+		LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"正在驻网", BLACK, WHITE);
 		result = _CMIOT_M5310_GetRegisterTime();
-		// LCD_Fill(95, 90, 239, 120, WHITE);
 		delay_ms(50);
 		
 		if(result > 1)
 		{
-			//LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网成功", BLACK, WHITE);
+			LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网成功", GREEN, WHITE);
 			TestCount++;	/* 测试次数+1 */
 			sprintf((char *)msg, "%07.3fs", (float)result/1000);
-			LCD_ShowFontEN(55, 80, (u8 *)msg, 24, BRRED, WHITE);
+			LCD_ShowFontEN(65, 80, (u8 *)msg, 24, BRRED, WHITE);
 		}
 		else if(result == 1)
 		{
-			//LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网失败", BLACK, WHITE);
-			LCD_ShowFontEN(55, 80, (u8 *)"timeout ", 24, RED, WHITE);
+			LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网失败", RED, WHITE);
+			LCD_ShowFontEN(65, 80, (u8 *)"timeout ", 24, RED, WHITE);
 			TestCount++;	/* 测试次数+1 */
 			FailCount++;	/* 失败次数+1 */
 		}
 		else
 		{
-			LCD_ShowFontEN(55, 80, (u8 *)"booterr ", 24, RED, WHITE);
+			LCD_ShowFontEN(65, 80, (u8 *)"booterr ", 24, RED, WHITE);
 		}
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
@@ -512,10 +522,10 @@ void _CMIOT_ShowNetworkRegTime()
 		if(result > 1)
 		{
 			AvrRegisterTime = (AvrRegisterTime * (TestCount - FailCount - 1) + result)/(TestCount - FailCount);
-			sprintf((char *)msg, "%-7.3fs", (float)AvrRegisterTime/1000);
-			// LCD_Fill(165, 205, 239, 150, WHITE);
-			LCD_ShowString(95, 230, 16,  msg);
 		}
+		sprintf((char *)msg, "%-7.3fs", (float)AvrRegisterTime/1000);
+		// LCD_Fill(165, 205, 239, 150, WHITE);
+		LCD_ShowString(95, 230, 16,  msg);
 		/* 最大时长 */
 		if(result > MaxRegisterTime && result > 1) { MaxRegisterTime = result; }
 		sprintf((char *)msg, "%-7.3fs", (float)MaxRegisterTime/1000);
@@ -551,8 +561,8 @@ void _CMIOT_ShowPingResult(void)
 	uint32_t MinPingDelay = 0;
 	uint32_t result;
 	
-	LCD_ShowChinese(65, 55, Arial, 24, (u8 *)"网络延时", LIGHTBLUE, WHITE);
-	LCD_ShowFontEN(55, 85, (u8 *)"----- ms", 24, BRRED, WHITE);
+	LCD_ShowChinese(75, 50, Arial, 24, (u8 *)"网络延时", LIGHTBLUE, WHITE);
+	LCD_ShowFontEN(65, 80, (u8 *)"----- ms", 24, BRRED, WHITE);
 	/* 分割线 */
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0,129,239,129);
@@ -583,6 +593,13 @@ void _CMIOT_ShowPingResult(void)
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
 	LCD_ShowString(70, 290, 16,  (u8 *)":");
+	
+	/* 显示当前测试服务器地址 */
+	sprintf((char *)msg, "ping %s", PING_ADDR);
+	POINT_COLOR = BLACK;
+	BACK_COLOR = WHITE;
+	LCD_ShowString(40, 109, 16,  msg);
+	
 	while(1)
 	{
 		result = _CMIOT_GetNetworkDelay();
@@ -592,13 +609,13 @@ void _CMIOT_ShowPingResult(void)
 		{
 			TestCount++;	/* 测试次数+1 */
 			sprintf((char *)msg, "%05d ms", result);
-			LCD_ShowFontEN(55, 85, (u8 *)msg, 24, BRRED, WHITE);
+			LCD_ShowFontEN(65, 80, (u8 *)msg, 24, BRRED, WHITE);
 		}
 		else
 		{
 			TestCount++;	/* 测试次数+1 */
 			FailCount++;	/* 失败次数+1 */
-			LCD_ShowFontEN(55, 85, (u8 *)"timeout ", 24, RED, WHITE);
+			LCD_ShowFontEN(65, 80, (u8 *)"timeout ", 24, RED, WHITE);
 		}
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
@@ -616,9 +633,9 @@ void _CMIOT_ShowPingResult(void)
 		if(result > 0)
 		{
 			AvrPingDelay = (AvrPingDelay * (TestCount - FailCount - 1) + result)/(TestCount - FailCount);
-			sprintf((char *)msg, "%-5dms", AvrPingDelay);
-			LCD_ShowString(95, 230, 16,  msg);
 		}
+		sprintf((char *)msg, "%-5dms", AvrPingDelay);
+		LCD_ShowString(95, 230, 16,  msg);
 		/* 最大时长 */
 		if(result > MaxPingDelay && result > 0) { MaxPingDelay = result; }
 		sprintf((char *)msg, "%-5dms", MaxPingDelay);
@@ -650,9 +667,10 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 	uint32_t networkRegCount = 0;
 	uint32_t networkRegFailCount = 0;
 	uint32_t networkRegAvrtime = 0;
+	uint32_t newworkRegMaxtime = 0;
 	
 	uint32_t csqtestCount = 0;
-	uint32_t csqtestFailCount = 0;
+	uint32_t csqMaxValue = 0;
 	uint32_t csqAvrValue = 0;
 	uint32_t csqMinValue = 0;
 	
@@ -660,47 +678,58 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 	uint32_t pingFailCount = 0;
 	uint32_t pingAvrValue = 0;
 	uint32_t pingMaxValue = 0;
+	uint32_t pingMinValue = 0;
 	
 	/* 左侧蓝条 */
 	LCD_Fill(0,40,79,319,LIGHTBLUE);
 	
 	LCD_ShowChinese(5, 50, newArial, 16, (u8 *)"测试进度", BLACK, LIGHTBLUE);
-	
 	LCD_ShowChinese(5, 110, newArial, 16, (u8 *)"驻网时间", BLACK, LIGHTBLUE);
-
 	LCD_ShowChinese(5, 190, newArial, 16, (u8 *)"信号质量", BLACK, LIGHTBLUE);
-
 	LCD_ShowChinese(5, 270, newArial, 16, (u8 *)"网络延时", BLACK, LIGHTBLUE);
 
 	/* 分割线 */
 	POINT_COLOR = DARKBLUE;
 	LCD_DrawLine(0,79,239,79);
-	//LCD_DrawLine(80,119,239,119);
 	LCD_DrawLine(0,159,239,159);
-	//LCD_DrawLine(80,199,239,199);
 	LCD_DrawLine(0,239,239,239);
-	//LCD_DrawLine(80,279,239,279);
-	// LCD_DrawLine(139,80,139,319);
+	LCD_DrawLine(80,40,80,319);
 	
 	POINT_COLOR = PROGRESS_BAR_COLOR;
-	LCD_DrawRectangle(84, 49, 236 ,71);
+	LCD_DrawRectangle(125, 49, 236 ,67);
 	
-	LCD_ShowChinese(85, 90, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-	LCD_ShowChinese(85, 130, newArial, 16, (u8 *)"成功率：", BLACK, WHITE);
-	LCD_ShowChinese(85, 170, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-	LCD_ShowChinese(85, 210, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
-	LCD_ShowChinese(85, 250, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-	LCD_ShowChinese(85, 290, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 86, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 109, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 132, newArial, 16, (u8 *)"成功率：", BLACK, WHITE);
 	
-	LCD_Fill(85,50, 85 + 2, 70, LIGHTBLUE);	/* 刷新一点进度条，提示进入测试过程 */
+	LCD_ShowChinese(85, 166, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 189, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 212, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+	
+	LCD_ShowChinese(85, 246, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 269, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+	LCD_ShowChinese(85, 292, newArial, 16, (u8 *)"丢包率：", BLACK, WHITE);
+	
+	LCD_Fill(126,50, 125 + 2, 66, LIGHTBLUE);	/* 刷新一点进度条，提示进入测试过程 */
 	while(i<times)
 	{
+		i++;
+		/* 显示测试进度 */
+		sprintf((char *)msg, "%d/%d", i, times);
+		POINT_COLOR = BLACK;
+		BACK_COLOR = WHITE;
+		LCD_ShowString(85,50,16,msg);
+		
 		result = _CMIOT_M5310_GetRegisterTime();
 		delay_ms(50);
 		
 		if(result > 1)
 		{
 			networkRegAvrtime = (networkRegAvrtime * (networkRegCount - networkRegFailCount) + result)/(networkRegCount - networkRegFailCount + 1);
+			if((networkRegCount - networkRegFailCount) == 0 || result > newworkRegMaxtime)
+			{
+				newworkRegMaxtime = result;
+			}
 			networkRegCount++;	/* 测试次数+1 */
 		}
 		else
@@ -713,24 +742,32 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 		BACK_COLOR = WHITE;
 		
 		sprintf((char *)msg, "%-5.1fs", (float)networkRegAvrtime/1000);   /* 平均时长 */
-		LCD_ShowString(150,90,16,msg);
+		LCD_ShowString(150,86,16,msg);
+		sprintf((char *)msg, "%-5.1fs", (float)newworkRegMaxtime/1000);   /* 最大时长 */
+		LCD_ShowString(150,109,16,msg);
 		sprintf((char *)msg, "%-5.1f%%", ((float)(networkRegCount - networkRegFailCount)/(float)networkRegCount)*100); /* 成功率 */
-		LCD_ShowString(150,130,16,msg);
+		LCD_ShowString(150,132,16,msg);
 		
 		result = _CMIOT_M5310_GetSignalstrength();
 		if(result > 0 && result <= 31)
 		{
-			csqAvrValue = (csqAvrValue * (csqtestCount - csqtestFailCount) + result)/(csqtestCount - csqtestFailCount + 1);
+			csqAvrValue = (csqAvrValue * csqtestCount + result)/(csqtestCount + 1);
 			if(csqtestCount == 0 || result < csqMinValue)
 			{
 				csqMinValue = result;
 			}
+			if(csqtestCount == 0 || result > csqMaxValue)
+			{
+				csqMaxValue = result;
+			}
 			csqtestCount ++;
 		}
 		sprintf((char *)msg, "%-2d", csqAvrValue);   /* CSQ平均值 */
-		LCD_ShowString(150,170,16,msg);
+		LCD_ShowString(150,166,16,msg);
 		sprintf((char *)msg, "%-2d", csqMinValue); /* CSQ最小值 */
-		LCD_ShowString(150,210,16,msg);
+		LCD_ShowString(150,189,16,msg);
+		sprintf((char *)msg, "%-2d", csqMinValue); /* CSQ最大值 */
+		LCD_ShowString(150,212,16,msg);
 		
 		result = _CMIOT_GetNetworkDelay();
 		if(result > 0)
@@ -740,19 +777,25 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 			{
 				pingMaxValue = result;
 			}
+			if(pingCount == 0 || result < pingMinValue)
+			{
+				pingMinValue = result;
+			}
 			pingCount++;	/* 测试次数+1 */
 		}
+		else
+		{
+			pingCount++;
+			pingFailCount++;
+		}
 		sprintf((char *)msg, "%-5dms", pingAvrValue);   /* ping平均值 */
-		LCD_ShowString(150,250,16,msg);
+		LCD_ShowString(150,246,16,msg);
 		sprintf((char *)msg, "%-5dms", pingMaxValue); /* ping最大值 */
-		LCD_ShowString(150,290,16,msg);
+		LCD_ShowString(150,269,16,msg);
+		sprintf((char *)msg, "%-5.1f%%", ((float)(pingFailCount)/(float)pingCount)*100); /* 丢包率 */
+		LCD_ShowString(150,292,16,msg);
 		
-		i++;
-		LCD_Fill(85,50, 85 + floor(((float)i/(float)times)*150), 70, LIGHTBLUE);
-		sprintf((char *)msg, "%d/%d", i, times);
-		POINT_COLOR = BLACK;
-		BACK_COLOR = LIGHTBLUE;
-		LCD_ShowString(90,50,16,msg);
+		LCD_Fill(126,50, 126 + floor(((float)i/(float)times)*110), 66, LIGHTBLUE);
 		delay_ms(2000);
 	}
 }
@@ -786,6 +829,12 @@ void _CMIOT_ShowInstructionMsg(void)
 	LCD_ShowChinese(5, 300, newArial, 16, (u8 *)"获取整体网络状况信息", BLACK, WHITE);
 }
 
+
+
+void _CMIOT_BluetoothMode(void)
+{
+	LCD_ShowChinese(80, 150, newArial, 16, (u8 *)"功能开发中", BLACK, WHITE);
+}
 
 
 /*-----------------------------------------------------------------------------
@@ -824,16 +873,25 @@ void _CMIOT_NBIOT_Measurement(uint8_t index)
 		case 3:
 		{
 			_CMIOT_ShowPingResult();
+			break;
 		}
 		
 		case 4:
 		{
 			_CMIOT_ComprehensiveTest(5);
+			break;
+		}
+		
+		case 5:
+		{
+			_CMIOT_BluetoothMode();
+			break;
 		}
 		
 		case 6:
 		{
 			_CMIOT_ShowInstructionMsg();
+			break;
 		}
 		default: { break; }
 	}
@@ -1000,22 +1058,6 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		LCD_Fill(211,29-(16*percentValue/100),219,29,RED);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
-}
-
-
-
-/*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_BootProgressBar
-Author			:	zhaoji
-Created Time	:	2018.03.23
-Description 	: 	显示启动百分比进度条
-Input Argv		:
-Output Argv 	:
-Return Value	:
------------------------------------------------------------------------------*/
-void _CMIOT_BootProgressBar(uint8_t percentValue)
-{
-	LCD_Fill(0, 250, (u16)((240*percentValue)/100), 270, GREEN);
 }
 
 

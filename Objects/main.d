@@ -53,3 +53,4 @@
 .\objects\main.o: .\FreeRTOS-Plus\FreeRTOS-Plus-CLI\User_Cli.h
 .\objects\main.o: .\HAL\GUI\ui.h
 .\objects\main.o: .\HAL\KEY\key.h
+.\objects\main.o: .\FreeRTOS\include\timers.h
