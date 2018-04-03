@@ -47,6 +47,8 @@
 ".\objects\st7789s.o"
 ".\objects\ui.o"
 ".\objects\key.o"
+".\objects\adc.o"
+".\objects\bluetooth.o"
 --library_type=microlib --strict --scatter ".\Objects\NB-IoT_TestTerminal.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

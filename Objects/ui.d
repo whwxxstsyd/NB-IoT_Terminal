@@ -39,3 +39,4 @@
 .\objects\ui.o: .\M5310\m5310.h
 .\objects\ui.o: .\HAL\LCD\image.h
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+.\objects\ui.o: .\HAL\ADC\adc.h

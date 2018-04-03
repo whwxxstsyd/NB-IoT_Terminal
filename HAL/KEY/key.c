@@ -30,7 +30,6 @@ Description     :   按键接口
 **----------------------------------------------------------------------------*/
 extern	TaskHandle_t m5310_task;     	/* M5310任务  */
 extern	CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
-bool	busyFlag = false;				/* 标识上次按键基本任务是否完成（UI是否绘制完成） */
 
 /*-----------------------------------------------------------------------------
 Function Name	:	cm_key_init
@@ -177,7 +176,7 @@ void EXTI2_IRQHandler(void)
 		}
 		menuPosition.pressKey = KEYPAD_DOWN;
 		
-		while(KEY_DOWN!=0);//等待松手
+		// while(KEY_DOWN==0);//等待松手
 		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
 	}
@@ -213,7 +212,7 @@ void EXTI3_IRQHandler(void)
 		}
 		menuPosition.pressKey = KEYPAD_UP;
 
-		while(KEY_UP==0);//等待松手
+		// while(KEY_UP==0);//等待松手
 		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
 	}
@@ -249,7 +248,7 @@ void EXTI4_IRQHandler(void)
 		}
 		menuPosition.pressKey = KEYPAD_LEFT;
 		
-		while(KEY_LEFT!=0);//等待松手
+		// while(KEY_LEFT==0);//等待松手
 		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
 	}
@@ -283,7 +282,7 @@ void EXTI15_10_IRQHandler(void)
 			}
 			menuPosition.pressKey = KEYPAD_RIGHT;
 			
-			while(KEY_RIGHT!=0);//等待松手
+			// while(KEY_RIGHT==0);//等待松手
 			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 			vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
 		}
@@ -306,7 +305,7 @@ void EXTI15_10_IRQHandler(void)
 			}
 			menuPosition.pressKey = KEYPAD_ENTER;
 			
-			while(KEY_ENTER!=0);//等待松手
+			// while(KEY_ENTER==0);//等待松手
 			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 			vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
 		}

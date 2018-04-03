@@ -54,3 +54,4 @@
 .\objects\main.o: .\HAL\GUI\ui.h
 .\objects\main.o: .\HAL\KEY\key.h
 .\objects\main.o: .\FreeRTOS\include\timers.h
+.\objects\main.o: .\HAL\ADC\adc.h

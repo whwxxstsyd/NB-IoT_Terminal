@@ -18,7 +18,7 @@ Description     :   UI接口
 #include "stdio.h"
 #include "image.h"
 #include "math.h"
-
+#include "adc.h"
 
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
@@ -236,7 +236,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 	while(1)
 	{
 		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		delay_ms(1000);
+		delay_ms(5000);
 	}
 }
 
@@ -256,66 +256,79 @@ void _CMIOT_ShowDeviceInfo()
 	LCD_Fill(0,40,77,319, LIGHTBLUE);
 	
 	/* 模组型号 */
-	LCD_ShowChinese(3, 60, newArial, 16, (u8 *)"模组型号", BLACK, LIGHTBLUE);
+	LCD_ShowChinese(3, 50, newArial, 16, (u8 *)"模组型号", BLACK, LIGHTBLUE);
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(68, 60, 16,  (u8 *)":");
-	
-	/* 模组版本 */
-	LCD_ShowChinese(3, 100, newArial, 16, (u8 *)"模组版本", BLACK, LIGHTBLUE);
-	POINT_COLOR = BLACK;
-	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(68, 100, 16,  (u8 *)":");
-	
-	/* MCU版本 */
-	LCD_ShowChinese(3, 140, newArial, 16, (u8 *)"软件版本", BLACK, LIGHTBLUE);
-	POINT_COLOR = BLACK;
-	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(68, 140, 16,  (u8 *)":");
+	LCD_ShowString(68, 50, 16,  (u8 *)":");
 	
 	/* IMEI */
-	LCD_ShowString(3, 180, 16, (u8 *)"IMEI");
-	LCD_ShowString(68, 180, 16,  (u8 *)":");
+	LCD_ShowString(3, 80, 16, (u8 *)"IMEI");
+	LCD_ShowString(68, 80, 16,  (u8 *)":");
 	
 	/* ICCID */
-	LCD_ShowString(3, 220, 16, (u8 *)"ICCID");
-	LCD_ShowString(68, 220, 16,  (u8 *)":");
+	LCD_ShowString(3, 110, 16, (u8 *)"ICCID");
+	LCD_ShowString(68, 110, 16,  (u8 *)":");
 	
 	/* IMSI */
-	LCD_ShowString(3, 260, 16, (u8 *)"IMSI");
-	LCD_ShowString(68, 260, 16,  (u8 *)":");
+	LCD_ShowString(3, 140, 16, (u8 *)"IMSI");
+	LCD_ShowString(68, 140, 16,  (u8 *)":");
 	
-	/* 蓝牙状态 */
-	LCD_ShowChinese(3, 300, newArial, 16, (u8 *)"蓝牙状态", BLACK, LIGHTBLUE);
+	/* 电池电压 */
+	LCD_ShowChinese(3, 170, newArial, 16, (u8 *)"电池电压", BLACK, LIGHTBLUE);
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(68, 300, 16,  (u8 *)":");
+	LCD_ShowString(68, 170, 16,  (u8 *)":");
+	
+	/* 蓝牙状态 */
+	LCD_ShowChinese(3, 200, newArial, 16, (u8 *)"蓝牙状态", BLACK, LIGHTBLUE);
+	POINT_COLOR = BLACK;
+	BACK_COLOR = LIGHTBLUE;
+	LCD_ShowString(68, 200, 16,  (u8 *)":");
+	
+	/* 模组版本 */
+	LCD_ShowChinese(3, 230, newArial, 16, (u8 *)"模组版本", BLACK, LIGHTBLUE);
+	POINT_COLOR = BLACK;
+	BACK_COLOR = LIGHTBLUE;
+	LCD_ShowString(68, 230, 16,  (u8 *)":");
+	
+	/* MCU版本 */
+	LCD_ShowChinese(3, 270, newArial, 16, (u8 *)"软件版本", BLACK, LIGHTBLUE);
+	POINT_COLOR = BLACK;
+	BACK_COLOR = LIGHTBLUE;
+	LCD_ShowString(68, 270, 16,  (u8 *)":");
 	
 	POINT_COLOR = BLACK;
 	BACK_COLOR = WHITE;
 	
+	/* 模组型号 */
 	_CMIOT_GetModuleName(msg, sizeof(msg));
-	LCD_ShowString(80, 60, 16, (u8 *)msg);
-	
-	_CMIOT_GetModuleVersion(msg, sizeof(msg));
-	LCD_ShowString(80, 100, 16, (u8 *)msg);
-	
-	LCD_ShowString(80, 140, 16, (u8 *)VERSION_STRING);
-	
+	LCD_ShowString(80, 50, 16, (u8 *)msg);
+	/* IMEI */
 	_CMIOT_GetIMEI(msg, sizeof(msg));
-	LCD_ShowString(80, 180, 16, (u8 *)msg);
-		
+	LCD_ShowString(80, 80, 16, (u8 *)msg);
+	/* ICCID */
 	_CMIOT_GetICCID(msg, sizeof(msg));
-	LCD_ShowString(80, 220, 16, (u8 *)msg);
-	
+	LCD_ShowString(80, 110, 16, (u8 *)msg);
+	/* IMSI */
 	_CMIOT_GetIMSI(msg, sizeof(msg));
-	LCD_ShowString(80, 260, 16, (u8 *)msg);
+	LCD_ShowString(80, 140, 16, (u8 *)msg);
+	/* 电池电压 */
+	sprintf((char *)msg, "%-3.1f V", cm_getBatteryVol());
+	LCD_ShowString(80, 170, 16, (u8 *)msg);
+	/* 蓝牙状态 */
+	
+	
+	/* 模组版本 */
+	_CMIOT_GetModuleVersion(msg, sizeof(msg));
+	LCD_ShowString(80, 230, 16, (u8 *)msg);
+	/* 软件版本 */
+	LCD_ShowString(80, 270, 16, (u8 *)VERSION_STRING);
 
-	while(1)
-	{
-		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		delay_ms(1000);
-	}
+//	while(1)
+//	{
+//		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+//		delay_ms(1000);
+//	}
 }
 
 
@@ -391,17 +404,26 @@ void _CMIOT_ShowRadioInfo()
 			LCD_Fill(117,45,239,65,WHITE);
 			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"无信号", RED, WHITE);
 		}
-		else if(CsqValue > 20 && ue_state.snr > 100)
+		else if(CsqValue >= 20 && ue_state.snr >= 150)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
-			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"好", GREEN, WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"优", DARKGREEN, WHITE);
+		}
+		else if(CsqValue >= 15 && ue_state.snr >= 100)
+		{
+			LCD_Fill(117,45,239,65,WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"良", DARKGREEN, WHITE);
+		}
+		else if(CsqValue >= 10 && ue_state.snr >= 50)
+		{
+			LCD_Fill(117,45,239,65,WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"中", DARKBLUE, WHITE);
 		}
 		else
 		{
 			LCD_Fill(117,45,239,65,WHITE);
-			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"一般", BLACK, WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"差", RED, WHITE);
 		}
-		
 		
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
@@ -485,7 +507,7 @@ void _CMIOT_ShowNetworkRegTime()
 		
 		if(result > 1)
 		{
-			LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网成功", GREEN, WHITE);
+			LCD_ShowChinese(90, 109, newArial, 16, (u8 *)"驻网成功", DARKGREEN, WHITE);
 			TestCount++;	/* 测试次数+1 */
 			sprintf((char *)msg, "%07.3fs", (float)result/1000);
 			LCD_ShowFontEN(65, 80, (u8 *)msg, 24, BRRED, WHITE);
@@ -562,7 +584,7 @@ void _CMIOT_ShowPingResult(void)
 	uint32_t result;
 	
 	LCD_ShowChinese(75, 50, Arial, 24, (u8 *)"网络延时", LIGHTBLUE, WHITE);
-	LCD_ShowFontEN(65, 80, (u8 *)"----- ms", 24, BRRED, WHITE);
+	LCD_ShowFontEN(65, 80, (u8 *)"-----ms", 24, BRRED, WHITE);
 	/* 分割线 */
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0,129,239,129);
@@ -608,7 +630,7 @@ void _CMIOT_ShowPingResult(void)
 		if(result > 0)
 		{
 			TestCount++;	/* 测试次数+1 */
-			sprintf((char *)msg, "%05d ms", result);
+			sprintf((char *)msg, "%05dms", result);
 			LCD_ShowFontEN(65, 80, (u8 *)msg, 24, BRRED, WHITE);
 		}
 		else
@@ -766,7 +788,7 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 		LCD_ShowString(150,166,16,msg);
 		sprintf((char *)msg, "%-2d", csqMinValue); /* CSQ最小值 */
 		LCD_ShowString(150,189,16,msg);
-		sprintf((char *)msg, "%-2d", csqMinValue); /* CSQ最大值 */
+		sprintf((char *)msg, "%-2d", csqMaxValue); /* CSQ最大值 */
 		LCD_ShowString(150,212,16,msg);
 		
 		result = _CMIOT_GetNetworkDelay();

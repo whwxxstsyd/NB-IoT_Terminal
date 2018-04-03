@@ -46,3 +46,4 @@
 .\objects\user_cli.o: .\FreeRTOS\include\task.h
 .\objects\user_cli.o: .\FreeRTOS\include\list.h
 .\objects\user_cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\user_cli.o: .\HAL\USART\usart.h

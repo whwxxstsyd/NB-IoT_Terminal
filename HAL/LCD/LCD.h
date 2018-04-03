@@ -66,7 +66,7 @@ extern u16  BACK_COLOR; //背景颜色.默认为白色
 #define BROWN 			 0XBC40 //棕色
 #define BRRED 			 0XFC07 //棕红色
 #define GRAY  			 0X8430 //灰色
-
+#define DARKGREEN		 0X33C8
 
 //GUI颜色
 

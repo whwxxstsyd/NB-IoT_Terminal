@@ -33,6 +33,9 @@ extern uint32_t  UART_CLI_RxBufferLen;
 
 extern TaskHandle_t cli_task;     /* CLI任务 */
 
+bool	NB_DEBUG_FLAG  = false;		/* NB模组调试开关标志 为true时将串口接收到的模组数据转发至单片机调试串口 */
+bool	BLE_DEBUG_FLAG = false;		/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
+
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
 **----------------------------------------------------------------------------*/
@@ -238,6 +241,14 @@ void USART3_IRQHandler(void)
 		/* 接收数据并存储到UART3_RxBuffer中 */
 		recvByte = USART_ReceiveData(USART3);
 		
+		/* 当开启NB模组调试模式时，将接收到的数据发送到调试串口 */
+		if(NB_DEBUG_FLAG)
+		{
+			USART_ClearFlag(UART_CLI_DEBUG, USART_FLAG_TC);
+			USART_SendData(UART_CLI_DEBUG, recvByte);
+			while( USART_GetFlagStatus(UART_CLI_DEBUG, USART_FLAG_TC) == RESET );
+		}
+		
 		if(recvByte == '\0')
 		{
 			return;
@@ -273,6 +284,14 @@ void USART1_IRQHandler(void)
 	{
 		/* 接收数据并存储到UART3_RxBuffer中 */
 		recvByte = USART_ReceiveData(USART1);
+		
+		/* 当开启BLE蓝牙模组调试模式时，将接收到的数据发送到调试串口 */
+		if(BLE_DEBUG_FLAG)
+		{
+			USART_ClearFlag(UART_CLI_DEBUG, USART_FLAG_TC);
+			USART_SendData(UART_CLI_DEBUG, recvByte);
+			while( USART_GetFlagStatus(UART_CLI_DEBUG, USART_FLAG_TC) == RESET );
+		}
 	}
 	// USART_ClearITPendingBit(UART_BLUETOOTH, USART_IT_RXNE);
 }

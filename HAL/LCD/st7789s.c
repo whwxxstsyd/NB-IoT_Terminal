@@ -990,7 +990,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while (*cn != '\0')
 				{
-					for (wordNum=0; wordNum<106; wordNum++)
+					for (wordNum=0; wordNum<110; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((newArialCnChar16x16[wordNum].Index[0]==*cn)
 							 &&(newArialCnChar16x16[wordNum].Index[1]==*(cn+1))&&(newArialCnChar16x16[wordNum].Index[2]==*(cn+2)))

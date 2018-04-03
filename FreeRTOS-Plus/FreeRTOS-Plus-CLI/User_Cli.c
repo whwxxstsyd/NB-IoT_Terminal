@@ -17,7 +17,7 @@ Description     :   CLI接口
 #include "FreeRTOS.h"
 #include "task.h"
 #include "string.h"
-
+#include "usart.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -34,7 +34,9 @@ extern TaskHandle_t cli_task;       /* CLI任务    */
 extern TaskHandle_t m5310_task;     /* M5310任务  */
 extern TaskHandle_t lcd_task;       /* LCD任务    */
 
-extern bool DEBUG_FLAG;	/* 调试信息打印标志位，为true时将调试信息打印至调试串口 */
+extern bool DEBUG_FLAG;				/* 调试信息打印标志位，为true时将调试信息打印至调试串口 */
+extern bool	NB_DEBUG_FLAG;			/* NB模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
+extern bool BLE_DEBUG_FLAG;			/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
 
 /*----------------------------------------------------------------------------*
 **                             Function Declare                               *
@@ -42,6 +44,12 @@ extern bool DEBUG_FLAG;	/* 调试信息打印标志位，为true时将调试信�
 BaseType_t prvDebugLevelCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
 BaseType_t prvGetSysTimeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
 BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvSendAt2NbModuleCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvEnableNbDebugModeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvSendAt2BleModuleCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+
+
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -67,7 +75,30 @@ static CLI_Command_Definition_t CliCommandList[] =
 		prvGetHeapUsageCommand,
 		0
 	},
-	
+	{
+		"[AT2NB]",
+		"[AT2NB] <AT CMD>, Send AT Command to NB Module\r\n",
+		prvSendAt2NbModuleCommand,
+		1
+	},
+	{
+		"at+nbenable",
+		"at+nbenable <state>, state can be: 0 or 1, enable nb module serial data\r\n",
+		prvEnableNbDebugModeCommand,
+		1
+	},
+	{
+		"[AT2BLE]",
+		"[AT2BLE] <AT CMD>, Send AT Command to BLE Module\r\n",
+		prvSendAt2BleModuleCommand,
+		1
+	},
+	{
+		"at+bleenable",
+		"at+bleenable <state>, state can be: 0 or 1, enable ble module serial data\r\n",
+		prvEnableBleDebugModeCommand,
+		1
+	},
 };
 
 
@@ -112,7 +143,8 @@ BaseType_t prvDebugLevelCommand(char *pcWriteBuffer,
 	debuglevel_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nLevel not support!\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		return pdFALSE;
 	}
 	
 	if(_CMIOT_atoi(debuglevel_str) == 0)
@@ -175,18 +207,150 @@ BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer,
 	sprintf(msg, "\r\nFreeHeapSize: %d\r\n", xPortGetFreeHeapSize());	/* 剩余堆大小 */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
-	sprintf(msg, "CLI TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(cli_task));	/* CLI任务栈空间的高水线(High Water Mark) */
+	sprintf(msg, "CLI TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(cli_task));		/* CLI任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
 	sprintf(msg, "M5310 TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(m5310_task));	/* M5310任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
-	sprintf(msg, "LCD TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(lcd_task));	/* M5310任务栈空间的高水线(High Water Mark) */
+	sprintf(msg, "LCD TaskHighWaterMark: %ld\r\n", uxTaskGetStackHighWaterMark(lcd_task));		/* LCD任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
 	
 	vPortFree(msg);
+	return pdFALSE;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	prvSendAt2ModuleCommand
+Author			:	zhaoji
+Created Time	:	2018.04.02
+Description 	:	发送指令到模组 命令回调
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvSendAt2NbModuleCommand(char *pcWriteBuffer,
+								size_t xWriteBufferLen,
+								const char *pcCommandString)
+{
+	BaseType_t paraLen;
+	const uint8_t *at_str;
+	at_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
+	/* 发送AT指令 */
+	taskENTER_CRITICAL();   /* 进入临界区 */
+	_CMIOT_Uart_send(UART_M5310, (uint8_t *)at_str, strlen((char *)at_str));
+	_CMIOT_Uart_send(UART_M5310, (uint8_t *)"\r\n", strlen("\r\n"));
+	taskEXIT_CRITICAL();   /* 退出临界区 */
+	
+	return pdFALSE;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	prvEnableNbDebugModeCommand
+Author			:	zhaoji
+Created Time	:	2018.04.02
+Description 	:	设置NB模组调试模式 命令回调
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvEnableNbDebugModeCommand(char *pcWriteBuffer,
+									size_t xWriteBufferLen,
+									const char *pcCommandString)
+{
+	BaseType_t paraLen;
+	const uint8_t *state_str;
+	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
+	if(paraLen != 1)
+	{
+		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		return pdFALSE;
+	}
+	
+	if(_CMIOT_atoi(state_str) == 0)
+	{
+		NB_DEBUG_FLAG = false;
+	}
+	else if(_CMIOT_atoi(state_str) == 1)
+	{
+		NB_DEBUG_FLAG = true;
+	}
+	else
+	{
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n", xWriteBufferLen);
+	}
+	
+	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
+	return pdFALSE;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	prvSendAt2ModuleCommand
+Author			:	zhaoji
+Created Time	:	2018.04.02
+Description 	:	发送指令到模组 命令回调
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvSendAt2BleModuleCommand(char *pcWriteBuffer,
+									size_t xWriteBufferLen,
+									const char *pcCommandString)
+{
+	BaseType_t paraLen;
+	const uint8_t *at_str;
+	at_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
+	/* 发送AT指令 */
+	taskENTER_CRITICAL();   /* 进入临界区 */
+	_CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)at_str, strlen((char *)at_str));
+	_CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)"\r\n", strlen("\r\n"));
+	taskEXIT_CRITICAL();   /* 退出临界区 */
+	
+	return pdFALSE;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	prvEnableBleDebugModeCommand
+Author			:	zhaoji
+Created Time	:	2018.04.02
+Description 	:	设置BLE蓝牙模组调试模式 命令回调
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer,
+										size_t xWriteBufferLen,
+										const char *pcCommandString)
+{
+	BaseType_t paraLen;
+	const uint8_t *state_str;
+	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
+	if(paraLen != 1)
+	{
+		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		return pdFALSE;
+	}
+	
+	if(_CMIOT_atoi(state_str) == 0)
+	{
+		BLE_DEBUG_FLAG = false;
+	}
+	else if(_CMIOT_atoi(state_str) == 1)
+	{
+		BLE_DEBUG_FLAG = true;
+	}
+	else
+	{
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n", xWriteBufferLen);
+	}
+	
+	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
 	return pdFALSE;
 }
 

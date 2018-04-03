@@ -26,6 +26,7 @@ Description     :   主程序入口
 #include "ui.h"
 #include "key.h"
 #include "timers.h"
+#include "adc.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -43,10 +44,12 @@ uint32_t  UART_CLI_RxBufferLen      =  0;
 
 extern uint8_t   UART_M5310_RxBuffer[512];
 
-TaskHandle_t start_task;     /* 开始任务   */
-TaskHandle_t cli_task;       /* CLI任务    */
-TaskHandle_t m5310_task;     /* M5310任务  */
-TaskHandle_t lcd_task;       /* LCD任务    */
+TaskHandle_t start_task;     	/* 开始任务    */
+TaskHandle_t cli_task;       	/* CLI任务     */
+TaskHandle_t m5310_task;     	/* M5310任务   */
+TaskHandle_t lcd_task;       	/* LCD任务     */
+TaskHandle_t bluetooth_task;	/* 蓝牙任务    */
+
 
 TimerHandle_t watchDogTimer;	/* 看门狗定时器 */
 
@@ -63,9 +66,11 @@ CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};	/* 菜单位置 *
 /*----------------------------------------------------------------------------*
 **                             Function Declare                               *
 **----------------------------------------------------------------------------*/
-void _CMIOT_CliTaskProc(void *pvParameters);
-void _CMIOT_M5310TaskProc(void *pvParameters);
-void _CMIOT_StartTaskProc(void *pvParameters);
+
+void _CMIOT_CliTaskProc(void *pvParameters);			/* CLI任务入口函数    */
+void _CMIOT_M5310TaskProc(void *pvParameters);			/* M5310任务入口函数  */
+void _CMIOT_StartTaskProc(void *pvParameters);			/* 开启任务入口函数   */
+void _CMIOT_BluetoothTaskProc(void *pvParameters);		/* 蓝牙任务入口函数   */
 
 void IWDG_Configuration(void);	/* 初始化看门狗 */
 
@@ -92,8 +97,10 @@ int main(void)
 	/* 初始化串口 */
 	_CMIOT_Uart_Init(UART_CLI_DEBUG, 115200);
 	_CMIOT_Uart_Init(UART_M5310, 9600);
-	_CMIOT_Uart_Init(UART_BLUETOOTH, 115200);
+	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
+	
+	Adc_Init();		/* ADC初始化 */
 	
 	/* 检查是否被看门狗重启 */
 	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
@@ -145,6 +152,13 @@ void _CMIOT_StartTaskProc(void *pvParameters)
 				(void*               )NULL,
 				(UBaseType_t         )1,
 				(TaskHandle_t*       )&m5310_task);
+	/* 创建蓝牙任务 */
+	xTaskCreate((TaskFunction_t      )_CMIOT_BluetoothTaskProc,
+				(const char*         )"bluetooth_task",
+				(uint16_t            )512,
+				(void*               )NULL,
+				(UBaseType_t         )1,
+				(TaskHandle_t*       )&bluetooth_task);
 							
 	vTaskDelete(start_task);   /* 删除开始任务 */
 	
@@ -177,7 +191,7 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 		
 		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
-			_CMIOT_Debug("CLI Command Receive [CR][LF]\r\n");
+			_CMIOT_Debug("%s(NotifyValue: %d)\r\n", __func__, notifyValue);
 			memset(pcOutputString, 0, sizeof(pcOutputString));
 			do
 			{
@@ -196,6 +210,7 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 		}
 	}
 }
+
 
 
 /*-----------------------------------------------------------------------------
@@ -229,7 +244,7 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 	
 	cm_key_init();	/* 初始化按键 */
 	
-	_CMIOT_Debug("%s...\r\n", __func__);
+	_CMIOT_Debug("%s(NotifyValue: %d)\r\n", __func__, notifyValue);
 	
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
@@ -247,7 +262,7 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 	{
 		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
 		
-		if(notifyValue >= 1)   /* 获取到任务通知 */
+		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
 			taskENTER_CRITICAL();   /* 进入临界区 */
 			
@@ -275,6 +290,21 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 
 
 /*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BluetoothTaskProc
+Author			:	zhaoji
+Created Time	:	2018.04.02
+Description 	:	蓝牙任务入口函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BluetoothTaskProc(void *pvParameters)
+{
+	
+}
+
+
+/*-----------------------------------------------------------------------------
 Function Name	:	IWDG_Configuration
 Author			:	zhaoji
 Created Time	:	2018.03.31
@@ -291,7 +321,7 @@ void IWDG_Configuration(void)
   
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);  
     IWDG_SetPrescaler(IWDG_Prescaler_256);  
-    IWDG_SetReload(782);	/* 782*256/40 = 5000ms */
+    IWDG_SetReload(782);	/* 782*256/40 ≈ 5000ms */
     IWDG_ReloadCounter();  
     IWDG_Enable();
 	
