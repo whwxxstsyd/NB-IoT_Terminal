@@ -14,6 +14,8 @@ Description     :   USART接口
 #include "FreeRTOS.h"
 #include "task.h"
 #include "string.h"
+#include "timers.h"
+#include "ui.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -31,10 +33,22 @@ extern uint32_t  UART_M5310_RxBufferLen;
 extern uint8_t   UART_CLI_RxBuffer[128];
 extern uint32_t  UART_CLI_RxBufferLen;
 
-extern TaskHandle_t cli_task;     /* CLI任务 */
+/* USART1(UART_BLUETOOTH)数据接收buffer */
+extern uint8_t   UART_BLE_RxBuffer[512];
+extern uint32_t  UART_BLE_RxBufferLen;
+
+extern TaskHandle_t cli_task;			/* CLI任务   */
+extern TaskHandle_t bluetooth_task;		/* 蓝牙任务  */
 
 bool	NB_DEBUG_FLAG  = false;		/* NB模组调试开关标志 为true时将串口接收到的模组数据转发至单片机调试串口 */
 bool	BLE_DEBUG_FLAG = false;		/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
+
+/* 蓝牙执行AT指令标志位 */
+extern bool BLE_AT_EXE_FLAG;
+
+extern TimerHandle_t bleAtExeTimer;	/* 蓝牙执行AT指令时的M5310串口定时器，定时器到达时将M5310串口接收buffer数据通过蓝牙发送到APP */
+
+extern CM_MENU_POSITION menuPosition;
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -235,6 +249,7 @@ Return Value	:
 void USART3_IRQHandler(void)
 {
 	uint8_t recvByte;
+	// BaseType_t taskWoken;
 	
 	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
 	{
@@ -263,6 +278,14 @@ void USART3_IRQHandler(void)
 		{
 			_CMIOT_Debug("UART3_RxBuffer(UART_M5310) is full!");
 		}
+		
+		/* M5310串口接收超时定时器 */
+		if(BLE_AT_EXE_FLAG && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
+		{
+			// xTimerStopFromISR(bleAtExeTimer, &taskWoken);
+			xTimerStartFromISR(bleAtExeTimer, 0);
+			xTimerResetFromISR(bleAtExeTimer, 0);
+		}
 	}
 }
 
@@ -280,6 +303,8 @@ void USART1_IRQHandler(void)
 {
 	// 
 	uint8_t recvByte;
+	BaseType_t bleNotifyValue;
+	
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
 		/* 接收数据并存储到UART3_RxBuffer中 */
@@ -292,8 +317,28 @@ void USART1_IRQHandler(void)
 			USART_SendData(UART_CLI_DEBUG, recvByte);
 			while( USART_GetFlagStatus(UART_CLI_DEBUG, USART_FLAG_TC) == RESET );
 		}
+		/* 将数据存储到缓冲区 */
+		if(UART_BLE_RxBufferLen < sizeof(UART_BLE_RxBuffer)-1)
+		{
+			UART_BLE_RxBuffer[UART_BLE_RxBufferLen] = recvByte;
+			UART_BLE_RxBufferLen ++;
+		}
+		else
+		{
+			/* 如果溢出则清空缓存 */
+			memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+			UART_BLE_RxBufferLen = 0;
+			
+			/* 重头开始放入接收到数据 */
+			UART_BLE_RxBuffer[UART_BLE_RxBufferLen] = recvByte;
+			UART_BLE_RxBufferLen ++;
+		}
+		/* 接收到完整的请求内容后，向BLE蓝牙线程发送通知 */
+		if(strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
+		{
+			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向CLI任务发送任务通知 */
+		}
 	}
-	// USART_ClearITPendingBit(UART_BLUETOOTH, USART_IT_RXNE);
 }
 
 
@@ -334,7 +379,7 @@ void USART2_IRQHandler(void)
 			}
 			return;
 		}
-		
+		/* 存储数据到CLI串口接收缓冲区 */
 		if(UART_CLI_RxBufferLen < sizeof(UART_CLI_RxBuffer)-1)
 		{
 			USART_SendData(UART_CLI_DEBUG, recvByte);

@@ -55,3 +55,4 @@
 .\objects\main.o: .\HAL\KEY\key.h
 .\objects\main.o: .\FreeRTOS\include\timers.h
 .\objects\main.o: .\HAL\ADC\adc.h
+.\objects\main.o: .\HAL\BLUETOOTH\bluetooth.h

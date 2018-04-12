@@ -441,7 +441,7 @@ uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 				}
 				else{break;}
 			}
-			p_end  = strstr((const char *)p_head, "\r\nOK");
+			p_end  = strstr((const char *)p_head, "\r\n\r\nOK");
 			strncat((char *)ModuleName, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, ModuleName);
 			return 1;
@@ -488,7 +488,7 @@ uint8_t _CMIOT_GetModuleVersion(uint8_t *ModuleVersion, uint32_t buffersize)
 				}
 				else{break;}
 			}
-			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n\r\nOK\r\n");
 			strncat((char *)ModuleVersion, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, ModuleVersion);
 			return 1;
@@ -527,7 +527,7 @@ uint8_t _CMIOT_GetICCID(uint8_t *ICCID, uint32_t buffersize)
 		if(result == 1)	/* 指令执行OK */
 		{
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "NCCID:") + strlen("NCCID:");
-			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n\r\nOK\r\n");
 			strncat((char *)ICCID, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, ICCID);
 			return 1;
@@ -575,7 +575,7 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 				else{break;}
 			}
 			p_end  = strstr((const char *)p_head, "\r\n");
-			strncat((char *)IMSI, p_head, p_end - p_head + 1);
+			strncat((char *)IMSI, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMSI);
 			return 1;
 		}
@@ -613,7 +613,7 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 		if(result == 1)	/* 指令执行OK */
 		{
 			p_head = strstr((const char *)UART_M5310_RxBuffer, "CGSN:") + strlen("CGSN:");
-			p_end  = strstr((const char *)p_head, "\r\nOK\r\n");
+			p_end  = strstr((const char *)p_head, "\r\n\r\nOK\r\n");
 			strncat((char *)IMEI, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMEI);
 			return 1;

@@ -27,12 +27,13 @@ Description     :   主程序入口
 #include "key.h"
 #include "timers.h"
 #include "adc.h"
+#include "bluetooth.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
 #define	CLI_MAX_OUTPUT_LENGTH   100
-#define CLI_MAX_INPUT_LENGTH    32
+#define CLI_MAX_INPUT_LENGTH    100
 
 
 /*----------------------------------------------------------------------------*
@@ -42,7 +43,11 @@ Description     :   主程序入口
 uint8_t   UART_CLI_RxBuffer[CLI_MAX_INPUT_LENGTH]    = {0};
 uint32_t  UART_CLI_RxBufferLen      =  0;
 
-extern uint8_t   UART_M5310_RxBuffer[512];
+
+
+///* USART1(UART_BLUETOOTH)数据接收buffer */
+//extern uint8_t   UART_BLE_RxBuffer[512];
+//extern uint32_t  UART_BLE_RxBufferLen;
 
 TaskHandle_t start_task;     	/* 开始任务    */
 TaskHandle_t cli_task;       	/* CLI任务     */
@@ -300,7 +305,21 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_BluetoothTaskProc(void *pvParameters)
 {
-	
+	uint32_t notifyValue;
+	/* 初始化蓝牙模块 */
+	_CMIOT_BLE_Init();
+	/* 接收通知 */
+	while(1)
+	{
+		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
+		
+		_CMIOT_Debug("%s(notifyValue: %d)\r\n", __func__, notifyValue);
+		
+		if(notifyValue >= 1)   /* 获取到任务通知 */
+		{
+			_CMIOT_BLE_DataProcess();
+		}
+	}
 }
 
 

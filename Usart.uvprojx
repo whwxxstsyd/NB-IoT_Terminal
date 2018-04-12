@@ -365,7 +365,7 @@
               <MiscControls>--locale=english</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\CMSIS;.\FWlib\inc;.\User;.\FreeRTOS\include;.\FreeRTOS\portable\RVDS\ARM_CM3;.\SYSTEM\delay;.\SYSTEM\sys;.\HAL\TIMER;.\HAL\USART;.\FreeRTOS-Plus\FreeRTOS-Plus-CLI;.\HAL\COMMON;.\M5310;.\HAL\CLI;.\HAL\LCD;.\HAL\GUI;.\HAL\KEY;.\HAL\ADC</IncludePath>
+              <IncludePath>.\CMSIS;.\FWlib\inc;.\User;.\FreeRTOS\include;.\FreeRTOS\portable\RVDS\ARM_CM3;.\SYSTEM\delay;.\SYSTEM\sys;.\HAL\TIMER;.\HAL\USART;.\FreeRTOS-Plus\FreeRTOS-Plus-CLI;.\HAL\COMMON;.\M5310;.\HAL\CLI;.\HAL\LCD;.\HAL\GUI;.\HAL\KEY;.\HAL\ADC;.\HAL\BLUETOOTH</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

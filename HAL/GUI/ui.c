@@ -856,6 +856,7 @@ void _CMIOT_ShowInstructionMsg(void)
 void _CMIOT_BluetoothMode(void)
 {
 	LCD_ShowChinese(80, 150, newArial, 16, (u8 *)"功能开发中", BLACK, WHITE);
+	while(1);
 }
 
 
