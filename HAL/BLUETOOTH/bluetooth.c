@@ -549,15 +549,34 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_BLE_DataProcess(void)
 {
-	uint8_t cmd[32] 	= {0};
+	uint8_t cmd[256] 	= {0};
 	char *p_head;
 	char *p_tail;
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
+	if(strstr((const char*)UART_BLE_RxBuffer, "<Request>") == NULL || strstr((const char*)UART_BLE_RxBuffer, "</Request>") == NULL)
+	{
+		_CMIOT_Debug("%s(error data)\r\n", __func__);
+		/* 清空BLE接收Buffer */
+		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+		UART_BLE_RxBufferLen = 0;
+		return;
+	}
+	
 	/* 定位并获取命令参数 */
 	p_head = strstr((const char*)UART_BLE_RxBuffer, "<Request>") + strlen("<Request>");
 	p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Request>");
+	
+	if(p_tail - p_head > sizeof(cmd))
+	{
+		_CMIOT_Debug("%s(over length)\r\n", __func__);
+		/* 清空BLE接收Buffer */
+		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+		UART_BLE_RxBufferLen = 0;
+		return;
+	}
+	
 	memcpy(cmd, p_head, p_tail-p_head);
 	
 	/* 返回响应数据 */
@@ -601,6 +620,10 @@ void _CMIOT_BLE_DataProcess(void)
 		p_head = strstr((const char*)UART_BLE_RxBuffer, "<AT>") + strlen("<AT>");
 		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</AT>");
 		_CMIOT_Uart_send(UART_M5310, (uint8_t *)p_head, p_tail-p_head);
+	}
+	else
+	{
+		_CMIOT_Debug("%s(unknow cmd)\r\n", __func__);
 	}
 	/* 清空BLE接收Buffer */
 	memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));

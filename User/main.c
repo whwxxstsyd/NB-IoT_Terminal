@@ -192,11 +192,11 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 	
 	while(1)
 	{
-		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
+		notifyValue = ulTaskNotifyTake(pdTRUE, 10000);   /* 获取任务通知 */
+		_CMIOT_Debug("%s(notifyValue: %d)\r\n", __func__, notifyValue);
 		
 		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
-			_CMIOT_Debug("%s(NotifyValue: %d)\r\n", __func__, notifyValue);
 			memset(pcOutputString, 0, sizeof(pcOutputString));
 			do
 			{
@@ -249,8 +249,6 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 	
 	cm_key_init();	/* 初始化按键 */
 	
-	_CMIOT_Debug("%s(NotifyValue: %d)\r\n", __func__, notifyValue);
-	
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
 	/* 创建LCD任务 */
@@ -265,13 +263,13 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 	
 	while(1)
 	{
-		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
+		notifyValue = ulTaskNotifyTake(pdTRUE, 10000);   /* 获取任务通知 */
+		
+		_CMIOT_Debug("%s(notifyValue: %d)\r\n", __func__, notifyValue);
 		
 		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
 			taskENTER_CRITICAL();   /* 进入临界区 */
-			
-			_CMIOT_Debug("%s(Recv NotifyValue)\r\n", __func__);
 			
 			/* 当用户通过按钮切换功能菜单时，删除重新创建线程 */
 			if(lcd_task != NULL)
@@ -311,12 +309,13 @@ void _CMIOT_BluetoothTaskProc(void *pvParameters)
 	/* 接收通知 */
 	while(1)
 	{
-		notifyValue = ulTaskNotifyTake(pdTRUE, 60000);   /* 获取任务通知 */
+		notifyValue = ulTaskNotifyTake(pdTRUE, 10000);   /* 获取任务通知 */
 		
 		_CMIOT_Debug("%s(notifyValue: %d)\r\n", __func__, notifyValue);
 		
-		if(notifyValue >= 1)   /* 获取到任务通知 */
+		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
+			/* 处理接收到的蓝牙数据 */
 			_CMIOT_BLE_DataProcess();
 		}
 	}

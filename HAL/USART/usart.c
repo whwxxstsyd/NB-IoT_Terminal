@@ -334,7 +334,8 @@ void USART1_IRQHandler(void)
 			UART_BLE_RxBufferLen ++;
 		}
 		/* 接收到完整的请求内容后，向BLE蓝牙线程发送通知 */
-		if(strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
+		// if(strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
+		if(_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Request>") && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
 		{
 			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向CLI任务发送任务通知 */
 		}
