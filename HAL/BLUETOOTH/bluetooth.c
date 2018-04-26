@@ -377,7 +377,7 @@ void _CMIOT_BLE_RSP_deviceInfo(void)
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-	strcat((char *)rsp, "<Response>");
+	strcat((char *)rsp, "<Response><deviceInfo>");
 	
 	/* 模组名称 */
 	_CMIOT_GetModuleName(msg, sizeof(msg));
@@ -414,7 +414,7 @@ void _CMIOT_BLE_RSP_deviceInfo(void)
 	strcat((char *)rsp, VERSION_STRING);
 	strcat((char *)rsp, "</firmware>");
 	
-	strcat((char *)rsp, "</Response>");
+	strcat((char *)rsp, "</deviceInfo></Response>");
 	
 	/* 发送到蓝牙模块 */
 	_CMIOT_Uart_send(UART_BLUETOOTH, rsp, strlen((const char *)rsp));
@@ -440,7 +440,7 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-	strcat((char *)rsp, "<Response>");
+	strcat((char *)rsp, "<Response><radioInfo>");
 	/* csq */
 	sprintf((char *)msg, "<csq>%d</csq>", _CMIOT_M5310_GetSignalstrength());
 	strcat((char *)rsp, (const char*)msg);
@@ -476,7 +476,7 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	sprintf((char *)msg, "<plmn>%s</plmn>", plmn);
 	strcat((char *)rsp, (const char*)msg);
 	
-	strcat((char *)rsp, "</Response>");
+	strcat((char *)rsp, "</radioInfo></Response>");
 	
 	/* 发送到蓝牙模块 */
 	_CMIOT_Uart_send(UART_BLUETOOTH, rsp, strlen((const char *)rsp));
@@ -532,6 +532,46 @@ void _CMIOT_BLE_RSP_pingDelay(void)
 	strcat((char *)rsp, (const char*)msg);
 	
 	strcat((char *)rsp, "</Response>");
+	
+	/* 发送到蓝牙模块 */
+	_CMIOT_Uart_send(UART_BLUETOOTH, rsp, strlen((const char *)rsp));
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BLE_RSP_comprehensiveTest
+Author			:	zhaoji
+Created Time	:	2018.04.10
+Description 	: 	返回一次综合测试数据到蓝牙
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BLE_RSP_comprehensiveTest(void)
+{
+	uint8_t rsp[256] = {0};
+	CMIOT_UE_State ue_state = {0,0,0,0,""};
+	
+	_CMIOT_Debug("%s...\r\n", __func__);
+	
+	strcat((char *)rsp, "<Response><comprehensive>");
+	
+	/* attachTime */
+	sprintf((char *)msg, "<attachTime>%d</attachTime>", _CMIOT_M5310_GetRegisterTime());
+	strcat((char *)rsp, (const char*)msg);
+	/* pingDelay */
+	sprintf((char *)msg, "<pingDelay>%d</pingDelay>", _CMIOT_GetNetworkDelay());
+	strcat((char *)rsp, (const char*)msg);
+	/* csq */
+	sprintf((char *)msg, "<csq>%d</csq>", _CMIOT_M5310_GetSignalstrength());
+	strcat((char *)rsp, (const char*)msg);
+	/* uestats */
+	ue_state = _CMIOT_M5310_GetUeState();
+	/* snr */
+	sprintf((char *)msg, "<snr>%d</snr>", ue_state.snr);
+	strcat((char *)rsp, (const char*)msg);
+	
+	strcat((char *)rsp, "</comprehensive></Response>");
 	
 	/* 发送到蓝牙模块 */
 	_CMIOT_Uart_send(UART_BLUETOOTH, rsp, strlen((const char *)rsp));
@@ -599,6 +639,11 @@ void _CMIOT_BLE_DataProcess(void)
 	{
 		/* 返回ping延时 */
 		_CMIOT_BLE_RSP_pingDelay();
+	}
+	else if(strcmp((const char*)cmd, "comprehensiveTest") == 0)
+	{
+		/* 返回一次综合测试数据（包括驻网、信号、延时） */
+		_CMIOT_BLE_RSP_comprehensiveTest();
 	}
 	else if(strcmp((const char*)cmd, "bleAtEnable") == 0)
 	{

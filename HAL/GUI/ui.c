@@ -60,7 +60,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 {
-	_CMIOT_Debug("%s(Position: %d,%d,%d,%d,%d)\r\n", __func__,\
+	_CMIOT_Debug("%s(Position: %d,%d,%d,%d,%d,%d)\r\n", __func__,\
 		position->xPosition, position->yPosition, position->xSubPosition, position->ySubPosition, position->subMenu, position->pressKey);
 	
 	switch(position->pressKey)
@@ -116,6 +116,10 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 6)
 					{LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, LIGHTBLUE); }
+			}
+			else
+			{
+				_CMIOT_Debug("%s(prevent key up)\r\n", __func__);
 			}
 			break;
 		}
@@ -229,6 +233,10 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 					{LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, LIGHTBLUE); }
 			}
 			break;
+		}
+		
+		default: {
+			_CMIOT_Debug("%s(error pressKey)\r\n", __func__);
 		}
 
 	}
