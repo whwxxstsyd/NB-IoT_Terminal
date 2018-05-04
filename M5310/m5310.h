@@ -14,7 +14,7 @@ Description     :   M5310接口
                                Dependencies                                  *
 -----------------------------------------------------------------------------*/
 #include "stm32f10x.h"
-
+#include "stdbool.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -23,11 +23,32 @@ typedef struct
 {
 	uint32_t earfcn;
 	int32_t  rsrq;
-	uint32_t snr;
+	int32_t snr;
 	uint32_t ecl;
 	uint8_t cellid[16];
 	
-}CMIOT_UE_State;
+}CMIOT_UE_STATE;	/* UESTATS结果结构体 */
+
+typedef struct
+{
+	uint32_t earfcn;
+	uint32_t pci;
+	int32_t pri_cell;
+	int32_t rsrp;
+	int32_t rsrq;
+	int32_t rssi;
+	int32_t snr;
+	
+}CMIOT_UE_STATE_CELL;	/* UESTATS:CELL结果结构体 */
+
+typedef struct
+{
+	uint32_t RLC_UL;
+	uint32_t RLC_DL;
+	uint32_t MAC_UL;
+	uint32_t MAC_DL;
+	
+}CMIOT_UE_STATE_THP;	/* UESTATS:THP结果结构体 */
 
 
 /*-----------------------------------------------------------------------------
@@ -42,7 +63,6 @@ Return Value	:
 uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t MatchRsp_Num, uint32_t timeout_ms);
 
 
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_M5310_GetRegisterTime
 Author			:	zhaoji
@@ -53,7 +73,6 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 uint32_t _CMIOT_M5310_GetRegisterTime(void);
-
 
 
 /*-----------------------------------------------------------------------------
@@ -68,8 +87,6 @@ Return Value	:
 uint8_t _CMIOT_M5310_GetSignalstrength(void);
 
 
-
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_M5310_GetUeState
 Author			:	zhaoji
@@ -79,8 +96,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-CMIOT_UE_State _CMIOT_M5310_GetUeState(void);
-
+CMIOT_UE_STATE _CMIOT_M5310_GetUeState(void);
 
 
 /*-----------------------------------------------------------------------------
@@ -155,7 +171,6 @@ Return Value	:
 uint8_t _CMIOT_GetPLMN(uint8_t *plmn, uint32_t buffersize);
 
 
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_GetNB_Band
 Author			:	zhaoji
@@ -166,7 +181,6 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 uint32_t _CMIOT_GetNB_Band(void);
-
 
 
 /*-----------------------------------------------------------------------------
@@ -181,7 +195,6 @@ Return Value	:
 uint8_t _CMIOT_Get_PSM_TIMER_Value(uint8_t *t3324, uint8_t *t3412, uint32_t buffersize);
 
 
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_GetNetworkDelay
 Author			:	zhaoji
@@ -191,9 +204,64 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-uint32_t _CMIOT_GetNetworkDelay(void);
+uint32_t _CMIOT_GetNetworkDelay(uint8_t *remoteAddr, uint32_t packetSize, uint32_t timeout);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	cm_IsNbModuleAlive
+Author			:	zhaoji
+Created Time	:	2018.03.22
+Description 	: 	检测模块是否启动正常
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool cm_IsNbModuleAlive(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetUeCellStats
+Author			:	zhaoji
+Created Time	:	2018.05.04
+Description 	: 	获取UESTATS CELL参数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+CMIOT_UE_STATE_CELL _CMIOT_GetUeCellStats(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetUeTHPStats
+Author			:	zhaoji
+Created Time	:	2018.05.04
+Description 	: 	请求UESTATS THP参数（速率）
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+CMIOT_UE_STATE_THP _CMIOT_GetUeTHPStats(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	cm_getAPN
+Author			:	zhaoji
+Created Time	:	2018.05.04
+Description 	: 	获取当前APN
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen);
+
+
+
+
 
 
 
 
 #endif
+
+
+

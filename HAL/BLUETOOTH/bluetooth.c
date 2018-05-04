@@ -436,13 +436,13 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	uint8_t t3324[32] = {0};
 	uint8_t t3412[32] = {0};
 	uint8_t plmn[32] = {0};
-	CMIOT_UE_State ue_state = {0,0,0,0,""};
+	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
 	strcat((char *)rsp, "<Response><radioInfo>");
 	/* csq */
-	sprintf((char *)msg, "<csq>%d</csq>", _CMIOT_M5310_GetSignalstrength());
+	sprintf((char *)msg, "<rssi>%d</rssi>", _CMIOT_M5310_GetSignalstrength());
 	strcat((char *)rsp, (const char*)msg);
 	
 	ue_state = _CMIOT_M5310_GetUeState();
@@ -461,16 +461,13 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	/* cellid */
 	sprintf((char *)msg, "<cellid>%s</cellid>", ue_state.cellid);
 	strcat((char *)rsp, (const char*)msg);
-	
 	/* band */
 	sprintf((char *)msg, "<band>%d</band>", _CMIOT_GetNB_Band());
 	strcat((char *)rsp, (const char*)msg);
-	
 	/* t3324/3412 */
 	_CMIOT_Get_PSM_TIMER_Value(t3324, t3412, sizeof(t3324));
 	sprintf((char *)msg, "<t3324>%s</t3324><t3412>%s</t3412>", t3324, t3412);
 	strcat((char *)rsp, (const char*)msg);
-	
 	/* plmn */
 	_CMIOT_GetPLMN(plmn, sizeof(plmn));
 	sprintf((char *)msg, "<plmn>%s</plmn>", plmn);
@@ -528,7 +525,7 @@ void _CMIOT_BLE_RSP_pingDelay(void)
 	strcat((char *)rsp, "<Response>");
 	
 	/* pingDelay */
-	sprintf((char *)msg, "<pingDelay>%d</pingDelay>", _CMIOT_GetNetworkDelay());
+	sprintf((char *)msg, "<pingDelay>%d</pingDelay>", _CMIOT_GetNetworkDelay((uint8_t *)"114.114.114.114", 100, 10000));
 	strcat((char *)rsp, (const char*)msg);
 	
 	strcat((char *)rsp, "</Response>");
@@ -550,7 +547,7 @@ Return Value	:
 void _CMIOT_BLE_RSP_comprehensiveTest(void)
 {
 	uint8_t rsp[256] = {0};
-	CMIOT_UE_State ue_state = {0,0,0,0,""};
+	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
@@ -560,7 +557,7 @@ void _CMIOT_BLE_RSP_comprehensiveTest(void)
 	sprintf((char *)msg, "<attachTime>%d</attachTime>", _CMIOT_M5310_GetRegisterTime());
 	strcat((char *)rsp, (const char*)msg);
 	/* pingDelay */
-	sprintf((char *)msg, "<pingDelay>%d</pingDelay>", _CMIOT_GetNetworkDelay());
+	sprintf((char *)msg, "<pingDelay>%d</pingDelay>", _CMIOT_GetNetworkDelay((uint8_t *)"114.114.114.114", 100, 10000));
 	strcat((char *)rsp, (const char*)msg);
 	/* csq */
 	sprintf((char *)msg, "<csq>%d</csq>", _CMIOT_M5310_GetSignalstrength());
@@ -649,13 +646,11 @@ void _CMIOT_BLE_DataProcess(void)
 	{
 		BLE_AT_EXE_FLAG = true;
 		_CMIOT_Debug("%s(bleAtEnable)\r\n", __func__);
-		// _CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)"<Response>OK</Response>", strlen("<Response>OK</Response>"));
 	}
 	else if(strcmp((const char*)cmd, "bleAtDisable") == 0)
 	{
 		BLE_AT_EXE_FLAG = false;
 		_CMIOT_Debug("%s(bleAtDisable)\r\n", __func__);
-		// _CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)"<Response>OK</Response>", strlen("<Response>OK</Response>"));
 	}
 	else if(_CMIOT_Str_StartWith(cmd, (uint8_t *)"<AT>") && _CMIOT_Str_EndWith(cmd, (uint8_t *)"</AT>"))
 	{

@@ -208,9 +208,9 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-CMIOT_UE_State _CMIOT_M5310_GetUeState(void)
+CMIOT_UE_STATE _CMIOT_M5310_GetUeState(void)
 {
-	CMIOT_UE_State ue_state = {0,0,0,0,""};
+	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
 	char *index;
 	uint8_t maxRetryCounts = 5;
 	uint32_t result;
@@ -823,8 +823,6 @@ uint8_t _CMIOT_Get_PSM_TIMER_Value(uint8_t *t3324, uint8_t *t3412, uint32_t buff
 }
 
 
-
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_GetNetworkDelay
 Author			:	zhaoji
@@ -834,18 +832,20 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-uint32_t _CMIOT_GetNetworkDelay(void)
+uint32_t _CMIOT_GetNetworkDelay(uint8_t *remoteAddr, uint32_t packetSize, uint32_t timeout)
 {
 	uint8_t nping_MatchStr[3][20] = {"NPING:", "NPINGERR","ERROR"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
 	uint8_t result;
 	char *index;
 	uint32_t pingDelay = 0;
-	uint8_t pingAtCmd[64] = {0};
+	uint8_t pingAtCmd[128] = {0};
 	
 	strcat((char *)pingAtCmd, "AT+NPING=");
-	strcat((char *)pingAtCmd, (char *)PING_ADDR);
+	strcat((char *)pingAtCmd, (char *)remoteAddr);
 	strcat((char *)pingAtCmd, ",100,10000,1\r\n");
+	
+	sprintf((char *)pingAtCmd, "AT+NPING=%s,%d,%d,1\r\n",remoteAddr, packetSize, timeout);
 	
 	while(maxRetryCounts > 0)
 	{
@@ -893,10 +893,8 @@ uint32_t _CMIOT_GetNetworkDelay(void)
 }
 
 
-
-
 /*-----------------------------------------------------------------------------
-Function Name	:	cm_IsModuleAlive
+Function Name	:	cm_IsNbModuleAlive
 Author			:	zhaoji
 Created Time	:	2018.03.22
 Description 	: 	检测模块是否启动正常
@@ -904,7 +902,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-bool cm_IsModuleAlive()
+bool cm_IsNbModuleAlive(void)
 {
 	uint8_t at_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
 	uint8_t maxRetryCounts = 5;
@@ -925,7 +923,201 @@ bool cm_IsModuleAlive()
 }
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetUeCellStats
+Author			:	zhaoji
+Created Time	:	2018.05.04
+Description 	: 	获取UESTATS CELL参数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+CMIOT_UE_STATE_CELL _CMIOT_GetUeCellStats(void)
+{
+	uint8_t at_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	CMIOT_UE_STATE_CELL ue_state_cell = {0,0,0,0,0,0};
+	char *cellStateStr;
+	char *p_head;
+	char *p_tail;
+	uint8_t res_array[7][32] = {0};
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NUESTATS=CELL\r\n"), at_MatchStr, 2, 1000);
+		
+		if(result == 1)
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "NUESTATS:CELL,");
+			if(p_head != NULL)  /* 检索匹配字符串 */
+			{
+				_CMIOT_Debug("%s(Get cell uestats ok)\r\n", __func__);
+				p_head += strlen("NUESTATS:CELL,");
+				p_tail = strstr(p_head, "\r\n");
+				cellStateStr = pvPortMalloc((p_tail-p_head+1) * sizeof(char));	/* 申请内存 */
+				memcpy(cellStateStr, p_head, p_tail - p_head);
+				if(cm_split(res_array, (uint8_t *)cellStateStr, (uint8_t *)(",")) == 7)	/* 判断参数数量是否正确 */
+				{
+					ue_state_cell.earfcn	= _CMIOT_atoi(res_array[0]);	/* 频点 */
+					ue_state_cell.pci		= _CMIOT_atoi(res_array[1]);	/* PCI */
+					ue_state_cell.pri_cell	= _CMIOT_atoi(res_array[2]);	/* primary cell */
+					ue_state_cell.rsrp		= _CMIOT_atoi(res_array[3]);	/* RSRP */
+					ue_state_cell.rsrq		= _CMIOT_atoi(res_array[4]);	/* RSRQ */
+					ue_state_cell.rssi		= _CMIOT_atoi(res_array[5]);	/* RSSI */
+					ue_state_cell.snr		= _CMIOT_atoi(res_array[6]);	/* SNR */
+				}
+				else
+				{
+					_CMIOT_Debug("%s(cell para num error)\r\n", __func__);
+				}
+				vPortFree(cellStateStr); /* 释放内存 */
+			}
+			else
+			{
+				_CMIOT_Debug("%s(Get cell uestats fail)\r\n", __func__);
+			}
+			_CMIOT_Debug("%s(earfcn: d%, pci: d%, primary cell: d%, rsrp: d%, rsrq: d%, rssi: d%, snr: d%)\r\n",\
+							__func__, ue_state_cell.earfcn, ue_state_cell.pci, ue_state_cell.pri_cell,\
+							ue_state_cell.rsrp, ue_state_cell.rsrq, ue_state_cell.rssi, ue_state_cell.snr);
+			return ue_state_cell;
+		}
+		delay_ms(1000);
+	}
+	return ue_state_cell;
+}
 
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetUeTHPStats
+Author			:	zhaoji
+Created Time	:	2018.05.04
+Description 	: 	请求UESTATS THP参数（速率）
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+CMIOT_UE_STATE_THP _CMIOT_GetUeTHPStats(void)
+{
+	uint8_t at_MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head;
+	char *p_tail;
+	uint8_t res_array[4][32]	= {0};
+	uint8_t res1_array[3][32]	= {0};
+	CMIOT_UE_STATE_THP ue_state_thp = {0,0,0,0};
+	char *str;
+	uint8_t i = 0;
+	
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NUESTATS=THP\r\n"), at_MatchStr, 2, 1000);
+		
+		if(result == 1)
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "NUESTATS:THP");
+			if(p_head != NULL)
+			{
+				_CMIOT_Debug("%s(Get thp uestats ok)\r\n", __func__);
+				p_tail = strstr(p_head, "\r\n\r\nOK\r\n");
+				str = pvPortMalloc((p_tail-p_head+1) * sizeof(char));	/* 申请内存 */
+				memcpy(str, p_head, p_tail - p_head);
+				if(cm_split(res_array, (uint8_t *)str, (uint8_t *)("\r\n")) == 4)	/* 判断参数数量是否正确 */
+				{
+					for(i=0; i<4; i++)
+					{
+						if(cm_split(res1_array, (uint8_t *)res_array[i], (uint8_t *)(",")) == 3)
+						{
+							if(strcmp((char *)res1_array[1], "RLC UL") == 0)
+							{
+								ue_state_thp.RLC_UL = _CMIOT_atoi(res1_array[2]);	/* RLC上行速率 */
+							}
+							else if(strcmp((char *)res1_array[1], "RLC DL") == 0)
+							{
+								ue_state_thp.RLC_DL = _CMIOT_atoi(res1_array[2]);	/* RLC下行速率 */
+							}
+							else if(strcmp((char *)res1_array[1], "MAC UL") == 0)
+							{
+								ue_state_thp.MAC_UL = _CMIOT_atoi(res1_array[2]);	/* MAC上行速率 */
+							}
+							else if(strcmp((char *)res1_array[1], "MAC DL") == 0)
+							{
+								ue_state_thp.MAC_DL = _CMIOT_atoi(res1_array[2]);	/* MAC下行速率 */
+							}
+							else
+							{
+								_CMIOT_Debug("%s(unknow THP Type)\r\n", __func__);
+							}
+						}
+					}
+				}
+				vPortFree(str);	/* 释放内存 */
+				_CMIOT_Debug("%s(rlc_ul: %d, rlc_dl: %d, mac_ul: %d, mac_dl: %d)\r\n", __func__, ue_state_thp.RLC_UL, ue_state_thp.RLC_DL, ue_state_thp.MAC_UL, ue_state_thp.MAC_DL);
+				return ue_state_thp;
+			}
+			else {
+				_CMIOT_Debug("%s(get uestats thp error)\r\n", __func__);
+			}
+		}
+		delay_ms(1000);
+	}
+	return ue_state_thp;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	cm_getAPN
+Author			:	zhaoji
+Created Time	:	2018.05.04
+Description 	: 	获取当前APN
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
+{
+	uint8_t at_MatchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint8_t maxRetryCounts = 5;
+	uint8_t result;
+	char *p_head;
+	char *p_tail;
+	
+	memset(apnBuf, 0, bufLen); /* 清空buffer */
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGDCONT?\r\n"), at_MatchStr, 2, 1000);
+		
+		if(result == 1)
+		{
+			p_head = strstr((const char *)UART_M5310_RxBuffer, ",\"IP\",");
+			if(p_head != NULL)
+			{
+				p_head += strlen(",\"IP\",");
+				if(*(p_head) == ',')
+				{
+					return;
+				}
+				p_tail = strstr(p_head, ",");
+				/* 检查apn长度是否超过 */
+				if(p_tail - p_head < bufLen)
+				{
+					memcpy(apnBuf, p_head, p_tail - p_head);
+				}
+				else
+				{
+					memcpy(apnBuf, p_head, bufLen);
+				}
+				return;
+			}
+			return;
+		}
+		delay_ms(1000);
+	}
+}
 
 
 

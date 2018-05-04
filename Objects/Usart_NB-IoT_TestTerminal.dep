@@ -712,9 +712,9 @@ I (.\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h)(0x5A185F00)
 I (.\FreeRTOS\include\mpu_wrappers.h)(0x5A185ECA)
 I (.\FreeRTOS\include\task.h)(0x5A185ECF)
 I (.\FreeRTOS\include\list.h)(0x5A185EC9)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
-I (.\M5310\m5310.h)(0x5ABA1D57)
+I (.\M5310\m5310.h)(0x5AEC3B18)
 I (.\FreeRTOS-Plus\FreeRTOS-Plus-CLI\FreeRTOS_CLI.h)(0x5A90BFCC)
 I (.\HAL\LCD\lcd.h)(0x5AC18DA6)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x5475F300)
@@ -1214,7 +1214,7 @@ I (.\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h)(0x5A185F00)
 I (.\FreeRTOS\include\mpu_wrappers.h)(0x5A185ECA)
 I (.\FreeRTOS\include\task.h)(0x5A185ECF)
 I (.\FreeRTOS\include\list.h)(0x5A185EC9)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
 F (.\SYSTEM\sys\sys.c)(0x5A80014B)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\sys.o --omf_browse .\objects\sys.crf --depend .\objects\sys.d)
 I (SYSTEM\sys\sys.h)(0x5A800116)
@@ -1276,7 +1276,7 @@ I (.\FWlib\inc\stm32f10x_tim.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_usart.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_wwdg.h)(0x59CCE88A)
 I (.\FWlib\inc\misc.h)(0x59CCE88A)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
 I (.\FreeRTOS\include\FreeRTOS.h)(0x5A185EC8)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x5475F300)
@@ -1325,7 +1325,7 @@ I (.\FWlib\inc\stm32f10x_tim.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_usart.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_wwdg.h)(0x59CCE88A)
 I (.\FWlib\inc\misc.h)(0x59CCE88A)
-F (.\HAL\COMMON\common.c)(0x5AB8A225)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\common.o --omf_browse .\objects\common.crf --depend .\objects\common.d)
+F (.\HAL\COMMON\common.c)(0x5AEBF7A8)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\common.o --omf_browse .\objects\common.crf --depend .\objects\common.d)
 I (.\CMSIS\stm32f10x.h)(0x59CCE88A)
 I (.\CMSIS\core_cm3.h)(0x59CCE88A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5475F300)
@@ -1354,7 +1354,7 @@ I (.\FWlib\inc\stm32f10x_tim.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_usart.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_wwdg.h)(0x59CCE88A)
 I (.\FWlib\inc\misc.h)(0x59CCE88A)
-I (HAL\COMMON\common.h)(0x5ABA0BC1)
+I (HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
 I (.\HAL\USART\usart.h)(0x5A989A5E)
 I (C:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x5475F2FA)
@@ -1454,14 +1454,14 @@ I (.\FreeRTOS\include\portable.h)(0x5A185ECA)
 I (.\FreeRTOS\include\deprecated_definitions.h)(0x5A185EC7)
 I (.\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h)(0x5A185F00)
 I (.\FreeRTOS\include\mpu_wrappers.h)(0x5A185ECA)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5475F300)
 I (.\FreeRTOS\include\task.h)(0x5A185ECF)
 I (.\FreeRTOS\include\list.h)(0x5A185EC9)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5475F300)
 I (.\HAL\USART\usart.h)(0x5A989A5E)
-F (.\M5310\m5310.c)(0x5AD45849)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\m5310.o --omf_browse .\objects\m5310.crf --depend .\objects\m5310.d)
+F (.\M5310\m5310.c)(0x5AEC39E5)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\m5310.o --omf_browse .\objects\m5310.crf --depend .\objects\m5310.d)
 I (.\CMSIS\stm32f10x.h)(0x59CCE88A)
 I (.\CMSIS\core_cm3.h)(0x59CCE88A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5475F300)
@@ -1491,12 +1491,12 @@ I (.\FWlib\inc\stm32f10x_usart.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_wwdg.h)(0x59CCE88A)
 I (.\FWlib\inc\misc.h)(0x59CCE88A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (.\HAL\USART\usart.h)(0x5A989A5E)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5475F300)
 I (.\SYSTEM\delay\delay.h)(0x5A8000FA)
 I (.\SYSTEM\sys\sys.h)(0x5A800116)
-I (M5310\m5310.h)(0x5ABA1D57)
+I (M5310\m5310.h)(0x5AEC3B18)
 I (.\FreeRTOS\include\FreeRTOS.h)(0x5A185EC8)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x5475F300)
 I (.\FreeRTOS\include\FreeRTOSConfig.h)(0x5ACC8BB2)
@@ -1544,7 +1544,7 @@ I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x5475F300)
 I (HAL\LCD\font.h)(0x5AC1A0B0)
 I (.\HAL\USART\usart.h)(0x5A989A5E)
 I (.\SYSTEM\delay\delay.h)(0x5A8000FA)
-F (.\HAL\GUI\ui.c)(0x5AD5A3F8)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\ui.o --omf_browse .\objects\ui.crf --depend .\objects\ui.d)
+F (.\HAL\GUI\ui.c)(0x5AEC397B)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\ui.o --omf_browse .\objects\ui.crf --depend .\objects\ui.d)
 I (HAL\GUI\ui.h)(0x5AC17B91)
 I (.\CMSIS\stm32f10x.h)(0x59CCE88A)
 I (.\CMSIS\core_cm3.h)(0x59CCE88A)
@@ -1578,10 +1578,10 @@ I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5475F300)
 I (.\HAL\LCD\lcd.h)(0x5AC18DA6)
 I (.\SYSTEM\sys\sys.h)(0x5A800116)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x5475F300)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
 I (.\SYSTEM\delay\delay.h)(0x5A8000FA)
-I (.\M5310\m5310.h)(0x5ABA1D57)
+I (.\M5310\m5310.h)(0x5AEC3B18)
 I (.\HAL\LCD\image.h)(0x5ABCC975)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x5475F2FE)
 I (.\HAL\ADC\adc.h)(0x5AC1A037)
@@ -1628,7 +1628,7 @@ I (.\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h)(0x5A185F00)
 I (.\FreeRTOS\include\mpu_wrappers.h)(0x5A185ECA)
 I (.\FreeRTOS\include\task.h)(0x5A185ECF)
 I (.\FreeRTOS\include\list.h)(0x5A185EC9)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
 I (.\HAL\GUI\ui.h)(0x5AC17B91)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5475F300)
@@ -1664,7 +1664,7 @@ I (.\FWlib\inc\stm32f10x_usart.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_wwdg.h)(0x59CCE88A)
 I (.\FWlib\inc\misc.h)(0x59CCE88A)
 I (.\SYSTEM\delay\delay.h)(0x5A8000FA)
-F (.\HAL\BLUETOOTH\bluetooth.c)(0x5AE1AED7)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\bluetooth.o --omf_browse .\objects\bluetooth.crf --depend .\objects\bluetooth.d)
+F (.\HAL\BLUETOOTH\bluetooth.c)(0x5AEC39E1)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I H:\GITHUB\NB-IoT_Terminal\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\bluetooth.o --omf_browse .\objects\bluetooth.crf --depend .\objects\bluetooth.d)
 I (.\CMSIS\stm32f10x.h)(0x59CCE88A)
 I (.\CMSIS\core_cm3.h)(0x59CCE88A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5475F300)
@@ -1694,12 +1694,12 @@ I (.\FWlib\inc\stm32f10x_usart.h)(0x59CCE88A)
 I (.\FWlib\inc\stm32f10x_wwdg.h)(0x59CCE88A)
 I (.\FWlib\inc\misc.h)(0x59CCE88A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x5475F300)
-I (.\HAL\COMMON\common.h)(0x5ABA0BC1)
+I (.\HAL\COMMON\common.h)(0x5AEBF77C)
 I (.\HAL\USART\usart.h)(0x5A989A5E)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5475F300)
 I (.\SYSTEM\delay\delay.h)(0x5A8000FA)
 I (.\SYSTEM\sys\sys.h)(0x5A800116)
-I (.\M5310\m5310.h)(0x5ABA1D57)
+I (.\M5310\m5310.h)(0x5AEC3B18)
 I (.\FreeRTOS\include\FreeRTOS.h)(0x5A185EC8)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x5475F300)
 I (.\FreeRTOS\include\FreeRTOSConfig.h)(0x5ACC8BB2)

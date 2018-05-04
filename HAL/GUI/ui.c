@@ -351,7 +351,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowRadioInfo()
 {
-	CMIOT_UE_State ue_state;
+	CMIOT_UE_STATE ue_state;
 	uint8_t CsqValue = 0;
 	uint8_t t3412[32] = {0};
 	uint8_t t3324[32] = {0};
@@ -632,7 +632,7 @@ void _CMIOT_ShowPingResult(void)
 	
 	while(1)
 	{
-		result = _CMIOT_GetNetworkDelay();
+		result = _CMIOT_GetNetworkDelay((uint8_t *)"114.114.114.114", 100, 10000);
 		delay_ms(50);
 		
 		if(result > 0)
@@ -799,7 +799,7 @@ void _CMIOT_ComprehensiveTest(uint32_t times)
 		sprintf((char *)msg, "%-2d", csqMaxValue); /* CSQ最大值 */
 		LCD_ShowString(150,212,16,msg);
 		
-		result = _CMIOT_GetNetworkDelay();
+		result = _CMIOT_GetNetworkDelay((uint8_t *)"114.114.114.114", 100, 10000);
 		if(result > 0)
 		{
 			pingAvrValue = (pingAvrValue * (pingCount - pingFailCount) + result)/(pingCount - pingFailCount + 1);

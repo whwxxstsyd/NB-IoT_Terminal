@@ -76,7 +76,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-int cm_split(uint8_t dst[][128], uint8_t *str, const uint8_t *spl);
+int cm_split(uint8_t dst[][32], uint8_t *str, const uint8_t *spl);
 
 
 
