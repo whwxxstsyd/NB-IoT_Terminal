@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\NB-IoT_TestTerminal.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\NB-IoT_TestTerminal.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Fri May 04 20:00:22 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Sat May 05 21:58:54 2018
 <BR><P>
 <H3>Maximum Stack Usage =       1408 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -397,8 +397,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[de]"></a>strcat</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, strcat.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GetNetworkDelay
-<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_SetName
+<BR><BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_SetName
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_RSP_radioInfo
 <LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_RSP_pingDelay
 <LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_RSP_deviceInfo
@@ -1356,7 +1355,7 @@ Global Symbols
 <P><STRONG><a name="[c]"></a>UsageFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f10x_it.o(i.UsageFault_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_hd.o(RESET)
 </UL>
-<P><STRONG><a name="[ca]"></a>_CMIOT_BLE_DataProcess</STRONG> (Thumb, 356 bytes, Stack size 272 bytes, bluetooth.o(i._CMIOT_BLE_DataProcess))
+<P><STRONG><a name="[ca]"></a>_CMIOT_BLE_DataProcess</STRONG> (Thumb, 366 bytes, Stack size 272 bytes, bluetooth.o(i._CMIOT_BLE_DataProcess))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1408<LI>Call Chain = _CMIOT_BLE_DataProcess &rArr; _CMIOT_BLE_RSP_radioInfo &rArr; _CMIOT_M5310_GetUeState &rArr; _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Uart_send
@@ -1493,7 +1492,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_DataProcess
 </UL>
 
-<P><STRONG><a name="[dd]"></a>_CMIOT_BLE_Reboot</STRONG> (Thumb, 136 bytes, Stack size 56 bytes, bluetooth.o(i._CMIOT_BLE_Reboot))
+<P><STRONG><a name="[dd]"></a>_CMIOT_BLE_Reboot</STRONG> (Thumb, 144 bytes, Stack size 56 bytes, bluetooth.o(i._CMIOT_BLE_Reboot))
 <BR><BR>[Stack]<UL><LI>Max Depth = 408<LI>Call Chain = _CMIOT_BLE_Reboot &rArr; _CMIOT_ExecuteBLEAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Debug
@@ -1644,11 +1643,12 @@ Global Symbols
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GUI_Init
 </UL>
 
-<P><STRONG><a name="[f4]"></a>_CMIOT_ExecuteAtCmd</STRONG> (Thumb, 142 bytes, Stack size 40 bytes, m5310.o(i._CMIOT_ExecuteAtCmd))
+<P><STRONG><a name="[f4]"></a>_CMIOT_ExecuteAtCmd</STRONG> (Thumb, 164 bytes, Stack size 40 bytes, m5310.o(i._CMIOT_ExecuteAtCmd))
 <BR><BR>[Stack]<UL><LI>Max Depth = 352<LI>Call Chain = _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Uart_send
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Debug
+<LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Str_EndWith
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 <LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
@@ -1668,11 +1668,12 @@ Global Symbols
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GetICCID
 </UL>
 
-<P><STRONG><a name="[d8]"></a>_CMIOT_ExecuteBLEAtCmd</STRONG> (Thumb, 142 bytes, Stack size 40 bytes, bluetooth.o(i._CMIOT_ExecuteBLEAtCmd))
+<P><STRONG><a name="[d8]"></a>_CMIOT_ExecuteBLEAtCmd</STRONG> (Thumb, 164 bytes, Stack size 40 bytes, bluetooth.o(i._CMIOT_ExecuteBLEAtCmd))
 <BR><BR>[Stack]<UL><LI>Max Depth = 352<LI>Call Chain = _CMIOT_ExecuteBLEAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Uart_send
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Debug
+<LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Str_EndWith
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 <LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
@@ -1792,14 +1793,13 @@ Global Symbols
 <LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowRadioInfo
 </UL>
 
-<P><STRONG><a name="[e1]"></a>_CMIOT_GetNetworkDelay</STRONG> (Thumb, 232 bytes, Stack size 224 bytes, m5310.o(i._CMIOT_GetNetworkDelay))
+<P><STRONG><a name="[e1]"></a>_CMIOT_GetNetworkDelay</STRONG> (Thumb, 208 bytes, Stack size 224 bytes, m5310.o(i._CMIOT_GetNetworkDelay))
 <BR><BR>[Stack]<UL><LI>Max Depth = 576<LI>Call Chain = _CMIOT_GetNetworkDelay &rArr; _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Debug
 <LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ExecuteAtCmd
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
-<LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcat
 <LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 <LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy4
 <LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
@@ -2065,7 +2065,9 @@ Global Symbols
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_DataProcess
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ExecuteAtCmd
 <LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART1_IRQHandler
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ExecuteBLEAtCmd
 </UL>
 
 <P><STRONG><a name="[d4]"></a>_CMIOT_Str_StartWith</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, common.o(i._CMIOT_Str_StartWith))

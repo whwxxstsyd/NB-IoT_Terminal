@@ -41,20 +41,20 @@ extern bool BLE_DEBUG_FLAG;			/* BLE蓝牙模组调试标志位，为true时将�
 /*----------------------------------------------------------------------------*
 **                             Function Declare                               *
 **----------------------------------------------------------------------------*/
-BaseType_t prvDebugLevelCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvGetSysTimeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvSendAt2NbModuleCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvEnableNbDebugModeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvSendAt2BleModuleCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvDebugLevelCommand			(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvGetSysTimeCommand			(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvGetHeapUsageCommand		(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvSendAt2NbModuleCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvEnableNbDebugModeCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvSendAt2BleModuleCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvEnableBleDebugModeCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
 
 
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
 **----------------------------------------------------------------------------*/
-/* 支持的命令列表 */
+/* 命令列表 */
 static CLI_Command_Definition_t CliCommandList[] = 
 {
 	{

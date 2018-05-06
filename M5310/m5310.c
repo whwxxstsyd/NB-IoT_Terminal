@@ -113,7 +113,12 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 	
 	_CMIOT_Uart_send(UART_M5310, AtCmd, strlen((const char *)AtCmd));    /* 发送AT指令 */
 	
-	_CMIOT_Debug("%s(Send->%s", __func__, AtCmd);
+	if(_CMIOT_Str_EndWith(AtCmd, (uint8_t *)"\r\n"))
+	{
+		memset(AtCmd + strlen((const char*)AtCmd - 2), 0, 2);
+	}
+	
+	_CMIOT_Debug("%s([SEND]#%s)\r\n", __func__, AtCmd);
 	
 	/* 检索M5310串口返回内容是否匹配目标字符串数组，匹配成功返回数组索引号+1，超时匹配失败返回0 */
 	while(1)
@@ -841,9 +846,9 @@ uint32_t _CMIOT_GetNetworkDelay(uint8_t *remoteAddr, uint32_t packetSize, uint32
 	uint32_t pingDelay = 0;
 	uint8_t pingAtCmd[128] = {0};
 	
-	strcat((char *)pingAtCmd, "AT+NPING=");
-	strcat((char *)pingAtCmd, (char *)remoteAddr);
-	strcat((char *)pingAtCmd, ",100,10000,1\r\n");
+//	strcat((char *)pingAtCmd, "AT+NPING=");
+//	strcat((char *)pingAtCmd, (char *)remoteAddr);
+//	strcat((char *)pingAtCmd, ",100,10000,1\r\n");
 	
 	sprintf((char *)pingAtCmd, "AT+NPING=%s,%d,%d,1\r\n",remoteAddr, packetSize, timeout);
 	
@@ -1099,6 +1104,7 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 				p_head += strlen(",\"IP\",");
 				if(*(p_head) == ',')
 				{
+					_CMIOT_Debug("%s(empty apn)\r\n", __func__);
 					return;
 				}
 				p_tail = strstr(p_head, ",");
@@ -1111,13 +1117,54 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 				{
 					memcpy(apnBuf, p_head, bufLen);
 				}
+				_CMIOT_Debug("%s(apn: %s)\r\n", __func__, apnBuf);
 				return;
 			}
+			_CMIOT_Debug("%s(find apn type fail)\r\n", __func__);
 			return;
 		}
 		delay_ms(1000);
 	}
 }
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_IsPdpAttached
+Author			:	zhaoji
+Created Time	:	2018.05.05
+Description 	: 	获取PDP附着状态
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_IsPdpAttached(void)
+{
+	uint8_t attach_MatchStr[2][20] = {"CGATT:0", "CGATT:1"};	/* 指令响应完成匹配字符串 */
+	uint32_t result;
+	uint8_t maxRetryCounts = 5;
+
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGATT?\r\n"), attach_MatchStr, 2, 1000);
+		if(result == 2)
+		{
+			_CMIOT_Debug("%s(Attached!)\r\n", __func__);
+			return true;
+		}
+		if(result == 1)
+		{
+			_CMIOT_Debug("%s(unattached!)\r\n", __func__);
+			return false;
+		}
+	}
+	_CMIOT_Debug("%s(execute fail)\r\n", __func__);
+	return false;
+}
+
+
+
+
 
 
 
