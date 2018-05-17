@@ -34,7 +34,7 @@ extern uint8_t   UART_CLI_RxBuffer[128];
 extern uint32_t  UART_CLI_RxBufferLen;
 
 /* USART1(UART_BLUETOOTH)数据接收buffer */
-extern uint8_t   UART_BLE_RxBuffer[512];
+extern uint8_t   UART_BLE_RxBuffer[1024];
 extern uint32_t  UART_BLE_RxBufferLen;
 
 extern TaskHandle_t cli_task;			/* CLI任务   */
@@ -334,8 +334,9 @@ void USART1_IRQHandler(void)
 			UART_BLE_RxBufferLen ++;
 		}
 		/* 接收到完整的请求内容后，向BLE蓝牙线程发送通知 */
-		// if(strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
-		if(_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Request>") && (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
+		if((_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Request>") ||  \
+			_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Response>")) \
+			&& (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
 		{
 			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向CLI任务发送任务通知 */
 		}
@@ -363,10 +364,15 @@ void USART2_IRQHandler(void)
 		/* 接收数据并存储到UART_CLI_RxBufferLen中 */
 		recvByte = USART_ReceiveData(USART2);
 		
-		if(recvByte == '\r' || recvByte == '\n')    /* 接收到CLI命令结束符 */
+		if(recvByte == '\r')    /* 接收到CLI命令结束符（回车符） */
 		{
 			USART_SendData(UART_CLI_DEBUG, recvByte);
 			vTaskNotifyGiveFromISR(cli_task, &cliNotifyValue);   /* 向CLI任务发送任务通知 */
+			return;
+		}
+		
+		if(recvByte == '\n')    /* 忽略换行符 */
+		{
 			return;
 		}
 		

@@ -19,14 +19,18 @@ Description     :   UI接口
 #include "image.h"
 #include "math.h"
 #include "adc.h"
+#include "bluetooth.h"
+#include "string.h"
 
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
 static uint8_t msg[128];
 
-extern uint8_t PING_ADDR[];
 
+/* USART1(UART_BLUETOOTH)数据接收buffer */
+extern uint8_t   UART_BLE_RxBuffer[1024];
+extern uint32_t  UART_BLE_RxBufferLen;
 
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_UI_BootPage
@@ -96,7 +100,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition + 1)*3 + position->xPosition == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, WHITE); }
 				else if((position->yPosition + 1)*3 + position->xPosition == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, WHITE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, WHITE); }
 				else if((position->yPosition + 1)*3 + position->xPosition == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, WHITE); }
 				else if((position->yPosition + 1)*3 + position->xPosition == 6)
@@ -111,7 +115,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition)*3 + position->xPosition == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, LIGHTBLUE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 6)
@@ -137,7 +141,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition - 1)*3 + position->xPosition == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, WHITE); }
 				else if((position->yPosition - 1)*3 + position->xPosition == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, WHITE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, WHITE); }
 				else if((position->yPosition - 1)*3 + position->xPosition == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, WHITE); }
 				else if((position->yPosition - 1)*3 + position->xPosition == 6)
@@ -152,7 +156,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition)*3 + position->xPosition == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, LIGHTBLUE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 6)
@@ -174,7 +178,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition)*3 + position->xPosition + 1 == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, WHITE); }
 				else if((position->yPosition)*3 + position->xPosition + 1 == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, WHITE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, WHITE); }
 				else if((position->yPosition)*3 + position->xPosition + 1 == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, WHITE); }
 				else if((position->yPosition)*3 + position->xPosition + 1 == 6)
@@ -189,7 +193,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition)*3 + position->xPosition == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, LIGHTBLUE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 6)
@@ -211,7 +215,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition)*3 + position->xPosition - 1 == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, WHITE); }
 				else if((position->yPosition)*3 + position->xPosition - 1 == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, WHITE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, WHITE); }
 				else if((position->yPosition)*3 + position->xPosition - 1 == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, WHITE); }
 				else if((position->yPosition)*3 + position->xPosition - 1 == 6)
@@ -226,7 +230,7 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 				else if((position->yPosition)*3 + position->xPosition == 3)
 					{LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 4)
-					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, LIGHTBLUE); }
+					{LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 5)
 					{LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, LIGHTBLUE); }
 				else if((position->yPosition)*3 + position->xPosition == 6)
@@ -238,7 +242,6 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 		default: {
 			_CMIOT_Debug("%s(error pressKey)\r\n", __func__);
 		}
-
 	}
 	/* 刷新显示NB信号强度 */
 	while(1)
@@ -300,14 +303,13 @@ void _CMIOT_ShowDeviceInfo()
 	LCD_ShowString(68, 230, 16,  (u8 *)":");
 	
 	/* MCU版本 */
-	LCD_ShowChinese(3, 270, newArial, 16, (u8 *)"软件版本", BLACK, LIGHTBLUE);
+	LCD_ShowChinese(3, 275, newArial, 16, (u8 *)"软件版本", BLACK, LIGHTBLUE);
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
-	LCD_ShowString(68, 270, 16,  (u8 *)":");
+	LCD_ShowString(68, 275, 16,  (u8 *)":");
 	
 	POINT_COLOR = BLACK;
 	BACK_COLOR = WHITE;
-	
 	/* 模组型号 */
 	_CMIOT_GetModuleName(msg, sizeof(msg));
 	LCD_ShowString(80, 50, 16, (u8 *)msg);
@@ -320,23 +322,33 @@ void _CMIOT_ShowDeviceInfo()
 	/* IMSI */
 	_CMIOT_GetIMSI(msg, sizeof(msg));
 	LCD_ShowString(80, 140, 16, (u8 *)msg);
-	/* 电池电压 */
-	sprintf((char *)msg, "%-3.1f V", cm_getBatteryVol());
-	LCD_ShowString(80, 170, 16, (u8 *)msg);
-	/* 蓝牙状态 */
-	
-	
 	/* 模组版本 */
 	_CMIOT_GetModuleVersion(msg, sizeof(msg));
 	LCD_ShowString(80, 230, 16, (u8 *)msg);
 	/* 软件版本 */
-	LCD_ShowString(80, 270, 16, (u8 *)VERSION_STRING);
+	cm_getbuildVersion(msg, sizeof(msg));
+	LCD_ShowString(80, 275, 16, (u8 *)msg);
 
-//	while(1)
-//	{
-//		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-//		delay_ms(1000);
-//	}
+	while(1)
+	{
+		POINT_COLOR = BLACK;
+		BACK_COLOR = WHITE;
+		/* 电池电压 */
+		sprintf((char *)msg, "%-3.1f V", cm_getBatteryVol());
+		LCD_ShowString(80, 170, 16, (u8 *)msg);
+	
+		/* 蓝牙状态 */
+		if(_CMIOT_GetBleConnectedState())
+		{
+			LCD_ShowChinese(80, 200, newArial, 16, (u8 *)"已连接", BLACK, WHITE);
+		}
+		else
+		{
+			LCD_ShowChinese(80, 200, newArial, 16, (u8 *)"未连接", BLACK, WHITE);
+		}
+		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+		delay_ms(1000);
+	}
 }
 
 
@@ -352,6 +364,7 @@ Return Value	:
 void _CMIOT_ShowRadioInfo()
 {
 	CMIOT_UE_STATE ue_state;
+	CMIOT_UE_STATE_CELL ue_state_cell;
 	uint8_t CsqValue = 0;
 	uint8_t t3412[32] = {0};
 	uint8_t t3324[32] = {0};
@@ -366,66 +379,50 @@ void _CMIOT_ShowRadioInfo()
 	POINT_COLOR = BLACK;
 	BACK_COLOR = LIGHTBLUE;
 	LCD_ShowString(5, 75,  16, (u8 *)"CSQ    :");
-	LCD_ShowString(5, 100, 16, (u8 *)"SNR    :");
-	LCD_ShowString(5, 125, 16, (u8 *)"RSRQ   :");
-	LCD_ShowString(5, 150, 16, (u8 *)"EARFCN :");
+	LCD_ShowString(5, 95,  16, (u8 *)"SNR    :");
+	LCD_ShowString(5, 115, 16, (u8 *)"RSRQ   :");
+	LCD_ShowString(5, 135, 16, (u8 *)"RSRP   :");
+	LCD_ShowString(5, 155, 16, (u8 *)"EARFCN :");
 	LCD_ShowString(5, 175, 16, (u8 *)"ECL    :");
-	LCD_ShowString(5, 200, 16, (u8 *)"PLMN   :");
-	LCD_ShowString(5, 225, 16, (u8 *)"BAND   :");
-	LCD_ShowString(5, 250, 16, (u8 *)"T3324  :");
+	LCD_ShowString(5, 195, 16, (u8 *)"PLMN   :");
+	LCD_ShowString(5, 215, 16, (u8 *)"APN    :");
+	LCD_ShowString(5, 235, 16, (u8 *)"BAND   :");
+	LCD_ShowString(5, 255, 16, (u8 *)"T3324  :");
 	LCD_ShowString(5, 275, 16, (u8 *)"T3412  :");
-	LCD_ShowString(5, 300, 16, (u8 *)"CELLID :");
+	LCD_ShowString(5, 295, 16, (u8 *)"CELLID :");
 	
 	while(1)
 	{
+		/* Ping测试防止模组进入PSM模式后射频参数不准确 */
+		_CMIOT_GetNetworkDelay((uint8_t *)PING_ADDR, 100, 5000);
+		
+		/* RSRP */
+		ue_state_cell = _CMIOT_GetUeCellStats();
+		sprintf((char *)msg, "%-5.1f", (float)ue_state_cell.rsrp/10);
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
-		
-		/* 刷新信号强度 */
-		CsqValue = _CMIOT_M5310_GetSignalstrength();
-		
-		_CMIOT_ShowSignalStrength(CsqValue);
-		sprintf((char *)msg, "%-3d", CsqValue);
-		LCD_ShowString(95, 75, 16,  (u8 *)msg);
-		
-		/* 刷新NUESTATS参数 */
-		/* SNR */
-		ue_state = _CMIOT_M5310_GetUeState();
-		sprintf((char *)msg, "%-10d", ue_state.snr);
-		LCD_ShowString(95, 100, 16,  (u8 *)msg);
-		/* RSRQ */
-		sprintf((char *)msg, "%-10d", ue_state.rsrq);
-		LCD_ShowString(95, 125, 16,  (u8 *)msg);
-		/* EARFCN */
-		sprintf((char *)msg, "%-10d", ue_state.earfcn);
-		LCD_ShowString(95, 150, 16,  (u8 *)msg);
-		/* ECL */
-		sprintf((char *)msg, "%-2d", ue_state.ecl);
-		LCD_ShowString(95, 175, 16,  (u8 *)msg);
-		/* CELLID */
-		LCD_Fill(95, 300, 239, 295, WHITE);
-		LCD_ShowString(95, 300, 16,  ue_state.cellid);
+		LCD_ShowString(95, 135, 16,  (u8 *)msg);
 		
 		/* 刷新信号评估结果 */
-		if(CsqValue == 99)
+		if(ue_state_cell.rsrp == 0)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
 			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"无信号", RED, WHITE);
 		}
-		else if(CsqValue >= 20 && ue_state.snr >= 150)
+		else if(ue_state_cell.rsrp >= -950)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
-			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"优", DARKGREEN, WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"优", GREEN, WHITE);
 		}
-		else if(CsqValue >= 15 && ue_state.snr >= 100)
+		else if(ue_state_cell.rsrp >= -1050)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
 			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"良", DARKGREEN, WHITE);
 		}
-		else if(CsqValue >= 10 && ue_state.snr >= 50)
+		else if(ue_state_cell.rsrp >= -1200)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
-			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"中", DARKBLUE, WHITE);
+			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"中", DARKGREEN, WHITE);
 		}
 		else
 		{
@@ -433,26 +430,60 @@ void _CMIOT_ShowRadioInfo()
 			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"差", RED, WHITE);
 		}
 		
+		/* 刷新信号强度 */
+		CsqValue = _CMIOT_M5310_GetSignalstrength();
+		sprintf((char *)msg, "%-3d", CsqValue);
+		_CMIOT_Debug("%s(csqMsg: %s)\r\n", __func__, msg);
+		/* 更新信号强度图标 */
+		_CMIOT_ShowSignalStrength(CsqValue);
+		
+		POINT_COLOR = BLACK;
+		BACK_COLOR = WHITE;
+		LCD_ShowString(95, 75, 16,  (u8 *)msg);
+		
+		/* SNR */
+		ue_state = _CMIOT_M5310_GetUeState();
+		_CMIOT_Debug("%s(%d,%d,%d,%d,%s)\r\n", __func__, ue_state.snr, ue_state.rsrq, ue_state.earfcn, ue_state.ecl, ue_state.cellid);
+		sprintf((char *)msg, "%-10d", ue_state.snr);
+		LCD_ShowString(95, 95, 16,  (u8 *)msg);
+		/* RSRQ */
+		sprintf((char *)msg, "%-10d", ue_state.rsrq);
+		LCD_ShowString(95, 115, 16,  (u8 *)msg);
+		/* EARFCN */
+		sprintf((char *)msg, "%-10d", ue_state.earfcn);
+		LCD_ShowString(95, 155, 16,  (u8 *)msg);
+		/* ECL */
+		sprintf((char *)msg, "%-10d", ue_state.ecl);
+		LCD_ShowString(95, 175, 16,  (u8 *)msg);
+		/* CELLID */
+		LCD_Fill(95, 295, 239, 315, WHITE);
+		LCD_ShowString(95, 295, 16,  ue_state.cellid);
+		
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
 		/* 刷新PLMN号 */
 		_CMIOT_GetPLMN(msg, sizeof(msg));
-		LCD_Fill(95, 200, 239, 195, WHITE);
-		LCD_ShowString(95, 200, 16,  msg);
+		LCD_Fill(95, 195, 239, 215, WHITE);
+		LCD_ShowString(95, 195, 16,  msg);
 		
 		/* 刷新BAND频段号 */
-		sprintf((char *)msg, "%-5d", _CMIOT_GetNB_Band());
-		LCD_ShowString(95, 225, 16, msg);
+		sprintf((char *)msg, "%-10d", _CMIOT_GetNB_Band());
+		LCD_ShowString(95, 235, 16, msg);
 		
 		/* 刷新T3412 T3324定时器值 */
 		_CMIOT_Get_PSM_TIMER_Value(t3324, t3412, sizeof(t3324));
-		LCD_Fill(95, 250, 239, 245, WHITE);
-		LCD_ShowString(95, 250, 16,  t3324);
+		LCD_Fill(95, 255, 239, 275, WHITE);
+		LCD_ShowString(95, 255, 16,  t3324);
 		
-		LCD_Fill(95, 275, 239, 270, WHITE);
+		LCD_Fill(95, 275, 239, 295, WHITE);
 		LCD_ShowString(95, 275, 16,  t3412);
 		
-		delay_ms(1000);
+		/* apn */
+		cm_getAPN(msg, sizeof(msg));
+		LCD_Fill(95, 215, 239, 235, WHITE);
+		LCD_ShowString(95, 215, 16,  msg);
+		
+		delay_ms(5000);
 	}
 }
 
@@ -568,7 +599,7 @@ void _CMIOT_ShowNetworkRegTime()
 		LCD_ShowString(95, 290, 16,  msg);
 		
 		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		delay_ms(5000);
+		delay_ms(10000);
 	}
 }
 
@@ -632,7 +663,7 @@ void _CMIOT_ShowPingResult(void)
 	
 	while(1)
 	{
-		result = _CMIOT_GetNetworkDelay((uint8_t *)"114.114.114.114", 100, 10000);
+		result = _CMIOT_GetNetworkDelay((uint8_t *)PING_ADDR, 100, 10000);
 		delay_ms(50);
 		
 		if(result > 0)
@@ -676,7 +707,7 @@ void _CMIOT_ShowPingResult(void)
 		LCD_ShowString(95, 290, 16,  msg);
 		
 		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		delay_ms(2000);
+		delay_ms(5000);
 	}
 }
 
@@ -854,17 +885,98 @@ void _CMIOT_ShowInstructionMsg(void)
 	LCD_ShowChinese(5, 210, newArial, 16, (u8 *)"持续测试与服务器的网络延迟情", BLACK, WHITE);
 	LCD_ShowChinese(5, 230, newArial, 16, (u8 *)"况，统计丢包率、平时延时信息", BLACK, WHITE);
 	
-	LCD_ShowChinese(5, 255, Yahei, 16, (u8 *)"综合测试", LIGHTBLUE, WHITE);
-	LCD_ShowChinese(5, 280, newArial, 16, (u8 *)"综合进行驻网压力、延迟测试，", BLACK, WHITE);
-	LCD_ShowChinese(5, 300, newArial, 16, (u8 *)"获取整体网络状况信息", BLACK, WHITE);
+	LCD_ShowChinese(5, 255, Yahei, 16, (u8 *)"速率测试", LIGHTBLUE, WHITE);
+	LCD_ShowChinese(5, 280, newArial, 16, (u8 *)"获取无线速率参数", BLACK, WHITE);
 }
 
 
-
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BluetoothMode
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	蓝牙直连模式
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
 void _CMIOT_BluetoothMode(void)
 {
-	LCD_ShowChinese(80, 150, newArial, 16, (u8 *)"功能开发中", BLACK, WHITE);
-	while(1);
+	/* 清空BLE接收Buffer */
+	memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+	UART_BLE_RxBufferLen = 0;
+	/* 进入数据透传模式 */
+	_CMIOT_BLE_EnterPassthroughMode();
+	LCD_ShowChinese(20, 150, newArial, 16, (u8 *)"请使用微信小程序进行测试", BLACK, WHITE);
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_ShowSpeedInfo
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	速率查看显示
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_ShowSpeedInfo(void)
+{
+	CMIOT_UE_STATE_THP ue_state_thp = {0,0,0,0};
+	
+	/* 分割线 */
+	POINT_COLOR = BLACK;
+	LCD_DrawLine(0,109,239,109);
+	LCD_DrawLine(0,179,239,179);
+	LCD_DrawLine(0,249,239,249);
+	LCD_DrawLine(79,40,79,319);
+	/**/
+	LCD_ShowString(5, 65,  16,  (uint8_t *)"MAC UL:");
+	LCD_ShowString(5, 135, 16,  (uint8_t *)"MAC DL:");
+	LCD_ShowString(5, 205, 16,  (uint8_t *)"RLC UL:");
+	LCD_ShowString(5, 275, 16,  (uint8_t *)"RLC DL:");
+	
+//	LCD_ShowChinese(85, 45, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 65, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 85, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
+//	
+//	LCD_ShowChinese(85, 115, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 135, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 155, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
+//	
+//	LCD_ShowChinese(85, 185, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 205, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 225, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
+//	
+//	LCD_ShowChinese(85, 255, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 275, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
+//	LCD_ShowChinese(85, 295, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
+	
+
+	while(1)
+	{
+		/* Ping测试防止模组进入PSM模式后射频参数不准确 */
+		_CMIOT_GetNetworkDelay((uint8_t *)PING_ADDR, 100, 5000);
+		/* 获取速率信息 */
+		ue_state_thp = _CMIOT_GetUeTHPStats();
+		POINT_COLOR = BLACK;
+		BACK_COLOR = WHITE;
+		/* MAC上行 */
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.MAC_UL/1000);
+		LCD_ShowString(100, 65, 16,  msg);
+		/* MAC下行 */
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.MAC_DL/1000);
+		LCD_ShowString(100, 135, 16,  msg);
+		/* RLC上行 */
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.RLC_UL/1000);
+		LCD_ShowString(100, 205, 16,  msg);
+		/* RLC下行 */
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.RLC_DL/1000);
+		LCD_ShowString(100, 275, 16,  msg);
+		/* 更新信息图标 */
+		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+		
+		delay_ms(5000);
+	}
 }
 
 
@@ -909,7 +1021,8 @@ void _CMIOT_NBIOT_Measurement(uint8_t index)
 		
 		case 4:
 		{
-			_CMIOT_ComprehensiveTest(5);
+			// _CMIOT_ComprehensiveTest(5);
+			_CMIOT_ShowSpeedInfo();
 			break;
 		}
 		
@@ -942,9 +1055,19 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 {
 	uint8_t index;
 	
-	_CMIOT_Debug("%s...", __func__);
+	_CMIOT_Debug("%s...\r\n", __func__);
 	
 	index = yIndex * 3 + xIndex;
+	
+	if(index == 5)
+	{
+		_CMIOT_Debug("%s(exit form blemode)\r\n", __func__);
+		/* 退出透传模式 */
+		_CMIOT_BLE_ExitPassthroughMode();
+		/* 清空BLE接收Buffer */
+		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+		UART_BLE_RxBufferLen = 0;
+	}
 	
 	/* 清屏 */
 	LCD_Clear(WHITE);
@@ -976,9 +1099,9 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	if(index ==3){ LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, LIGHTBLUE); }
 	else { LCD_ShowChinese(8, 200, newArial, 16, (u8 *)"网络延时", BLACK, WHITE); }
 	
-	LCD_ShowPicture(95,150,50,50,(u8 *)gImage_testIcon);
-	if(index ==4){ LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, LIGHTBLUE); }
-	else { LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"综合测试", BLACK, WHITE); }
+	LCD_ShowPicture(95,150,50,50,(u8 *)gImage_speedIcon);
+	if(index ==4){ LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, LIGHTBLUE); }
+	else { LCD_ShowChinese(88, 200, newArial, 16, (u8 *)"速率测试", BLACK, WHITE); }
 	
 	LCD_ShowPicture(175,150,50,50,(u8 *)gImage_bluetoothIcon);
 	if(index ==5) { LCD_ShowChinese(168, 200, newArial, 16, (u8 *)"蓝牙直连", BLACK, LIGHTBLUE); }
@@ -988,7 +1111,7 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	if(index ==6) { LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, LIGHTBLUE); }
 	else { LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, WHITE); }
 	
-	_CMIOT_ShowBatteryLevel(60);	/* 测试电量图标 */
+	_CMIOT_ShowBatteryLevel(100);	/* 测试电量图标 */
 }
 
 
@@ -1003,53 +1126,110 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 {
-	if(csqValue > 20 && csqValue <= 31)
+	if(_CMIOT_IsPdpAttached())
 	{
-		LCD_Fill(180,26,183,30,DARKBLUE);
-		LCD_Fill(186,22,189,30,DARKBLUE);
-		LCD_Fill(192,18,195,30,DARKBLUE);
-		LCD_Fill(198,14,201,30,DARKBLUE);
-		LCD_Fill(204,10,207,30,DARKBLUE);
-	}
-	else if(csqValue > 15 && csqValue <= 20)
-	{
-		LCD_Fill(180,26,183,30,DARKBLUE);
-		LCD_Fill(186,22,189,30,DARKBLUE);
-		LCD_Fill(192,18,195,30,DARKBLUE);
-		LCD_Fill(198,14,201,30,DARKBLUE);
-		LCD_Fill(204,10,207,30,WHITE);
-	}
-	else if(csqValue > 10 && csqValue <= 15)
-	{
-		LCD_Fill(180,26,183,30,DARKBLUE);
-		LCD_Fill(186,22,189,30,DARKBLUE);
-		LCD_Fill(192,18,195,30,DARKBLUE);
-		LCD_Fill(198,14,201,30,WHITE);
-		LCD_Fill(204,10,207,30,WHITE);
-	}
-	else if(csqValue > 5 && csqValue <= 10)
-	{
-		LCD_Fill(180,26,183,30,DARKBLUE);
-		LCD_Fill(186,22,189,30,DARKBLUE);
-		LCD_Fill(192,18,195,30,WHITE);
-		LCD_Fill(198,14,201,30,WHITE);
-		LCD_Fill(204,10,207,30,WHITE);
-	}
-	else if(csqValue > 0 && csqValue <= 5)
-	{
-		LCD_Fill(180,26,183,30,DARKBLUE);
-		LCD_Fill(186,22,189,30,WHITE);
-		LCD_Fill(192,18,195,30,WHITE);
-		LCD_Fill(198,14,201,30,WHITE);
-		LCD_Fill(204,10,207,30,WHITE);
+		LCD_ShowPicture(165,10,20,20,(u8 *)gImage_signalSign_success);
+		if(csqValue > 20 && csqValue <= 31)
+		{
+			LCD_Fill(180,26,183,30,GREEN);
+			LCD_Fill(186,22,189,30,GREEN);
+			LCD_Fill(192,18,195,30,GREEN);
+			LCD_Fill(198,14,201,30,GREEN);
+			LCD_Fill(204,10,207,30,GREEN);
+		}
+		else if(csqValue > 15 && csqValue <= 20)
+		{
+			LCD_Fill(180,26,183,30,GREEN);
+			LCD_Fill(186,22,189,30,GREEN);
+			LCD_Fill(192,18,195,30,GREEN);
+			LCD_Fill(198,14,201,30,GREEN);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else if(csqValue > 10 && csqValue <= 15)
+		{
+			LCD_Fill(180,26,183,30,GREEN);
+			LCD_Fill(186,22,189,30,GREEN);
+			LCD_Fill(192,18,195,30,GREEN);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else if(csqValue > 5 && csqValue <= 10)
+		{
+			LCD_Fill(180,26,183,30,GREEN);
+			LCD_Fill(186,22,189,30,GREEN);
+			LCD_Fill(192,18,195,30,WHITE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else if(csqValue > 0 && csqValue <= 5)
+		{
+			LCD_Fill(180,26,183,30,GREEN);
+			LCD_Fill(186,22,189,30,WHITE);
+			LCD_Fill(192,18,195,30,WHITE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else
+		{
+			LCD_Fill(180,26,183,30,WHITE);
+			LCD_Fill(186,22,189,30,WHITE);
+			LCD_Fill(192,18,195,30,WHITE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
 	}
 	else
 	{
-		LCD_Fill(180,26,183,30,WHITE);
-		LCD_Fill(186,22,189,30,WHITE);
-		LCD_Fill(192,18,195,30,WHITE);
-		LCD_Fill(198,14,201,30,WHITE);
-		LCD_Fill(204,10,207,30,WHITE);
+		LCD_ShowPicture(165,10,20,20,(u8 *)gImage_signalSign);
+		
+		if(csqValue > 20 && csqValue <= 31)
+		{
+			LCD_Fill(180,26,183,30,DARKBLUE);
+			LCD_Fill(186,22,189,30,DARKBLUE);
+			LCD_Fill(192,18,195,30,DARKBLUE);
+			LCD_Fill(198,14,201,30,DARKBLUE);
+			LCD_Fill(204,10,207,30,DARKBLUE);
+		}
+		else if(csqValue > 15 && csqValue <= 20)
+		{
+			LCD_Fill(180,26,183,30,DARKBLUE);
+			LCD_Fill(186,22,189,30,DARKBLUE);
+			LCD_Fill(192,18,195,30,DARKBLUE);
+			LCD_Fill(198,14,201,30,DARKBLUE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else if(csqValue > 10 && csqValue <= 15)
+		{
+			LCD_Fill(180,26,183,30,DARKBLUE);
+			LCD_Fill(186,22,189,30,DARKBLUE);
+			LCD_Fill(192,18,195,30,DARKBLUE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else if(csqValue > 5 && csqValue <= 10)
+		{
+			LCD_Fill(180,26,183,30,DARKBLUE);
+			LCD_Fill(186,22,189,30,DARKBLUE);
+			LCD_Fill(192,18,195,30,WHITE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else if(csqValue > 0 && csqValue <= 5)
+		{
+			LCD_Fill(180,26,183,30,DARKBLUE);
+			LCD_Fill(186,22,189,30,WHITE);
+			LCD_Fill(192,18,195,30,WHITE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
+		else
+		{
+			LCD_Fill(180,26,183,30,WHITE);
+			LCD_Fill(186,22,189,30,WHITE);
+			LCD_Fill(192,18,195,30,WHITE);
+			LCD_Fill(198,14,201,30,WHITE);
+			LCD_Fill(204,10,207,30,WHITE);
+		}
 	}
 }
 
@@ -1065,7 +1245,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 {
-	if(percentValue > 20)
+	if(percentValue > 30)
 	{
 		POINT_COLOR = BLACK;
 		LCD_DrawRectangle(215,12,225,30);
@@ -1073,12 +1253,12 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		LCD_Fill(216,29-(16*percentValue/100),224,29,GREEN);
 		LCD_Fill(216,13,224,29-17*percentValue/100,WHITE);
 	}
-	else if(percentValue > 0)
+	else if(percentValue > 20)
 	{
 		POINT_COLOR = BLACK;
 		LCD_DrawRectangle(215,12,225,30);
 		LCD_Fill(218,10,222,12,BLACK);
-		LCD_Fill(216,29-(16*percentValue/100),224,29,GREEN);
+		LCD_Fill(216,29-(16*percentValue/100),224,29,YELLOW);
 		LCD_Fill(216,13,224,29-17*percentValue/100,WHITE);
 	}
 	else

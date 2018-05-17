@@ -18,6 +18,7 @@ Description     :   CLI接口
 #include "task.h"
 #include "string.h"
 #include "usart.h"
+#include "ui.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -38,17 +39,24 @@ extern bool DEBUG_FLAG;				/* 调试信息打印标志位，为true时将调试�
 extern bool	NB_DEBUG_FLAG;			/* NB模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
 extern bool BLE_DEBUG_FLAG;			/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
 
+/* USART1(UART_BLUETOOTH)数据接收buffer */
+extern uint8_t   UART_BLE_RxBuffer[1024];
+extern uint32_t  UART_BLE_RxBufferLen;
+
+extern	CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
+
 /*----------------------------------------------------------------------------*
 **                             Function Declare                               *
 **----------------------------------------------------------------------------*/
-BaseType_t prvDebugLevelCommand			(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvGetSysTimeCommand			(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvGetHeapUsageCommand		(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvSendAt2NbModuleCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvEnableNbDebugModeCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvSendAt2BleModuleCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-BaseType_t prvEnableBleDebugModeCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
-
+BaseType_t prvDebugLevelCommand				(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvGetSysTimeCommand				(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvGetHeapUsageCommand			(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvSendAt2NbModuleCommand		(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvEnableNbDebugModeCommand		(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvSendAt2BleModuleCommand		(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvEnableBleDebugModeCommand		(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvGetWechatHistoryListCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
+BaseType_t prvGetWechatHistoryDataCommand	(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);
 
 
 /*----------------------------------------------------------------------------*
@@ -97,6 +105,18 @@ static CLI_Command_Definition_t CliCommandList[] =
 		"at+bleenable",
 		"at+bleenable <state>, state can be: 0 or 1, enable ble module serial data\r\n",
 		prvEnableBleDebugModeCommand,
+		1
+	},
+	{
+		"at+getWechatHistoryList",
+		"at+getWechatHistoryList, get wechat recordlist\r\n",
+		prvGetWechatHistoryListCommand,
+		0
+	},
+	{
+		"at+getWechatHistoryData",
+		"at+getWechatHistoryData, get wechar record data\r\n",
+		prvGetWechatHistoryDataCommand,
 		1
 	},
 };
@@ -353,5 +373,74 @@ BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer,
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
 	return pdFALSE;
 }
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	prvGetWechatHistoryListCommand
+Author			:	zhaoji
+Created Time	:	2018.05.09
+Description 	:	获取微信小程序测试记录列表
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvGetWechatHistoryListCommand(char *pcWriteBuffer,
+										size_t xWriteBufferLen,
+										const char *pcCommandString)
+{
+	if((menuPosition.xPosition + menuPosition.yPosition * 3) == 5 && menuPosition.subMenu == 1)
+	{
+		_CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)"<Request><historyList>list</historyList></Request>", \
+			strlen((const char *)"<Request><historyList>list</historyList></Request>"));
+	}
+	else
+	{
+		strncpy(pcWriteBuffer, "\r\nNot Under Ble Mode\r\n\r\nERROR\r\n", xWriteBufferLen);
+	}
+	return pdFALSE;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	prvGetWechatHistoryDataCommand
+Author			:	zhaoji
+Created Time	:	2018.05.09
+Description 	:	获取微信小程序测试数据
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvGetWechatHistoryDataCommand(char *pcWriteBuffer,
+										size_t xWriteBufferLen,
+										const char *pcCommandString)
+{
+	BaseType_t paraLen;
+	uint8_t *str;
+	str = (uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
+	if(paraLen != 1)
+	{
+		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
+		return pdFALSE;
+	}
+	
+	if((menuPosition.xPosition + menuPosition.yPosition * 3) == 5 && menuPosition.subMenu == 1)
+	{
+		_CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)"<Request><historyData>", strlen((const char *)"<Request><historyData>"));
+		_CMIOT_Uart_send(UART_BLUETOOTH, str, strlen((const char*)str));
+		_CMIOT_Uart_send(UART_BLUETOOTH, (uint8_t *)"</historyData></Request>", strlen((const char *)"</historyData></Request>"));
+	}
+	else
+	{
+		strncpy(pcWriteBuffer, "\r\nNot Under Ble Mode\r\n\r\nERROR\r\n", xWriteBufferLen);
+	}
+	return pdFALSE;
+}
+
+
+
+
+
+
+
 
 

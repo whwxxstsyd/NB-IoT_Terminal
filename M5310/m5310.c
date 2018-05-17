@@ -36,7 +36,7 @@ Description     :   M5310接口
 uint8_t   UART_M5310_RxBuffer[512] = {0};
 uint32_t  UART_M5310_RxBufferLen   =  0;
 
-uint8_t PING_ADDR[] = "47.93.217.230";
+// uint8_t PING_ADDR[] = "114.114.114.114";
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -61,7 +61,7 @@ uint32_t _CMIOT_M5310_GetRegisterTime(void)
 	uint32_t start_time;
 	uint32_t end_time;
 	
-	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 5000);   /* 重启模组，并等待启动信息 */
+	result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), boot_MatchStr, 1, 10000);   /* 重启模组，并等待启动信息 */
 	if(result == 1)
 	{
 		start_time = FreeRTOSRunTimeTicks;   /* M5310启动完成时间点 */
@@ -112,13 +112,8 @@ uint32_t _CMIOT_ExecuteAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t Mat
 	UART_M5310_RxBufferLen = 0;
 	
 	_CMIOT_Uart_send(UART_M5310, AtCmd, strlen((const char *)AtCmd));    /* 发送AT指令 */
-	
-	if(_CMIOT_Str_EndWith(AtCmd, (uint8_t *)"\r\n"))
-	{
-		memset(AtCmd + strlen((const char*)AtCmd - 2), 0, 2);
-	}
-	
-	_CMIOT_Debug("%s([SEND]#%s)\r\n", __func__, AtCmd);
+		
+	_CMIOT_Debug("%s() %s\r\n", __func__, AtCmd);
 	
 	/* 检索M5310串口返回内容是否匹配目标字符串数组，匹配成功返回数组索引号+1，超时匹配失败返回0 */
 	while(1)
@@ -215,13 +210,13 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 CMIOT_UE_STATE _CMIOT_M5310_GetUeState(void)
 {
-	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
 	char *index;
 	uint8_t maxRetryCounts = 5;
 	uint32_t result;
 	uint8_t uestate_MatchStr[2][20] = {"OK","ERROR"};	/* 指令响应完成匹配字符串 */
 	bool flag = false;
 	char *pSta, *pEnd;
+	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
 	
 	while(maxRetryCounts > 0)
 	{
@@ -399,8 +394,7 @@ CMIOT_UE_STATE _CMIOT_M5310_GetUeState(void)
 				memcpy(ue_state.cellid, "Invalid", strlen("Invalid"));
 				_CMIOT_Debug("%s(CELLID Not Found!)\r\n", __func__);
 			}
-			
-			return ue_state;
+			return ue_state;;
 		}
 		else
 		{
@@ -584,7 +578,7 @@ uint8_t _CMIOT_GetIMSI(uint8_t *IMSI, uint32_t buffersize)
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMSI);
 			return 1;
 		}
-		delay_ms(500);
+		delay_ms(2000);
 	}
 	/* 获取失败 */
 	strncpy((char *)IMSI, "NO SIM", buffersize);
@@ -623,7 +617,7 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMEI);
 			return 1;
 		}
-		delay_ms(500);
+		delay_ms(1000);
 	}
 	/* 获取失败 */
 	strncpy((char *)IMEI, "NO Module", buffersize);
@@ -656,8 +650,19 @@ uint8_t _CMIOT_GetPLMN(uint8_t *plmn, uint32_t buffersize)
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "\"") + strlen("\"");
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "\"");
+			if(p_head == NULL)
+			{
+				return 0;
+			}
+			p_head++;
 			p_end  = strstr((const char *)p_head, "\"");
+			/* 当前PLMN信息为空 */
+			if(p_end == p_head)
+			{
+				return 0;
+			}
+			/* 提取plmn内容 */
 			strncat((char *)plmn, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, plmn);
 			return 1;
@@ -665,7 +670,7 @@ uint8_t _CMIOT_GetPLMN(uint8_t *plmn, uint32_t buffersize)
 		delay_ms(500);
 	}
 	/* 获取失败 */
-	strncpy((char *)plmn, "ERROR", buffersize);
+	// strncpy((char *)plmn, "ERROR", buffersize);
 	_CMIOT_Debug("%s(Exe Failed!)\r\n", __func__);
 	return 0;
 }
@@ -770,7 +775,7 @@ uint8_t _CMIOT_Get_PSM_TIMER_Value(uint8_t *t3324, uint8_t *t3412, uint32_t buff
 		
 		if(result == 1)	/* 指令执行OK */
 		{
-			_CMIOT_Debug("%s(%s)", __func__, UART_M5310_RxBuffer);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, UART_M5310_RxBuffer);
 			/* T3412 */
 			p_head = strstr((const char *)UART_M5310_RxBuffer, ",") + strlen(",");
 			p_head = strstr((const char *)p_head, ",") + strlen(",");
@@ -846,10 +851,6 @@ uint32_t _CMIOT_GetNetworkDelay(uint8_t *remoteAddr, uint32_t packetSize, uint32
 	uint32_t pingDelay = 0;
 	uint8_t pingAtCmd[128] = {0};
 	
-//	strcat((char *)pingAtCmd, "AT+NPING=");
-//	strcat((char *)pingAtCmd, (char *)remoteAddr);
-//	strcat((char *)pingAtCmd, ",100,10000,1\r\n");
-	
 	sprintf((char *)pingAtCmd, "AT+NPING=%s,%d,%d,1\r\n",remoteAddr, packetSize, timeout);
 	
 	while(maxRetryCounts > 0)
@@ -916,7 +917,7 @@ bool cm_IsNbModuleAlive(void)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT\r\n"), at_MatchStr, 2, 1000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT\r\n"), at_MatchStr, 2, 2000);
 		
 		if(result == 1)
 		{
@@ -951,7 +952,7 @@ CMIOT_UE_STATE_CELL _CMIOT_GetUeCellStats(void)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NUESTATS=CELL\r\n"), at_MatchStr, 2, 1000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NUESTATS=CELL\r\n"), at_MatchStr, 2, 5000);
 		
 		if(result == 1)
 		{
@@ -983,7 +984,7 @@ CMIOT_UE_STATE_CELL _CMIOT_GetUeCellStats(void)
 			{
 				_CMIOT_Debug("%s(Get cell uestats fail)\r\n", __func__);
 			}
-			_CMIOT_Debug("%s(earfcn: d%, pci: d%, primary cell: d%, rsrp: d%, rsrq: d%, rssi: d%, snr: d%)\r\n",\
+			_CMIOT_Debug("%s(earfcn: %d, pci: %d, primary cell: %d, rsrp: %d, rsrq: %d, rssi: %d, snr: %d)\r\n",\
 							__func__, ue_state_cell.earfcn, ue_state_cell.pci, ue_state_cell.pri_cell,\
 							ue_state_cell.rsrp, ue_state_cell.rsrq, ue_state_cell.rssi, ue_state_cell.snr);
 			return ue_state_cell;
@@ -1018,38 +1019,50 @@ CMIOT_UE_STATE_THP _CMIOT_GetUeTHPStats(void)
 	
 	while(maxRetryCounts > 0)
 	{
+		ue_state_thp.MAC_DL = 0;
+		ue_state_thp.MAC_UL = 0;
+		ue_state_thp.RLC_DL = 0;
+		ue_state_thp.RLC_UL = 0;
+		
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NUESTATS=THP\r\n"), at_MatchStr, 2, 1000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NUESTATS=THP\r\n"), at_MatchStr, 2, 5000);
 		
 		if(result == 1)
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, "NUESTATS:THP");
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "NUESTATS");
 			if(p_head != NULL)
 			{
 				_CMIOT_Debug("%s(Get thp uestats ok)\r\n", __func__);
 				p_tail = strstr(p_head, "\r\n\r\nOK\r\n");
 				str = pvPortMalloc((p_tail-p_head+1) * sizeof(char));	/* 申请内存 */
+				memset(str, 0, p_tail-p_head+1);
 				memcpy(str, p_head, p_tail - p_head);
+				
 				if(cm_split(res_array, (uint8_t *)str, (uint8_t *)("\r\n")) == 4)	/* 判断参数数量是否正确 */
 				{
 					for(i=0; i<4; i++)
 					{
+						_CMIOT_Debug("%s(line[%d]: %s)\r\n", __func__, i+1, res_array[i]);
 						if(cm_split(res1_array, (uint8_t *)res_array[i], (uint8_t *)(",")) == 3)
 						{
 							if(strcmp((char *)res1_array[1], "RLC UL") == 0)
 							{
+								_CMIOT_Debug("%s(RLC UL -> String(%s))\r\n", __func__, res1_array[2]);
 								ue_state_thp.RLC_UL = _CMIOT_atoi(res1_array[2]);	/* RLC上行速率 */
 							}
 							else if(strcmp((char *)res1_array[1], "RLC DL") == 0)
 							{
+								_CMIOT_Debug("%s(RLC DL -> String(%s))\r\n", __func__, res1_array[2]);
 								ue_state_thp.RLC_DL = _CMIOT_atoi(res1_array[2]);	/* RLC下行速率 */
 							}
 							else if(strcmp((char *)res1_array[1], "MAC UL") == 0)
 							{
+								_CMIOT_Debug("%s(MAC UL -> String(%s))\r\n", __func__, res1_array[2]);
 								ue_state_thp.MAC_UL = _CMIOT_atoi(res1_array[2]);	/* MAC上行速率 */
 							}
 							else if(strcmp((char *)res1_array[1], "MAC DL") == 0)
 							{
+								_CMIOT_Debug("%s(MAC DL -> String(%s))\r\n", __func__, res1_array[2]);
 								ue_state_thp.MAC_DL = _CMIOT_atoi(res1_array[2]);	/* MAC下行速率 */
 							}
 							else
@@ -1057,7 +1070,15 @@ CMIOT_UE_STATE_THP _CMIOT_GetUeTHPStats(void)
 								_CMIOT_Debug("%s(unknow THP Type)\r\n", __func__);
 							}
 						}
+						else
+						{
+							_CMIOT_Debug("%s(line para num error!)\r\n", __func__);
+						}
 					}
+				}
+				else
+				{
+					_CMIOT_Debug("%s(line num error!)\r\n", __func__);
 				}
 				vPortFree(str);	/* 释放内存 */
 				_CMIOT_Debug("%s(rlc_ul: %d, rlc_dl: %d, mac_ul: %d, mac_dl: %d)\r\n", __func__, ue_state_thp.RLC_UL, ue_state_thp.RLC_DL, ue_state_thp.MAC_UL, ue_state_thp.MAC_DL);
@@ -1094,7 +1115,7 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGDCONT?\r\n"), at_MatchStr, 2, 1000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGDCONT?\r\n"), at_MatchStr, 2, 2000);
 		
 		if(result == 1)
 		{
@@ -1111,11 +1132,11 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 				/* 检查apn长度是否超过 */
 				if(p_tail - p_head < bufLen)
 				{
-					memcpy(apnBuf, p_head, p_tail - p_head);
+					memcpy(apnBuf, p_head + 1, p_tail - p_head - 2);
 				}
 				else
 				{
-					memcpy(apnBuf, p_head, bufLen);
+					memcpy(apnBuf, p_head + 1, bufLen);
 				}
 				_CMIOT_Debug("%s(apn: %s)\r\n", __func__, apnBuf);
 				return;
@@ -1146,7 +1167,7 @@ bool _CMIOT_IsPdpAttached(void)
 	while(maxRetryCounts > 0)
 	{
 		maxRetryCounts--;
-		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGATT?\r\n"), attach_MatchStr, 2, 1000);
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGATT?\r\n"), attach_MatchStr, 2, 2000);
 		if(result == 2)
 		{
 			_CMIOT_Debug("%s(Attached!)\r\n", __func__);
@@ -1163,8 +1184,187 @@ bool _CMIOT_IsPdpAttached(void)
 }
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_SetAutoConnect
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	配置自动入网参数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_SetAutoConnect(bool state)
+{
+	uint8_t matchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint32_t result;
+	uint8_t maxRetryCounts = 5;
+	
+	if(_CMIOT_SetMinFunctionalityState(true))
+	{
+		while(maxRetryCounts > 0)
+		{
+			maxRetryCounts--;
+			if(state)
+			{
+				/* 配置自动入网模式 */
+				result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCONFIG=AUTOCONNECT,TRUE\r\n"), matchStr, 2, 5000);
+			}
+			else
+			{
+				/* 配置非自动入网模式 */
+				result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCONFIG=AUTOCONNECT,FALSE\r\n"), matchStr, 2, 5000);
+			}
+			
+			if(result == 2)
+			{
+				_CMIOT_Debug("%s(error!)\r\n", __func__);
+				// return false;
+			}
+			if(result == 1)
+			{
+				_CMIOT_Debug("%s(ok!)\r\n", __func__);
+				_CMIOT_NbModule_Reboot();
+				return true;
+			}
+		}
+		_CMIOT_Debug("%s(execute fail)\r\n", __func__);
+		return false;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_SetAutoConnect
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	配置自动入网参数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_SetScramblingState(bool state)
+{
+	uint8_t matchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint32_t result;
+	uint8_t maxRetryCounts = 5;
+	
+	if(_CMIOT_SetMinFunctionalityState(true))
+	{
+		while(maxRetryCounts > 0)
+		{
+			maxRetryCounts--;
+			if(state)
+			{
+				/* 打开扰码 */
+				result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCONFIG=CR_0354_0338_SCRAMBLING,TRUE\r\n"), matchStr, 2, 5000);
+			}
+			else
+			{
+				/* 关闭扰码 */
+				result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NCONFIG=CR_0354_0338_SCRAMBLING,FALSE\r\n"), matchStr, 2, 5000);
+			}
+			
+			if(result == 2)
+			{
+				_CMIOT_Debug("%s(error!)\r\n", __func__);
+				// return false;
+			}
+			if(result == 1)
+			{
+				_CMIOT_Debug("%s(ok!)\r\n", __func__);
+				_CMIOT_NbModule_Reboot();
+				return true;
+			}
+		}
+		_CMIOT_Debug("%s(execute fail)\r\n", __func__);
+		return false;
+	}
+	else
+	{
+		return false;
+	}
+}
 
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_SetMinFunctionalityState
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	配置工作等级（全功能、最小功能）
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_SetMinFunctionalityState(bool state)
+{
+	uint8_t matchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint32_t result;
+	uint8_t maxRetryCounts = 5;
+
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		if(state)
+		{
+			/* 配置最小工作模式 */
+			result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CFUN=0\r\n"), matchStr, 2, 5000);
+		}
+		else
+		{
+			/* 配置全功能模式 */
+			result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CFUN=1\r\n"), matchStr, 2, 5000);
+		}
+		
+		if(result == 2)
+		{
+			_CMIOT_Debug("%s(error!)\r\n", __func__);
+			// return false;
+		}
+		if(result == 1)
+		{
+			_CMIOT_Debug("%s(ok!)\r\n", __func__);
+			return true;
+		}
+	}
+	_CMIOT_Debug("%s(execute fail)\r\n", __func__);
+	return false;
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_NbModule_Reboot
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	重启模组
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_NbModule_Reboot(void)
+{
+	uint8_t matchStr[2][20] = {"\r\nOK\r\n", "\r\nERROR\r\n"};	/* 指令响应完成匹配字符串 */
+	uint32_t result;
+	uint8_t maxRetryCounts = 5;
+
+	while(maxRetryCounts > 0)
+	{
+		maxRetryCounts--;
+		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+NRB\r\n"), matchStr, 2, 10000);
+		if(result == 2)
+		{
+			_CMIOT_Debug("%s(reboot cmd error!)\r\n", __func__);
+		}
+		if(result == 1)
+		{
+			_CMIOT_Debug("%s(reboot success!)\r\n", __func__);
+			return;
+		}
+	}
+	_CMIOT_Debug("%s(execute fail)\r\n", __func__);
+}
 
 

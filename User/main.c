@@ -43,18 +43,13 @@ Description     :   主程序入口
 uint8_t   UART_CLI_RxBuffer[CLI_MAX_INPUT_LENGTH]    = {0};
 uint32_t  UART_CLI_RxBufferLen      =  0;
 
-
-
-///* USART1(UART_BLUETOOTH)数据接收buffer */
-//extern uint8_t   UART_BLE_RxBuffer[512];
-//extern uint32_t  UART_BLE_RxBufferLen;
+bool CM_UI_BUSY = false;	/* UI界面切换状态忙标识（此时不响应按键请求） */
 
 TaskHandle_t start_task;     	/* 开始任务    */
 TaskHandle_t cli_task;       	/* CLI任务     */
 TaskHandle_t m5310_task;     	/* M5310任务   */
 TaskHandle_t lcd_task;       	/* LCD任务     */
 TaskHandle_t bluetooth_task;	/* 蓝牙任务    */
-
 
 TimerHandle_t watchDogTimer;	/* 看门狗定时器 */
 
@@ -64,7 +59,6 @@ CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};	/* 菜单位置 *
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
 **----------------------------------------------------------------------------*/
-
 
 
 
@@ -100,7 +94,7 @@ int main(void)
 	_CMIOT_UI_BootPage();
 	
 	/* 初始化串口 */
-	_CMIOT_Uart_Init(UART_CLI_DEBUG, 115200);
+	_CMIOT_Uart_Init(UART_CLI_DEBUG, 921600);
 	_CMIOT_Uart_Init(UART_M5310, 9600);
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
@@ -110,7 +104,7 @@ int main(void)
 	/* 检查是否被看门狗重启 */
 	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
 	{
-		_CMIOT_Debug("*****<ERROR>Reset by stm32 IWDG!<ERROR>*****\r\n");
+		_CMIOT_Debug("\r\n*****<ERROR>Reset by stm32 IWDG!<ERROR>*****\r\n");
 		RCC_ClearFlag();
 	}
 	
@@ -217,7 +211,6 @@ void _CMIOT_CliTaskProc(void *pvParameters)
 }
 
 
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_LcdTaskProc
 Author			:	zhaoji
@@ -229,7 +222,9 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_LcdTaskProc(void *pvParameters)
 {
+	CM_UI_BUSY = false;
 	_CMIOT_Debug("%s...\r\n", __func__);
+	/* 更新UI界面 */
 	_CMIOT_TabIndex(&menuPosition);
 }
 
@@ -319,6 +314,22 @@ void _CMIOT_BluetoothTaskProc(void *pvParameters)
 			_CMIOT_BLE_DataProcess();
 		}
 	}
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_IWDG_ReloadCounter
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	:	复位看门狗计数器
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_IWDG_ReloadCounter(void)
+{
+	_CMIOT_Debug("%s()\r\n", __func__);
+	IWDG_ReloadCounter();
 }
 
 

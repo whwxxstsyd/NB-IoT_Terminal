@@ -25,6 +25,7 @@ Description     :   M5310接口
 #include "bluetooth.h"
 #include "timers.h"
 
+
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
@@ -34,7 +35,7 @@ Description     :   M5310接口
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
 /* USART1(UART_BLUETOOTH)数据接收buffer */
-uint8_t   UART_BLE_RxBuffer[512] = {0};
+uint8_t   UART_BLE_RxBuffer[1024] = {0};
 uint32_t  UART_BLE_RxBufferLen   =  0;
 
 /* USART3(UART_M5310)数据接收buffer */
@@ -73,13 +74,8 @@ uint32_t _CMIOT_ExecuteBLEAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t 
 	UART_BLE_RxBufferLen = 0;
 	
 	_CMIOT_Uart_send(UART_BLUETOOTH, AtCmd, strlen((const char *)AtCmd));    /* 发送AT指令 */
-	
-	if(_CMIOT_Str_EndWith(AtCmd, (uint8_t *)"\r\n"))
-	{
-		memset(AtCmd + strlen((const char*)AtCmd - 2), 0, 2);
-	}
-	
-	_CMIOT_Debug("%s([SEND]#%s)\r\n", __func__, AtCmd);
+
+	_CMIOT_Debug("%s() %s\r\n", __func__, AtCmd);
 	
 	/* 检索M5310串口返回内容是否匹配目标字符串数组，匹配成功返回数组索引号+1，超时匹配失败返回0 */
 	while(1)
@@ -106,6 +102,58 @@ uint32_t _CMIOT_ExecuteBLEAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t 
 
 
 /*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_GetBleConnectedState
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	获取蓝牙连接状态
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_GetBleConnectedState(void)
+{
+	uint8_t MatchStr[2][20] = {"OK", "ERROR"};	/* 指令响应完成匹配字符串 */
+	uint32_t result;
+	uint8_t maxRetryCounts = 5;
+	char *p_head;
+	
+	_CMIOT_Debug("%s...\r\n", __func__);
+	
+	while(maxRetryCounts > 0)
+	{
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+LINK?\r\n"), MatchStr, 2, 2000);   /* 查询连接状态 */
+		if(result == 1)
+		{
+			p_head = strstr((const char*)UART_BLE_RxBuffer, "+Link:");
+			if(p_head != NULL)
+			{
+				p_head += strlen("+Link:");
+				if(strncmp(p_head, "OffLine", strlen("OffLine")) == 0)
+				{
+					/* 离线 */
+					_CMIOT_Debug("%s(OffLine)\r\n", __func__);
+					return false;
+				}
+				else if(strncmp(p_head, "OnLine", strlen("OnLine")) == 0)
+				{
+					/* 在线 */
+					_CMIOT_Debug("%s(OnLine)\r\n", __func__);
+					return true;
+				}
+				else
+				{
+					_CMIOT_Debug("%s(unknow link state!)\r\n", __func__);
+				}
+			}
+		}
+		maxRetryCounts--;
+	}
+	_CMIOT_Debug("%s(Execute fail!)\r\n", __func__);
+	return false;
+}
+
+
+/*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_BLE_ExitPassthroughMode
 Author			:	zhaoji
 Created Time	:	2018.04.10
@@ -124,7 +172,7 @@ uint8_t _CMIOT_BLE_ExitPassthroughMode(void)
 	
 	while(maxRetryCounts > 0)
 	{
-		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("+++a"), MatchStr, 1, 2000);   /* 退出透传模式 */
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("+++a"), MatchStr, 2, 2000);   /* 退出透传模式 */
 		if(result == 1)
 		{
 			return 1;
@@ -155,7 +203,7 @@ uint8_t _CMIOT_BLE_OffMaxPut(void)
 	
 	while(maxRetryCounts > 0)
 	{
-		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+MAXPUT=OFF\r\n"), MatchStr, 1, 2000);   /* 配置为20字节分包发送 */
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+MAXPUT=OFF\r\n"), MatchStr, 2, 2000);   /* 配置为20字节分包发送 */
 		if(result == 1)
 		{
 			return 1;
@@ -186,7 +234,7 @@ uint8_t _CMIOT_BLE_SetPacketInterval(void)
 	
 	while(maxRetryCounts > 0)
 	{
-		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+UARTTM=100\r\n"), MatchStr, 1, 2000);   /* 设置打包间隔 */
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+UARTTM=100\r\n"), MatchStr, 2, 2000);   /* 设置打包间隔 */
 		if(result == 1)
 		{
 			return 1;
@@ -225,7 +273,7 @@ uint8_t _CMIOT_BLE_SetName(void)
 	
 	while(maxRetryCounts > 0)
 	{
-		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)bleNameCmd, MatchStr, 1, 2000);   /* 配置BLE设备名称 */
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)bleNameCmd, MatchStr, 2, 2000);   /* 配置BLE设备名称 */
 		if(result == 1)
 		{
 			return 1;
@@ -256,7 +304,7 @@ uint8_t _CMIOT_BLE_EnterPassthroughMode(void)
 	
 	while(maxRetryCounts > 0)
 	{
-		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+ENTM\r\n"), MatchStr, 1, 2000);   /* 进入透传模式 */
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+ENTM\r\n"), MatchStr, 2, 2000);   /* 进入透传模式 */
 		if(result == 1)
 		{
 			return 1;
@@ -288,7 +336,7 @@ uint8_t _CMIOT_BLE_Reboot(void)
 	
 	while(maxRetryCounts > 0)
 	{
-		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+Z\r\n"), MatchStr, 1, 5000);   /* AT+Z重启模块 */
+		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+Z\r\n"), MatchStr, 2, 5000);   /* AT+Z重启模块 */
 		if(result == 1)
 		{
 			while(waitBootInfoRetry > 0)
@@ -363,8 +411,9 @@ void _CMIOT_BLE_Init(void)
 	_CMIOT_BLE_OffMaxPut();					/* 配置为20字节分包 */
 	_CMIOT_BLE_SetPacketInterval();			/* 设置分包发送间隔 */
 	_CMIOT_BLE_SetName();					/* 设置名称 */
-	// _CMIOT_BLE_EnterPassthroughMode();	/* 退出透传模式 */
 	_CMIOT_BLE_Reboot();					/* 重启 */
+	delay_ms(5000);
+	_CMIOT_BLE_ExitPassthroughMode();		/* 退出透传模式 */
 }
 
 
@@ -417,7 +466,8 @@ void _CMIOT_BLE_RSP_deviceInfo(void)
 
 	/* MCU软件版本 */
 	strcat((char *)rsp, "<firmware>");
-	strcat((char *)rsp, VERSION_STRING);
+	cm_getbuildVersion(msg, sizeof(msg));
+	strcat((char *)rsp, (const char*)msg);
 	strcat((char *)rsp, "</firmware>");
 	
 	strcat((char *)rsp, "</deviceInfo></Response>");
@@ -442,9 +492,11 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	uint8_t t3324[32] = {0};
 	uint8_t t3412[32] = {0};
 	uint8_t plmn[32] = {0};
-	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
+	CMIOT_UE_STATE ue_state;
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
+	/* Ping测试防止模组进入PSM模式后射频参数不准确 */
+	_CMIOT_GetNetworkDelay((uint8_t *)PING_ADDR, 100, 5000);
 	
 	strcat((char *)rsp, "<Response><radioInfo>");
 	/* csq */
@@ -553,7 +605,7 @@ Return Value	:
 void _CMIOT_BLE_RSP_comprehensiveTest(void)
 {
 	uint8_t rsp[256] = {0};
-	CMIOT_UE_STATE ue_state = {0,0,0,0,""};
+	CMIOT_UE_STATE ue_state;
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
@@ -569,6 +621,11 @@ void _CMIOT_BLE_RSP_comprehensiveTest(void)
 	sprintf((char *)msg, "<csq>%d</csq>", _CMIOT_M5310_GetSignalstrength());
 	strcat((char *)rsp, (const char*)msg);
 	/* uestats */
+	ue_state.snr = 0;
+	ue_state.earfcn = 0;
+	ue_state.rsrq = 0;
+	ue_state.ecl = 0;
+	memset(ue_state.cellid, 0, 16);
 	ue_state = _CMIOT_M5310_GetUeState();
 	/* snr */
 	sprintf((char *)msg, "<snr>%d</snr>", ue_state.snr);
@@ -598,84 +655,89 @@ void _CMIOT_BLE_DataProcess(void)
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-	if(strstr((const char*)UART_BLE_RxBuffer, "<Request>") == NULL || strstr((const char*)UART_BLE_RxBuffer, "</Request>") == NULL)
+	if(strstr((const char*)UART_BLE_RxBuffer, "<Response>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Response>") != NULL)
 	{
-		_CMIOT_Debug("%s(error data)\r\n", __func__);
-		/* 清空BLE接收Buffer */
-		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
-		UART_BLE_RxBufferLen = 0;
-		return;
+		/* 定位并获取命令参数 */
+		p_head = strstr((const char*)UART_BLE_RxBuffer, "<Response>") + strlen("<Response>");
+		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Response>");
+		_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t*)p_head, p_tail-p_head);
 	}
 	
-	/* 定位并获取命令参数 */
-	p_head = strstr((const char*)UART_BLE_RxBuffer, "<Request>") + strlen("<Request>");
-	p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Request>");
-	
-	if(p_tail - p_head > sizeof(cmd))
+	if(strstr((const char*)UART_BLE_RxBuffer, "<Request>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL)
 	{
-		_CMIOT_Debug("%s(over length)\r\n", __func__);
-		/* 清空BLE接收Buffer */
-		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
-		UART_BLE_RxBufferLen = 0;
-		return;
-	}
-	
-	memcpy(cmd, p_head, p_tail-p_head);
-	
-	/* 返回响应数据 */
-	if(strcmp((const char*)cmd, "deviceInfo") == 0)
-	{
-		/* 返回设备信息 */
-		_CMIOT_BLE_RSP_deviceInfo();
-	}
-	else if(strcmp((const char*)cmd, "radioInfo") == 0)
-	{
-		/* 返回信号参数 */
-		_CMIOT_BLE_RSP_radioInfo();
-	}
-	else if(strcmp((const char*)cmd, "attachTime") == 0)
-	{
-		/* 返回一次驻网时间 */
-		_CMIOT_BLE_RSP_attachTime();
-	}
-	else if(strcmp((const char*)cmd, "pingDelay") == 0)
-	{
-		/* 返回ping延时 */
-		_CMIOT_BLE_RSP_pingDelay();
-	}
-	else if(strcmp((const char*)cmd, "comprehensiveTest") == 0)
-	{
-		/* 返回一次综合测试数据（包括驻网、信号、延时） */
-		_CMIOT_BLE_RSP_comprehensiveTest();
-	}
-	else if(strcmp((const char*)cmd, "bleAtEnable") == 0)
-	{
-		/* 进入蓝牙AT指令模式（工程模式） */
-		memset(UART_M5310_RxBuffer, 0, sizeof(UART_M5310_RxBuffer));
-		BLE_AT_EXE_FLAG = true;
-		_CMIOT_Debug("%s(bleAtEnable)\r\n", __func__);
-	}
-	else if(strcmp((const char*)cmd, "bleAtDisable") == 0)
-	{
-		/* 退出蓝牙AT指令模式（工程模式） */
-		BLE_AT_EXE_FLAG = false;
-		_CMIOT_Debug("%s(bleAtDisable)\r\n", __func__);
-	}
-	else if(_CMIOT_Str_StartWith(cmd, (uint8_t *)"<AT>") && _CMIOT_Str_EndWith(cmd, (uint8_t *)"</AT>"))
-	{
-		_CMIOT_Debug("%s(Recv AT Command)\r\n", __func__);
-		/* 发送AT指令 */
-		/* 定位并获取AT指令 */
-		p_head = strstr((const char*)UART_BLE_RxBuffer, "<AT>") + strlen("<AT>");
-		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</AT>");
-		_CMIOT_Uart_send(UART_M5310, (uint8_t *)p_head, p_tail-p_head);
-	}
-	else
-	{
-		/* 未知蓝牙命令 */
-		_CMIOT_Debug("%s(unknow cmd)\r\n", __func__);
+		_CMIOT_Debug("%s(request data)\r\n", __func__);
+		
+		/* 定位并获取命令参数 */
+		p_head = strstr((const char*)UART_BLE_RxBuffer, "<Request>") + strlen("<Request>");
+		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Request>");
+		
+		if(p_tail - p_head > sizeof(cmd))
+		{
+			_CMIOT_Debug("%s(ble request data over length:256)\r\n", __func__);
+			/* 清空BLE接收Buffer */
+			memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+			UART_BLE_RxBufferLen = 0;
+			return;
+		}
+		
+		memcpy(cmd, p_head, p_tail-p_head);
+		
+		/* 返回响应数据 */
+		if(strcmp((const char*)cmd, "deviceInfo") == 0)
+		{
+			/* 返回设备信息 */
+			_CMIOT_BLE_RSP_deviceInfo();
+		}
+		else if(strcmp((const char*)cmd, "radioInfo") == 0)
+		{
+			/* 返回信号参数 */
+			_CMIOT_BLE_RSP_radioInfo();
+		}
+		else if(strcmp((const char*)cmd, "attachTime") == 0)
+		{
+			/* 返回一次驻网时间 */
+			_CMIOT_BLE_RSP_attachTime();
+		}
+		else if(strcmp((const char*)cmd, "pingDelay") == 0)
+		{
+			/* 返回ping延时 */
+			_CMIOT_BLE_RSP_pingDelay();
+		}
+		else if(strcmp((const char*)cmd, "comprehensiveTest") == 0)
+		{
+			/* 返回一次综合测试数据（包括驻网、信号、延时） */
+			_CMIOT_BLE_RSP_comprehensiveTest();
+		}
+		else if(strcmp((const char*)cmd, "bleAtEnable") == 0)
+		{
+			/* 进入蓝牙AT指令模式（工程模式） */
+			memset(UART_M5310_RxBuffer, 0, sizeof(UART_M5310_RxBuffer));
+			BLE_AT_EXE_FLAG = true;
+			_CMIOT_Debug("%s(bleAtEnable)\r\n", __func__);
+		}
+		else if(strcmp((const char*)cmd, "bleAtDisable") == 0)
+		{
+			/* 退出蓝牙AT指令模式（工程模式） */
+			BLE_AT_EXE_FLAG = false;
+			_CMIOT_Debug("%s(bleAtDisable)\r\n", __func__);
+		}
+		else if(_CMIOT_Str_StartWith(cmd, (uint8_t *)"<AT>") && _CMIOT_Str_EndWith(cmd, (uint8_t *)"</AT>"))
+		{
+			_CMIOT_Debug("%s(Recv AT Command)\r\n", __func__);
+			/* 发送AT指令 */
+			/* 定位并获取AT指令 */
+			p_head = strstr((const char*)UART_BLE_RxBuffer, "<AT>") + strlen("<AT>");
+			p_tail = strstr((const char*)UART_BLE_RxBuffer, "</AT>");
+			_CMIOT_Uart_send(UART_M5310, (uint8_t *)p_head, p_tail-p_head);
+		}
+		else
+		{
+			/* 未知蓝牙命令 */
+			_CMIOT_Debug("%s(unknow cmd)\r\n", __func__);
+		}
 	}
 	/* 清空BLE接收Buffer */
+	_CMIOT_Debug("%s(Clear ble buffer)\r\n", __func__);
 	memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
 	UART_BLE_RxBufferLen = 0;
 }

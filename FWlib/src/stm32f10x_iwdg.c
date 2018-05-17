@@ -137,7 +137,7 @@ void IWDG_SetReload(uint16_t Reload)
   */
 void IWDG_ReloadCounter(void)
 {
-  IWDG->KR = KR_KEY_Reload;
+	IWDG->KR = KR_KEY_Reload;
 }
 
 /**

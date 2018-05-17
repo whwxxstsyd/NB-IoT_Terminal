@@ -51,6 +51,9 @@ typedef struct
 }CMIOT_UE_STATE_THP;	/* UESTATS:THP结果结构体 */
 
 
+#define PING_ADDR	"114.114.114.114"
+
+
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_ExecuteAtCmd
 Author			:	zhaoji
@@ -253,6 +256,71 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen);
+
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_IsPdpAttached
+Author			:	zhaoji
+Created Time	:	2018.05.05
+Description 	: 	获取PDP附着状态
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_IsPdpAttached(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_SetMinFunctionalityState
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	配置工作等级（全功能、最小功能）
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_SetMinFunctionalityState(bool state);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_NbModule_Reboot
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	重启模组
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_NbModule_Reboot(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_SetAutoConnect
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	配置自动入网参数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_SetAutoConnect(bool state);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_SetAutoConnect
+Author			:	zhaoji
+Created Time	:	2018.05.16
+Description 	: 	配置自动入网参数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+bool _CMIOT_SetScramblingState(bool state);
+
+
+
+
 
 
 
