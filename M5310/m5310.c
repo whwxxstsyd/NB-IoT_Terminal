@@ -603,9 +603,9 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 	uint8_t result;
 	char *p_head, *p_end;
 	
-	memset(IMEI, 0, buffersize);
 	while(maxRetryCounts > 0)
 	{
+		memset(IMEI, 0, buffersize);
 		maxRetryCounts--;
 		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGSN=1\r\n"), imei_MatchStr, 2, 2000);
 		
@@ -615,7 +615,11 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 			p_end  = strstr((const char *)p_head, "\r\n\r\nOK\r\n");
 			strncat((char *)IMEI, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMEI);
-			return 1;
+			if(_CMIOT_Str_StartWith(IMEI, (uint8_t *)"8658"))
+			{
+				_CMIOT_Debug("%s(OK)\r\n", __func__);
+				return 1;
+			}
 		}
 		delay_ms(1000);
 	}
@@ -881,7 +885,7 @@ uint32_t _CMIOT_GetNetworkDelay(uint8_t *remoteAddr, uint32_t packetSize, uint32
 					break;
 				}
 			}
-			_CMIOT_Debug("%s(%d)\r\n", __func__, pingDelay);
+			_CMIOT_Debug("%s(%d ms)\r\n", __func__, pingDelay);
 			return pingDelay;
 		}
 		
@@ -1366,5 +1370,27 @@ void _CMIOT_NbModule_Reboot(void)
 	}
 	_CMIOT_Debug("%s(execute fail)\r\n", __func__);
 }
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_M5310PowerGpioInit
+Author			:	zhaoji
+Created Time	:	2018.05.18
+Description 	: 	初始化NB模组电源控制GPIO
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_M5310PowerGpioInit()
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
 
 

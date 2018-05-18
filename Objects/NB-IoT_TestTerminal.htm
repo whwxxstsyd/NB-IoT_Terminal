@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\NB-IoT_TestTerminal.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\NB-IoT_TestTerminal.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Thu May 17 20:41:21 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Fri May 18 18:38:26 2018
 <BR><P>
 <H3>Maximum Stack Usage =       1528 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1027,7 +1027,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_WriteRAM_Prepare
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_SetCursor
 </UL>
-<BR>[Called By]<UL><LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSignalStrength
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSpeedInfo
+<LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSignalStrength
 <LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowRadioInfo
 <LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowPingResult
 <LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowNetworkRegTime
@@ -1124,7 +1125,9 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_UI_BootPage
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSignalStrength
+<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowBatteryLevel
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GUI_Init
+<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BluetoothMode
 </UL>
 
 <P><STRONG><a name="[b5]"></a>LCD_ShowString</STRONG> (Thumb, 102 bytes, Stack size 24 bytes, st7789s.o(i.LCD_ShowString))
@@ -1569,11 +1572,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_Init
 </UL>
 
-<P><STRONG><a name="[f0]"></a>_CMIOT_BluetoothMode</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, ui.o(i._CMIOT_BluetoothMode))
+<P><STRONG><a name="[f0]"></a>_CMIOT_BluetoothMode</STRONG> (Thumb, 66 bytes, Stack size 16 bytes, ui.o(i._CMIOT_BluetoothMode))
 <BR><BR>[Stack]<UL><LI>Max Depth = 424<LI>Call Chain = _CMIOT_BluetoothMode &rArr; _CMIOT_BLE_EnterPassthroughMode &rArr; _CMIOT_ExecuteBLEAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr
 <LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_EnterPassthroughMode
+<LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowPicture
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowChinese
 </UL>
 <BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_NBIOT_Measurement
@@ -1610,7 +1614,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(i._CMIOT_StartTaskProc)
 </UL>
-<P><STRONG><a name="[88]"></a>_CMIOT_Debug</STRONG> (Thumb, 68 bytes, Stack size 288 bytes, common.o(i._CMIOT_Debug))
+<P><STRONG><a name="[88]"></a>_CMIOT_Debug</STRONG> (Thumb, 70 bytes, Stack size 288 bytes, common.o(i._CMIOT_Debug))
 <BR><BR>[Stack]<UL><LI>Max Depth = 312<LI>Call Chain = _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Uart_send
@@ -1758,10 +1762,11 @@ Global Symbols
 <LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowDeviceInfo
 </UL>
 
-<P><STRONG><a name="[eb]"></a>_CMIOT_GetIMEI</STRONG> (Thumb, 144 bytes, Stack size 72 bytes, m5310.o(i._CMIOT_GetIMEI))
+<P><STRONG><a name="[eb]"></a>_CMIOT_GetIMEI</STRONG> (Thumb, 162 bytes, Stack size 72 bytes, m5310.o(i._CMIOT_GetIMEI))
 <BR><BR>[Stack]<UL><LI>Max Depth = 424<LI>Call Chain = _CMIOT_GetIMEI &rArr; _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Debug
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_Str_StartWith
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncat
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncpy
@@ -1933,6 +1938,7 @@ Global Symbols
 <LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ExecuteAtCmd
 </UL>
 <BR>[Called By]<UL><LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSignalStrength
+<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowPingResult
 </UL>
 
 <P><STRONG><a name="[54]"></a>_CMIOT_LcdTaskProc</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, main.o(i._CMIOT_LcdTaskProc))
@@ -2029,10 +2035,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_TabIndex
 </UL>
 
-<P><STRONG><a name="[f6]"></a>_CMIOT_ShowBatteryLevel</STRONG> (Thumb, 322 bytes, Stack size 16 bytes, ui.o(i._CMIOT_ShowBatteryLevel))
+<P><STRONG><a name="[f6]"></a>_CMIOT_ShowBatteryLevel</STRONG> (Thumb, 338 bytes, Stack size 16 bytes, ui.o(i._CMIOT_ShowBatteryLevel))
 <BR><BR>[Stack]<UL><LI>Max Depth = 136<LI>Call Chain = _CMIOT_ShowBatteryLevel &rArr; LCD_DrawRectangle &rArr; LCD_DrawLine &rArr; LCD_DrawPoint &rArr; LCD_SetCursor
 </UL>
-<BR>[Calls]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
+<BR>[Calls]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowPicture
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
 <LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawRectangle
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GUI_Init
@@ -2090,7 +2097,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_NBIOT_Measurement
 </UL>
 
-<P><STRONG><a name="[107]"></a>_CMIOT_ShowPingResult</STRONG> (Thumb, 794 bytes, Stack size 24 bytes, ui.o(i._CMIOT_ShowPingResult))
+<P><STRONG><a name="[107]"></a>_CMIOT_ShowPingResult</STRONG> (Thumb, 850 bytes, Stack size 24 bytes, ui.o(i._CMIOT_ShowPingResult))
 <BR><BR>[Stack]<UL><LI>Max Depth = 600<LI>Call Chain = _CMIOT_ShowPingResult &rArr; _CMIOT_GetNetworkDelay &rArr; _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
@@ -2105,6 +2112,7 @@ Global Symbols
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawLine
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_M5310_GetSignalstrength
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_IsPdpAttached
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GetNetworkDelay
 <LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
@@ -2154,7 +2162,7 @@ Global Symbols
 <LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowDeviceInfo
 </UL>
 
-<P><STRONG><a name="[108]"></a>_CMIOT_ShowSpeedInfo</STRONG> (Thumb, 366 bytes, Stack size 32 bytes, ui.o(i._CMIOT_ShowSpeedInfo))
+<P><STRONG><a name="[108]"></a>_CMIOT_ShowSpeedInfo</STRONG> (Thumb, 386 bytes, Stack size 32 bytes, ui.o(i._CMIOT_ShowSpeedInfo))
 <BR><BR>[Stack]<UL><LI>Max Depth = 704<LI>Call Chain = _CMIOT_ShowSpeedInfo &rArr; _CMIOT_GetUeTHPStats &rArr; _CMIOT_ExecuteAtCmd &rArr; _CMIOT_Debug &rArr; _CMIOT_Uart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
@@ -2163,6 +2171,7 @@ Global Symbols
 <LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_ShowSignalStrength
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowString
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawLine
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_M5310_GetSignalstrength
 <LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GetUeTHPStats
@@ -2201,6 +2210,7 @@ Global Symbols
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 </UL>
 <BR>[Called By]<UL><LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_BLE_DataProcess
+<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_CMIOT_GetIMEI
 </UL>
 
 <P><STRONG><a name="[ff]"></a>_CMIOT_TabIndex</STRONG> (Thumb, 3144 bytes, Stack size 32 bytes, ui.o(i._CMIOT_TabIndex))

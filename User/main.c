@@ -99,7 +99,8 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
-	Adc_Init();		/* ADC初始化 */
+	/* ADC初始化 */
+	Adc_Init();
 	
 	/* 检查是否被看门狗重启 */
 	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)

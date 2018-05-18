@@ -38,7 +38,7 @@ void _CMIOT_Debug(const char *fmt, ...)
 	va_list ap;
 	
 	va_start(ap, fmt);
-	vsnprintf((char *)LogMsg, (unsigned int)(sizeof(LogMsg)-strlen("[debug]")), (const char *)fmt, ap);
+	vsnprintf((char *)LogMsg, (unsigned int)(sizeof(LogMsg)), (const char *)fmt, ap);
 	va_end(ap);
 
 	/* 如果标志位为TRUE，打印至调试串口 */

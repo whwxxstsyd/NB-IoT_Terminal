@@ -655,6 +655,19 @@ void _CMIOT_ShowPingResult(void)
 	BACK_COLOR = LIGHTBLUE;
 	LCD_ShowString(70, 290, 16,  (u8 *)":");
 	
+	if(!_CMIOT_IsPdpAttached())
+	{
+		LCD_ShowChinese(65, 80, newArial, 16, (u8 *)"网络未附着", RED, WHITE);
+		while(1)
+		{
+			if(_CMIOT_IsPdpAttached())
+			{
+				break;
+			}
+			delay_ms(2000);
+		}
+	}
+	
 	/* 显示当前测试服务器地址 */
 	sprintf((char *)msg, "ping %s", PING_ADDR);
 	POINT_COLOR = BLACK;
@@ -904,9 +917,12 @@ void _CMIOT_BluetoothMode(void)
 	/* 清空BLE接收Buffer */
 	memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
 	UART_BLE_RxBufferLen = 0;
+
+	LCD_ShowChinese(20, 220, newArial, 16, (u8 *)"请使用微信小程序进行测试", BLACK, WHITE);
+	LCD_ShowPicture(70,100,100,100,(u8 *)gImage_qrCode);
+	
 	/* 进入数据透传模式 */
 	_CMIOT_BLE_EnterPassthroughMode();
-	LCD_ShowChinese(20, 150, newArial, 16, (u8 *)"请使用微信小程序进行测试", BLACK, WHITE);
 }
 
 
@@ -923,13 +939,15 @@ void _CMIOT_ShowSpeedInfo(void)
 {
 	CMIOT_UE_STATE_THP ue_state_thp = {0,0,0,0};
 	
+	/* 左侧蓝条 */
+	LCD_Fill(0,40,77,319, LIGHTBLUE);
 	/* 分割线 */
 	POINT_COLOR = BLACK;
-	LCD_DrawLine(0,109,239,109);
-	LCD_DrawLine(0,179,239,179);
-	LCD_DrawLine(0,249,239,249);
-	LCD_DrawLine(79,40,79,319);
-	/**/
+	BACK_COLOR = LIGHTBLUE;
+	LCD_DrawLine(79,109,239,109);
+	LCD_DrawLine(79,179,239,179);
+	LCD_DrawLine(79,249,239,249);
+	/* 左侧关键字 */
 	LCD_ShowString(5, 65,  16,  (uint8_t *)"MAC UL:");
 	LCD_ShowString(5, 135, 16,  (uint8_t *)"MAC DL:");
 	LCD_ShowString(5, 205, 16,  (uint8_t *)"RLC UL:");
@@ -951,26 +969,25 @@ void _CMIOT_ShowSpeedInfo(void)
 //	LCD_ShowChinese(85, 275, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
 //	LCD_ShowChinese(85, 295, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
 	
-
 	while(1)
 	{
 		/* Ping测试防止模组进入PSM模式后射频参数不准确 */
-		_CMIOT_GetNetworkDelay((uint8_t *)PING_ADDR, 100, 5000);
+		_CMIOT_GetNetworkDelay((uint8_t *)"117.135.252.141", 1000, 10000);
 		/* 获取速率信息 */
 		ue_state_thp = _CMIOT_GetUeTHPStats();
 		POINT_COLOR = BLACK;
 		BACK_COLOR = WHITE;
 		/* MAC上行 */
-		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.MAC_UL/1000);
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.MAC_UL/100);
 		LCD_ShowString(100, 65, 16,  msg);
 		/* MAC下行 */
-		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.MAC_DL/1000);
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.MAC_DL/100);
 		LCD_ShowString(100, 135, 16,  msg);
 		/* RLC上行 */
-		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.RLC_UL/1000);
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.RLC_UL/100);
 		LCD_ShowString(100, 205, 16,  msg);
 		/* RLC下行 */
-		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.RLC_DL/1000);
+		sprintf((char *)msg, "%-8.2f kb/s", (float)ue_state_thp.RLC_DL/100);
 		LCD_ShowString(100, 275, 16,  msg);
 		/* 更新信息图标 */
 		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
@@ -1077,7 +1094,7 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	LCD_ShowChinese(35, 6, Arial, 24, (u8 *)"中移物联网", TITLEBLUE, WHITE);
 	
 	/* 显示基站信号标志符号 */
-	LCD_ShowPicture(165,10,20,20,(u8 *)gImage_signalSign);
+	LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign);
 	
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0, 39, 239, 39);
@@ -1128,107 +1145,107 @@ void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 {
 	if(_CMIOT_IsPdpAttached())
 	{
-		LCD_ShowPicture(165,10,20,20,(u8 *)gImage_signalSign_success);
+		LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign_success);
 		if(csqValue > 20 && csqValue <= 31)
 		{
-			LCD_Fill(180,26,183,30,GREEN);
-			LCD_Fill(186,22,189,30,GREEN);
-			LCD_Fill(192,18,195,30,GREEN);
-			LCD_Fill(198,14,201,30,GREEN);
-			LCD_Fill(204,10,207,30,GREEN);
+			LCD_Fill(175,26,178,30,GREEN);
+			LCD_Fill(181,22,184,30,GREEN);
+			LCD_Fill(187,18,190,30,GREEN);
+			LCD_Fill(193,14,196,30,GREEN);
+			LCD_Fill(199,10,202,30,GREEN);
 		}
 		else if(csqValue > 15 && csqValue <= 20)
 		{
-			LCD_Fill(180,26,183,30,GREEN);
-			LCD_Fill(186,22,189,30,GREEN);
-			LCD_Fill(192,18,195,30,GREEN);
-			LCD_Fill(198,14,201,30,GREEN);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,GREEN);
+			LCD_Fill(181,22,184,30,GREEN);
+			LCD_Fill(187,18,190,30,GREEN);
+			LCD_Fill(193,14,196,30,GREEN);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 10 && csqValue <= 15)
 		{
-			LCD_Fill(180,26,183,30,GREEN);
-			LCD_Fill(186,22,189,30,GREEN);
-			LCD_Fill(192,18,195,30,GREEN);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,GREEN);
+			LCD_Fill(181,22,184,30,GREEN);
+			LCD_Fill(187,18,190,30,GREEN);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 5 && csqValue <= 10)
 		{
-			LCD_Fill(180,26,183,30,GREEN);
-			LCD_Fill(186,22,189,30,GREEN);
-			LCD_Fill(192,18,195,30,WHITE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,GREEN);
+			LCD_Fill(181,22,184,30,GREEN);
+			LCD_Fill(187,18,190,30,WHITE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 0 && csqValue <= 5)
 		{
-			LCD_Fill(180,26,183,30,GREEN);
-			LCD_Fill(186,22,189,30,WHITE);
-			LCD_Fill(192,18,195,30,WHITE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,GREEN);
+			LCD_Fill(181,22,184,30,WHITE);
+			LCD_Fill(187,18,190,30,WHITE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else
 		{
-			LCD_Fill(180,26,183,30,WHITE);
-			LCD_Fill(186,22,189,30,WHITE);
-			LCD_Fill(192,18,195,30,WHITE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,WHITE);
+			LCD_Fill(181,22,184,30,WHITE);
+			LCD_Fill(187,18,190,30,WHITE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 	}
 	else
 	{
-		LCD_ShowPicture(165,10,20,20,(u8 *)gImage_signalSign);
+		LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign);
 		
 		if(csqValue > 20 && csqValue <= 31)
 		{
-			LCD_Fill(180,26,183,30,DARKBLUE);
-			LCD_Fill(186,22,189,30,DARKBLUE);
-			LCD_Fill(192,18,195,30,DARKBLUE);
-			LCD_Fill(198,14,201,30,DARKBLUE);
-			LCD_Fill(204,10,207,30,DARKBLUE);
+			LCD_Fill(175,26,178,30,DARKBLUE);
+			LCD_Fill(181,22,184,30,DARKBLUE);
+			LCD_Fill(187,18,190,30,DARKBLUE);
+			LCD_Fill(193,14,196,30,DARKBLUE);
+			LCD_Fill(199,10,202,30,DARKBLUE);
 		}
 		else if(csqValue > 15 && csqValue <= 20)
 		{
-			LCD_Fill(180,26,183,30,DARKBLUE);
-			LCD_Fill(186,22,189,30,DARKBLUE);
-			LCD_Fill(192,18,195,30,DARKBLUE);
-			LCD_Fill(198,14,201,30,DARKBLUE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,DARKBLUE);
+			LCD_Fill(181,22,184,30,DARKBLUE);
+			LCD_Fill(187,18,190,30,DARKBLUE);
+			LCD_Fill(193,14,196,30,DARKBLUE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 10 && csqValue <= 15)
 		{
-			LCD_Fill(180,26,183,30,DARKBLUE);
-			LCD_Fill(186,22,189,30,DARKBLUE);
-			LCD_Fill(192,18,195,30,DARKBLUE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,DARKBLUE);
+			LCD_Fill(181,22,184,30,DARKBLUE);
+			LCD_Fill(187,18,190,30,DARKBLUE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 5 && csqValue <= 10)
 		{
-			LCD_Fill(180,26,183,30,DARKBLUE);
-			LCD_Fill(186,22,189,30,DARKBLUE);
-			LCD_Fill(192,18,195,30,WHITE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,DARKBLUE);
+			LCD_Fill(181,22,184,30,DARKBLUE);
+			LCD_Fill(187,18,190,30,WHITE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 0 && csqValue <= 5)
 		{
-			LCD_Fill(180,26,183,30,DARKBLUE);
-			LCD_Fill(186,22,189,30,WHITE);
-			LCD_Fill(192,18,195,30,WHITE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,DARKBLUE);
+			LCD_Fill(181,22,184,30,WHITE);
+			LCD_Fill(187,18,190,30,WHITE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else
 		{
-			LCD_Fill(180,26,183,30,WHITE);
-			LCD_Fill(186,22,189,30,WHITE);
-			LCD_Fill(192,18,195,30,WHITE);
-			LCD_Fill(198,14,201,30,WHITE);
-			LCD_Fill(204,10,207,30,WHITE);
+			LCD_Fill(175,26,178,30,WHITE);
+			LCD_Fill(181,22,184,30,WHITE);
+			LCD_Fill(187,18,190,30,WHITE);
+			LCD_Fill(193,14,196,30,WHITE);
+			LCD_Fill(199,10,202,30,WHITE);
 		}
 	}
 }
@@ -1248,18 +1265,18 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 	if(percentValue > 30)
 	{
 		POINT_COLOR = BLACK;
-		LCD_DrawRectangle(215,12,225,30);
-		LCD_Fill(218,10,222,12,BLACK);
-		LCD_Fill(216,29-(16*percentValue/100),224,29,GREEN);
-		LCD_Fill(216,13,224,29-17*percentValue/100,WHITE);
+		LCD_DrawRectangle(210,12,220,30);
+		LCD_Fill(213,10,217,12,BLACK);
+		LCD_Fill(211,29-(16*percentValue/100),219,29,GREEN);
+		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
 	else if(percentValue > 20)
 	{
 		POINT_COLOR = BLACK;
-		LCD_DrawRectangle(215,12,225,30);
-		LCD_Fill(218,10,222,12,BLACK);
-		LCD_Fill(216,29-(16*percentValue/100),224,29,YELLOW);
-		LCD_Fill(216,13,224,29-17*percentValue/100,WHITE);
+		LCD_DrawRectangle(210,12,220,30);
+		LCD_Fill(213,10,217,12,BLACK);
+		LCD_Fill(211,29-(16*percentValue/100),219,29,YELLOW);
+		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
 	else
 	{
@@ -1269,6 +1286,8 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		LCD_Fill(211,29-(16*percentValue/100),219,29,RED);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
+	
+	LCD_ShowPicture(225,10,10,20,(u8 *)gImage_chargeIcon);
 }
 
 

@@ -15,6 +15,7 @@ Description     :   M5310接口
 -----------------------------------------------------------------------------*/
 #include "stm32f10x.h"
 #include "stdbool.h"
+#include "sys.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -52,6 +53,10 @@ typedef struct
 
 
 #define PING_ADDR	"114.114.114.114"
+
+#define M5310_POWERKEY		PBout(6)
+#define M5310_POWER_ON		(M5310_POWERKEY = 1)
+#define M5310_POWER_OFF		(M5310_POWERKEY = 0)
 
 
 /*-----------------------------------------------------------------------------
