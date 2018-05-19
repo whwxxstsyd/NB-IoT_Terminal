@@ -29,6 +29,8 @@ Description     :   主程序入口
 #include "adc.h"
 #include "bluetooth.h"
 
+
+
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
@@ -51,8 +53,6 @@ TaskHandle_t m5310_task;     	/* M5310任务   */
 TaskHandle_t lcd_task;       	/* LCD任务     */
 TaskHandle_t bluetooth_task;	/* 蓝牙任务    */
 
-TimerHandle_t watchDogTimer;	/* 看门狗定时器 */
-
 CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};	/* 菜单位置 */
 
 
@@ -71,7 +71,9 @@ void _CMIOT_M5310TaskProc(void *pvParameters);			/* M5310任务入口函数  */
 void _CMIOT_StartTaskProc(void *pvParameters);			/* 开启任务入口函数   */
 void _CMIOT_BluetoothTaskProc(void *pvParameters);		/* 蓝牙任务入口函数   */
 
-void IWDG_Configuration(void);	/* 初始化看门狗 */
+void _CMIOT_IWDG_Configuration(void);	/* 初始化看门狗 */
+
+void _CMIOT_BatteryCheckInit(void);
 
 
 /*-----------------------------------------------------------------------------
@@ -85,12 +87,16 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 int main(void)
 {
-	delay_init();    /* 初始化systick实现普通延时 */
+	/* 初始化systick实现普通延时 */
+	delay_init();
 	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
+	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 	
+	/* 初始化LCD */
 	LCD_Init();
 	
+	/* 显示启动界面 */
 	_CMIOT_UI_BootPage();
 	
 	/* 初始化串口 */
@@ -99,16 +105,45 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
+	POINT_COLOR = DARKBLUE;
+	BACK_COLOR = WHITE;
+	LCD_ShowString(10, 300, 16, (u8 *)"LCD Init OK!");
+	delay_ms(500);
+	
+	/* M5310初始化 */
+	LCD_ShowString(10, 300, 16, (u8 *)"Mod Init ...");
+	_CMIOT_M5310_Init();
+	LCD_ShowString(10, 300, 16, (u8 *)"Mod Init OK!");
+	
 	/* ADC初始化 */
+	LCD_ShowString(10, 300, 16, (u8 *)"ADC Init ...");
 	Adc_Init();
+	LCD_ShowString(10, 300, 16, (u8 *)"ADC Init OK!");
+	delay_ms(500);
 	
 	/* 检查是否被看门狗重启 */
 	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
 	{
 		_CMIOT_Debug("\r\n*****<ERROR>Reset by stm32 IWDG!<ERROR>*****\r\n");
 		RCC_ClearFlag();
+		
+		_CMIOT_BleResetGpioInit();				/* 初始BLE复位GPIO */
+		_CMIOT_BleReset();						/* 复位模组 */	
 	}
 	
+	/* 初始化蓝牙模块 */
+	LCD_ShowString(10, 300, 16, (u8 *)"BLE Init ...");
+	_CMIOT_BLE_Init();
+	LCD_ShowString(10, 300, 16, (u8 *)"BLE Init OK!");
+	
+	/* 初始化电池检测 */
+	_CMIOT_BatteryCheckInit();
+	LCD_ShowString(10, 300, 16, (u8 *)"BAT Init OK!");
+	delay_ms(500);
+	
+	/* 显示设备初始化OK */
+	LCD_ShowString(10, 300, 16, (u8 *)"Dev Init OK!");
+
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
 				(const char*         )"start_task",
@@ -134,7 +169,7 @@ void _CMIOT_StartTaskProc(void *pvParameters)
 {
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-	IWDG_Configuration();	/* 初始化看门狗及喂狗定时器 */
+	_CMIOT_IWDG_Configuration();	/* 初始化看门狗及喂狗定时器 */
 
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
@@ -301,7 +336,7 @@ void _CMIOT_BluetoothTaskProc(void *pvParameters)
 {
 	uint32_t notifyValue;
 	/* 初始化蓝牙模块 */
-	_CMIOT_BLE_Init();
+	// _CMIOT_BLE_Init();
 	/* 接收通知 */
 	while(1)
 	{
@@ -343,8 +378,9 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void IWDG_Configuration(void)  
+void _CMIOT_IWDG_Configuration(void)
 {
+	TimerHandle_t watchDogTimer;
 	/* 喂狗时间计算： T =  (IWDG_Prescaler*Reload)/40(ms)      */
     RCC_LSICmd(ENABLE);	//打开LSI  
     while(RCC_GetFlagStatus(RCC_FLAG_LSIRDY)==RESET);  
@@ -366,4 +402,62 @@ void IWDG_Configuration(void)
 }
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_StartBatteryStateShow
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	:	显示电池电量、充电状态
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_StartBatteryStateShow()
+{
+	/* 每3秒喂一次狗 */
+	TimerHandle_t batteryTimer = xTimerCreate((const char*   )"batteryTimer",
+								(TickType_t     )2000,
+								(UBaseType_t    )pdTRUE,
+								(void*          )3,
+								(TimerCallbackFunction_t)_CMIOT_ShowBatteryTips);
+								
+	xTimerStart(batteryTimer, 0);
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BatteryChargeGpioInit
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	:	电池充电管理芯片充电状态IO初始化
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BatteryChargeGpioInit(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_AFIO, ENABLE);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8|GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BatteryCheckInit
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	:	初始化电池检测
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BatteryCheckInit(void)
+{
+	/* 初始化IO */
+	_CMIOT_BatteryChargeGpioInit();
+	/* 开启检测 */
+	_CMIOT_StartBatteryStateShow();
+}
 

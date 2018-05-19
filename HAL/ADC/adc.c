@@ -23,7 +23,6 @@ void  Adc_Init(void)
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA |RCC_APB2Periph_ADC1	, ENABLE );	  //使能ADC1通道时钟
  
-
 	RCC_ADCCLKConfig(RCC_PCLK2_Div6);   //设置ADC分频因子6 72M/6=12,ADC最大时间不能超过14M
 
 	//PA1 作为模拟通道输入引脚                         
@@ -83,7 +82,7 @@ u16 Get_Adc_Average(u8 ch,u8 times)
 
 float cm_getBatteryVol(void)
 {
-	return (float)Get_Adc_Average(ADC_Channel_1,10)*(3.3/4096);
+	return (float)Get_Adc_Average(ADC_Channel_1,10)*(3.3/4096)*3;
 }
 
 

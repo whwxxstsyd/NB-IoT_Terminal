@@ -21,6 +21,9 @@ Description     :   UI接口
 #include "adc.h"
 #include "bluetooth.h"
 #include "string.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
 
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
@@ -48,9 +51,7 @@ void _CMIOT_UI_BootPage(void)
 	POINT_COLOR = TITLEBLUE;
 	LCD_ShowFontEN(15, 210, (u8 *)"NB-IoT", 24, TITLEBLUE, WHITE);
 	LCD_ShowFontHZ(110, 210, (u8 *)"网络测试仪", 24, TITLEBLUE, WHITE);
-	delay_ms(1000);
 }
-
 
 
 /*-----------------------------------------------------------------------------
@@ -1094,7 +1095,7 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	LCD_ShowChinese(35, 6, Arial, 24, (u8 *)"中移物联网", TITLEBLUE, WHITE);
 	
 	/* 显示基站信号标志符号 */
-	LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign);
+	LCD_ShowPicture(160,10,15,20,(u8 *)gImage_signalSign);
 	
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0, 39, 239, 39);
@@ -1127,8 +1128,6 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	LCD_ShowPicture(15,240,50,50,(u8 *)gImage_instructionsIcon);
 	if(index ==6) { LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, LIGHTBLUE); }
 	else { LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, WHITE); }
-	
-	_CMIOT_ShowBatteryLevel(100);	/* 测试电量图标 */
 }
 
 
@@ -1143,44 +1142,44 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 {
-	if(_CMIOT_IsPdpAttached())
+	if(_CMIOT_IsPdpAttached())	/* 当前为附着状态 */
 	{
-		LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign_success);
+		// LCD_ShowPicture(160,10,15,20,(u8 *)gImage_signalSign);
 		if(csqValue > 20 && csqValue <= 31)
 		{
-			LCD_Fill(175,26,178,30,GREEN);
-			LCD_Fill(181,22,184,30,GREEN);
-			LCD_Fill(187,18,190,30,GREEN);
-			LCD_Fill(193,14,196,30,GREEN);
-			LCD_Fill(199,10,202,30,GREEN);
+			LCD_Fill(175,26,178,30,DEEPBLUE);
+			LCD_Fill(181,22,184,30,DEEPBLUE);
+			LCD_Fill(187,18,190,30,DEEPBLUE);
+			LCD_Fill(193,14,196,30,DEEPBLUE);
+			LCD_Fill(199,10,202,30,DEEPBLUE);
 		}
 		else if(csqValue > 15 && csqValue <= 20)
 		{
-			LCD_Fill(175,26,178,30,GREEN);
-			LCD_Fill(181,22,184,30,GREEN);
-			LCD_Fill(187,18,190,30,GREEN);
-			LCD_Fill(193,14,196,30,GREEN);
+			LCD_Fill(175,26,178,30,DEEPBLUE);
+			LCD_Fill(181,22,184,30,DEEPBLUE);
+			LCD_Fill(187,18,190,30,DEEPBLUE);
+			LCD_Fill(193,14,196,30,DEEPBLUE);
 			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 10 && csqValue <= 15)
 		{
-			LCD_Fill(175,26,178,30,GREEN);
-			LCD_Fill(181,22,184,30,GREEN);
-			LCD_Fill(187,18,190,30,GREEN);
+			LCD_Fill(175,26,178,30,DEEPBLUE);
+			LCD_Fill(181,22,184,30,DEEPBLUE);
+			LCD_Fill(187,18,190,30,DEEPBLUE);
 			LCD_Fill(193,14,196,30,WHITE);
 			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 5 && csqValue <= 10)
 		{
-			LCD_Fill(175,26,178,30,GREEN);
-			LCD_Fill(181,22,184,30,GREEN);
+			LCD_Fill(175,26,178,30,DEEPBLUE);
+			LCD_Fill(181,22,184,30,DEEPBLUE);
 			LCD_Fill(187,18,190,30,WHITE);
 			LCD_Fill(193,14,196,30,WHITE);
 			LCD_Fill(199,10,202,30,WHITE);
 		}
 		else if(csqValue > 0 && csqValue <= 5)
 		{
-			LCD_Fill(175,26,178,30,GREEN);
+			LCD_Fill(175,26,178,30,DEEPBLUE);
 			LCD_Fill(181,22,184,30,WHITE);
 			LCD_Fill(187,18,190,30,WHITE);
 			LCD_Fill(193,14,196,30,WHITE);
@@ -1197,7 +1196,7 @@ void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 	}
 	else
 	{
-		LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign);
+		// LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign);
 		
 		if(csqValue > 20 && csqValue <= 31)
 		{
@@ -1255,7 +1254,7 @@ void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 Function Name	:	_CMIOT_ShowBatteryLevel
 Author			:	zhaoji
 Created Time	:	2018.03.29
-Description 	: 	显示电池电量
+Description 	: 	绘制电池电量
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -1286,9 +1285,43 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		LCD_Fill(211,29-(16*percentValue/100),219,29,RED);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
-	
-	LCD_ShowPicture(225,10,10,20,(u8 *)gImage_chargeIcon);
 }
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_ShowBatteryTips
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	显示电池信息
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_ShowBatteryTips(void)
+{
+	float batteryVol = 0;
+	taskENTER_CRITICAL();   /* 进入临界区 */
+	
+	/* 获取电池电压 */
+	batteryVol = cm_getBatteryVol();
+	if(batteryVol >= 4.2) { _CMIOT_ShowBatteryLevel(100); }
+	else if(batteryVol >= 4.08) { _CMIOT_ShowBatteryLevel(90); }
+	else if(batteryVol >= 4) { _CMIOT_ShowBatteryLevel(80); }
+	else if(batteryVol >= 3.93) { _CMIOT_ShowBatteryLevel(70); }
+	else if(batteryVol >= 3.87) { _CMIOT_ShowBatteryLevel(60); }
+	else if(batteryVol >= 3.82) { _CMIOT_ShowBatteryLevel(50); }
+	else if(batteryVol >= 3.79) { _CMIOT_ShowBatteryLevel(40); }
+	else if(batteryVol >= 3.77) { _CMIOT_ShowBatteryLevel(30); }
+	else if(batteryVol >= 3.73) { _CMIOT_ShowBatteryLevel(20); }
+	else if(batteryVol >= 3.7) { _CMIOT_ShowBatteryLevel(15); }
+	else if(batteryVol >= 3.68) { _CMIOT_ShowBatteryLevel(10); }
+	else if(batteryVol >= 3.5) { _CMIOT_ShowBatteryLevel(5); }
+	
+	if(BATTERY_CHRG || BATTERY_STDBY)
+	{
+		LCD_ShowPicture(225,10,10,20,(u8 *)gImage_chargePowerIcon);
+	}
+	
+	taskEXIT_CRITICAL();   /* 退出临界区 */
+}
 

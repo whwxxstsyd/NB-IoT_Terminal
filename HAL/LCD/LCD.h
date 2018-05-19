@@ -58,6 +58,7 @@ extern u16  BACK_COLOR; //背景颜色.默认为白色
 #define BRED             0XF81F
 #define GRED 			 0XFFE0
 #define GBLUE			 0X07FF
+#define DEEPBLUE		 0x017F
 #define RED           	 0xF800
 #define MAGENTA       	 0xF81F
 #define GREEN         	 0x07E0

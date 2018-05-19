@@ -102,6 +102,44 @@ uint32_t _CMIOT_ExecuteBLEAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t 
 
 
 /*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BleResetGpioInit
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	蓝牙复位引脚初始化
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BleResetGpioInit(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO, ENABLE);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BleReset
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	复位蓝牙模块
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BleReset(void)
+{
+	BLE_RESET_ENABLE;
+	delay_ms(1000);
+	BLE_RESET_DISABLE;
+}
+
+
+/*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_GetBleConnectedState
 Author			:	zhaoji
 Created Time	:	2018.05.16
@@ -267,8 +305,8 @@ uint8_t _CMIOT_BLE_SetName(void)
 	
 	_CMIOT_GetIMEI(imei, sizeof(imei));
 	
-	strcat((char *)bleNameCmd, "AT+NAME=D5310A_");
-	strcat((char *)bleNameCmd, (char *)(imei + strlen((const char *)imei) - 3));
+	strcat((char *)bleNameCmd, "AT+NAME=D5200_");
+	strcat((char *)bleNameCmd, (char *)(imei + strlen((const char *)imei) - 4));
 	strcat((char *)bleNameCmd, "\r\n");
 	
 	while(maxRetryCounts > 0)
@@ -406,13 +444,13 @@ void _CMIOT_BLE_Init(void)
 								(UBaseType_t    )pdFALSE,
 								(void*          )2,
 								(TimerCallbackFunction_t)_CMIOT_M5310Uartbuf2Ble);
-								
+	
 	_CMIOT_BLE_ExitPassthroughMode();		/* 退出透传 */
 	_CMIOT_BLE_OffMaxPut();					/* 配置为20字节分包 */
 	_CMIOT_BLE_SetPacketInterval();			/* 设置分包发送间隔 */
 	_CMIOT_BLE_SetName();					/* 设置名称 */
 	_CMIOT_BLE_Reboot();					/* 重启 */
-	delay_ms(5000);
+	delay_ms(1000);
 	_CMIOT_BLE_ExitPassthroughMode();		/* 退出透传模式 */
 }
 

@@ -324,10 +324,28 @@ Return Value	:
 bool _CMIOT_SetScramblingState(bool state);
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_M5310PowerGpioInit
+Author			:	zhaoji
+Created Time	:	2018.05.18
+Description 	: 	初始化NB模组电源控制GPIO
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_M5310PowerGpioInit(void);
 
 
-
-
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_M5310_Init
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	初始化NB模组
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_M5310_Init(void);
 
 
 

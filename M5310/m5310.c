@@ -925,10 +925,13 @@ bool cm_IsNbModuleAlive(void)
 		
 		if(result == 1)
 		{
+			/* 检测通过 */
+			_CMIOT_Debug("%s(alive!)\r\n", __func__);
 			return true;
 		}
 		delay_ms(1000);
 	}
+	_CMIOT_Debug("%s(execute fail!)\r\n", __func__);
 	return false;
 }
 
@@ -1227,7 +1230,6 @@ bool _CMIOT_SetAutoConnect(bool state)
 			if(result == 1)
 			{
 				_CMIOT_Debug("%s(ok!)\r\n", __func__);
-				_CMIOT_NbModule_Reboot();
 				return true;
 			}
 		}
@@ -1280,7 +1282,6 @@ bool _CMIOT_SetScramblingState(bool state)
 			if(result == 1)
 			{
 				_CMIOT_Debug("%s(ok!)\r\n", __func__);
-				_CMIOT_NbModule_Reboot();
 				return true;
 			}
 		}
@@ -1381,7 +1382,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_M5310PowerGpioInit()
+void _CMIOT_M5310PowerGpioInit(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
  	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE);
@@ -1391,6 +1392,53 @@ void _CMIOT_M5310PowerGpioInit()
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_M5310_Init
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	初始化NB模组
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_M5310_Init(void)
+{
+	uint8_t maxRetryCounts = 5;
+	_CMIOT_M5310PowerGpioInit();
+	M5310_POWER_OFF;	/* 关机 */
+	delay_ms(1000);
+	M5310_POWER_ON;		/* 开机 */
+	
+	while(maxRetryCounts > 0)
+	{
+		if(cm_IsNbModuleAlive())	/* 检测模组是否启动成功 */
+		{
+			break;
+		}
+		delay_ms(1000);
+	}
+	/* 打开扰码 */
+	_CMIOT_SetScramblingState(true);
+	/* 打开自动入网 */
+	_CMIOT_SetAutoConnect(true);
+	/* 重启模组 */
+	_CMIOT_NbModule_Reboot();
+	/* 检测模组是否启动成功 */
+	maxRetryCounts = 5;
+	while(maxRetryCounts > 0)
+	{
+		if(cm_IsNbModuleAlive())
+		{
+			break;
+		}
+		delay_ms(1000);
+	}
+}
+
+
+
 
 
 

@@ -30,8 +30,8 @@
 .\objects\ui.o: .\FWlib\inc\stm32f10x_wwdg.h
 .\objects\ui.o: .\FWlib\inc\misc.h
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-.\objects\ui.o: .\HAL\LCD\lcd.h
 .\objects\ui.o: .\SYSTEM\sys\sys.h
+.\objects\ui.o: .\HAL\LCD\lcd.h
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\ui.o: .\HAL\COMMON\common.h
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
@@ -42,3 +42,14 @@
 .\objects\ui.o: .\HAL\ADC\adc.h
 .\objects\ui.o: .\HAL\BLUETOOTH\bluetooth.h
 .\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\ui.o: .\FreeRTOS\include\FreeRTOS.h
+.\objects\ui.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\objects\ui.o: .\FreeRTOS\include\FreeRTOSConfig.h
+.\objects\ui.o: .\HAL\TIMER\timer.h
+.\objects\ui.o: .\FreeRTOS\include\projdefs.h
+.\objects\ui.o: .\FreeRTOS\include\portable.h
+.\objects\ui.o: .\FreeRTOS\include\deprecated_definitions.h
+.\objects\ui.o: .\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h
+.\objects\ui.o: .\FreeRTOS\include\mpu_wrappers.h
+.\objects\ui.o: .\FreeRTOS\include\task.h
+.\objects\ui.o: .\FreeRTOS\include\list.h

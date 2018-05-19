@@ -17,6 +17,11 @@ Description     :   M5310接口
 #include "stdbool.h"
 
 
+
+#define		BLE_RESET_ENABLE	(PAout(15) = 1)
+#define		BLE_RESET_DISABLE	(PAout(15) = 0)
+
+
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_BLE_Init
 Author			:	zhaoji
@@ -76,6 +81,36 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 bool _CMIOT_GetBleConnectedState(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BleReset
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	复位蓝牙模块
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BleReset(void);
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BleResetGpioInit
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	蓝牙复位引脚初始化
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BleResetGpioInit(void);
+
+
+
+
+
+
 
 
 

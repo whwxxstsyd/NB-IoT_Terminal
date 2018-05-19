@@ -10,6 +10,7 @@ Description     :   UI接口
 
 #include "stm32f10x.h"
 #include "stdio.h"
+#include "sys.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -35,6 +36,10 @@ typedef struct
 	CM_KEY	pressKey;			/* 当前按下的按键 */
 	
 }CM_MENU_POSITION;
+
+
+#define		BATTERY_CHRG	(!PCin(8))
+#define		BATTERY_STDBY	(!PCin(9))
 
 
 /*-----------------------------------------------------------------------------
@@ -101,13 +106,24 @@ void _CMIOT_ShowSignalStrength(uint8_t csqValue);
 Function Name	:	_CMIOT_ShowBatteryLevel
 Author			:	zhaoji
 Created Time	:	2018.03.29
-Description 	: 	显示电池电量
+Description 	: 	绘制电池电量
 Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowBatteryLevel(uint8_t percentValue);
 
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_ShowBatteryTips
+Author			:	zhaoji
+Created Time	:	2018.05.19
+Description 	: 	显示电池信息
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_ShowBatteryTips(void);
 
 
 #endif // __UI_H__
