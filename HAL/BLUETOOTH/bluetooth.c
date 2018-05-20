@@ -24,6 +24,7 @@ Description     :   M5310接口
 #include "stdio.h"
 #include "bluetooth.h"
 #include "timers.h"
+#include "adc.h"
 
 
 /*----------------------------------------------------------------------------*
@@ -288,7 +289,7 @@ uint8_t _CMIOT_BLE_SetPacketInterval(void)
 Function Name	:	_CMIOT_BLE_SetName
 Author			:	zhaoji
 Created Time	:	2018.04.10
-Description 	: 	设置BLE名称（NB-IoT_IMEI后四位） 用于被搜索时区分不同终端
+Description 	: 	设置BLE名称（D5200_IMEI后四位） 用于被搜索时区分不同终端
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -508,6 +509,12 @@ void _CMIOT_BLE_RSP_deviceInfo(void)
 	strcat((char *)rsp, (const char*)msg);
 	strcat((char *)rsp, "</firmware>");
 	
+	/* 电池电压 */
+	sprintf((char *)msg, "%.1f", cm_getBatteryVol());
+	strcat((char *)rsp, "<voltage>");
+	strcat((char *)rsp, (const char*)msg);
+	strcat((char *)rsp, "</voltage>");
+	
 	strcat((char *)rsp, "</deviceInfo></Response>");
 	
 	/* 发送到蓝牙模块 */
@@ -530,15 +537,21 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	uint8_t t3324[32] = {0};
 	uint8_t t3412[32] = {0};
 	uint8_t plmn[32] = {0};
+	uint8_t apn[32] = {0};
 	CMIOT_UE_STATE ue_state;
+	CMIOT_UE_STATE_CELL ue_state_cell;
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	/* Ping测试防止模组进入PSM模式后射频参数不准确 */
 	_CMIOT_GetNetworkDelay((uint8_t *)PING_ADDR, 100, 5000);
 	
 	strcat((char *)rsp, "<Response><radioInfo>");
-	/* csq */
-	sprintf((char *)msg, "<rssi>%d</rssi>", _CMIOT_M5310_GetSignalstrength());
+	ue_state_cell = _CMIOT_GetUeCellStats();
+	/* rssi */
+	sprintf((char *)msg, "<rssi>%d</rssi>", ue_state_cell.rssi);
+	strcat((char *)rsp, (const char*)msg);
+	/* rsrp */
+	sprintf((char *)msg, "<rsrp>%d</rsrp>", ue_state_cell.rsrp);
 	strcat((char *)rsp, (const char*)msg);
 	
 	ue_state = _CMIOT_M5310_GetUeState();
@@ -567,6 +580,10 @@ void _CMIOT_BLE_RSP_radioInfo(void)
 	/* plmn */
 	_CMIOT_GetPLMN(plmn, sizeof(plmn));
 	sprintf((char *)msg, "<plmn>%s</plmn>", plmn);
+	strcat((char *)rsp, (const char*)msg);
+	/* apn */
+	cm_getAPN(apn, sizeof(apn));
+	sprintf((char *)msg, "<apn>%s</apn>", apn);
 	strcat((char *)rsp, (const char*)msg);
 	
 	strcat((char *)rsp, "</radioInfo></Response>");
@@ -643,7 +660,6 @@ Return Value	:
 void _CMIOT_BLE_RSP_comprehensiveTest(void)
 {
 	uint8_t rsp[256] = {0};
-	CMIOT_UE_STATE ue_state;
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
@@ -655,18 +671,13 @@ void _CMIOT_BLE_RSP_comprehensiveTest(void)
 	/* pingDelay */
 	sprintf((char *)msg, "<pingDelay>%d</pingDelay>", _CMIOT_GetNetworkDelay((uint8_t *)"114.114.114.114", 100, 10000));
 	strcat((char *)rsp, (const char*)msg);
+	
 	/* csq */
-	sprintf((char *)msg, "<csq>%d</csq>", _CMIOT_M5310_GetSignalstrength());
+	sprintf((char *)msg, "<rssi>%d</rssi>", _CMIOT_GetUeCellStats().rssi);
 	strcat((char *)rsp, (const char*)msg);
-	/* uestats */
-	ue_state.snr = 0;
-	ue_state.earfcn = 0;
-	ue_state.rsrq = 0;
-	ue_state.ecl = 0;
-	memset(ue_state.cellid, 0, 16);
-	ue_state = _CMIOT_M5310_GetUeState();
+
 	/* snr */
-	sprintf((char *)msg, "<snr>%d</snr>", ue_state.snr);
+	sprintf((char *)msg, "<snr>%d</snr>", _CMIOT_M5310_GetUeState().snr);
 	strcat((char *)rsp, (const char*)msg);
 	
 	strcat((char *)rsp, "</comprehensive></Response>");
@@ -693,13 +704,13 @@ void _CMIOT_BLE_DataProcess(void)
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-	if(strstr((const char*)UART_BLE_RxBuffer, "<Response>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Response>") != NULL)
-	{
-		/* 定位并获取命令参数 */
-		p_head = strstr((const char*)UART_BLE_RxBuffer, "<Response>") + strlen("<Response>");
-		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Response>");
-		_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t*)p_head, p_tail-p_head);
-	}
+//	if(strstr((const char*)UART_BLE_RxBuffer, "<Response>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Response>") != NULL)
+//	{
+//		/* 定位并获取命令参数 */
+//		p_head = strstr((const char*)UART_BLE_RxBuffer, "<Response>") + strlen("<Response>");
+//		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Response>");
+//		_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t*)p_head, p_tail-p_head);
+//	}
 	
 	if(strstr((const char*)UART_BLE_RxBuffer, "<Request>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL)
 	{
@@ -773,6 +784,10 @@ void _CMIOT_BLE_DataProcess(void)
 			/* 未知蓝牙命令 */
 			_CMIOT_Debug("%s(unknow cmd)\r\n", __func__);
 		}
+	}
+	else
+	{
+		_CMIOT_Debug("%s(error request data!)\r\n", __func__);
 	}
 	/* 清空BLE接收Buffer */
 	_CMIOT_Debug("%s(Clear ble buffer)\r\n", __func__);

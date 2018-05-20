@@ -35,7 +35,7 @@ Description     :   主程序入口
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
 #define	CLI_MAX_OUTPUT_LENGTH   100
-#define CLI_MAX_INPUT_LENGTH    100
+#define CLI_MAX_INPUT_LENGTH    256
 
 
 /*----------------------------------------------------------------------------*
@@ -86,9 +86,22 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 int main(void)
-{
-	/* 初始化systick实现普通延时 */
+{	
+	/* 检查是否被看门狗重启 */
+	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
+	{
+		_CMIOT_Debug("\r\n*****<ERROR>REBOOT BECAUSE STM32 IWDG!<ERROR>*****\r\n");
+		RCC_ClearFlag();
+		
+		_CMIOT_BleResetGpioInit();				/* 初始BLE复位GPIO */
+		_CMIOT_BleReset();						/* 复位BLE模组，后续重新初始化模组 */
+	}
+	
+	/* 初始化延时 */
 	delay_init();
+	
+	/* ADC初始化 */
+	Adc_Init();
 	
 	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
@@ -105,44 +118,28 @@ int main(void)
 	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
 	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
-	POINT_COLOR = DARKBLUE;
+	POINT_COLOR = BLACK;
 	BACK_COLOR = WHITE;
-	LCD_ShowString(10, 300, 16, (u8 *)"LCD Init OK!");
+	LCD_ShowString(10, 300, 16, (u8 *)"Usart Init OK!");
 	delay_ms(500);
 	
 	/* M5310初始化 */
-	LCD_ShowString(10, 300, 16, (u8 *)"Mod Init ...");
+	LCD_ShowString(10, 300, 16, (u8 *)"NB-IoT Module Init ...");
 	_CMIOT_M5310_Init();
-	LCD_ShowString(10, 300, 16, (u8 *)"Mod Init OK!");
-	
-	/* ADC初始化 */
-	LCD_ShowString(10, 300, 16, (u8 *)"ADC Init ...");
-	Adc_Init();
-	LCD_ShowString(10, 300, 16, (u8 *)"ADC Init OK!");
-	delay_ms(500);
-	
-	/* 检查是否被看门狗重启 */
-	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
-	{
-		_CMIOT_Debug("\r\n*****<ERROR>Reset by stm32 IWDG!<ERROR>*****\r\n");
-		RCC_ClearFlag();
-		
-		_CMIOT_BleResetGpioInit();				/* 初始BLE复位GPIO */
-		_CMIOT_BleReset();						/* 复位模组 */	
-	}
-	
+	LCD_ShowString(10, 300, 16, (u8 *)"NB-IoT Module Init OK!");
+
 	/* 初始化蓝牙模块 */
-	LCD_ShowString(10, 300, 16, (u8 *)"BLE Init ...");
+	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init ...    ");
 	_CMIOT_BLE_Init();
-	LCD_ShowString(10, 300, 16, (u8 *)"BLE Init OK!");
+	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init OK!    ");
 	
 	/* 初始化电池检测 */
 	_CMIOT_BatteryCheckInit();
-	LCD_ShowString(10, 300, 16, (u8 *)"BAT Init OK!");
+	LCD_ShowString(10, 300, 16, (u8 *)"Battery detection OK! ");
 	delay_ms(500);
 	
-	/* 显示设备初始化OK */
-	LCD_ShowString(10, 300, 16, (u8 *)"Dev Init OK!");
+	/* FreeRTOS初始化 */
+	LCD_ShowString(10, 300, 16, (u8 *)"FreeRTOS System Init...");
 
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
@@ -335,8 +332,6 @@ Return Value	:
 void _CMIOT_BluetoothTaskProc(void *pvParameters)
 {
 	uint32_t notifyValue;
-	/* 初始化蓝牙模块 */
-	// _CMIOT_BLE_Init();
 	/* 接收通知 */
 	while(1)
 	{
@@ -382,13 +377,13 @@ void _CMIOT_IWDG_Configuration(void)
 {
 	TimerHandle_t watchDogTimer;
 	/* 喂狗时间计算： T =  (IWDG_Prescaler*Reload)/40(ms)      */
-    RCC_LSICmd(ENABLE);	//打开LSI  
-    while(RCC_GetFlagStatus(RCC_FLAG_LSIRDY)==RESET);  
-  
-    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);  
-    IWDG_SetPrescaler(IWDG_Prescaler_256);  
+    RCC_LSICmd(ENABLE);	//打开LSI
+    while(RCC_GetFlagStatus(RCC_FLAG_LSIRDY)==RESET);
+	
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+    IWDG_SetPrescaler(IWDG_Prescaler_256);
     IWDG_SetReload(782);	/* 782*256/40 ≈ 5000ms */
-    IWDG_ReloadCounter();  
+    IWDG_ReloadCounter();
     IWDG_Enable();
 	
 	/* 每3秒喂一次狗 */
@@ -396,7 +391,7 @@ void _CMIOT_IWDG_Configuration(void)
 								(TickType_t     )3000,
 								(UBaseType_t    )pdTRUE,
 								(void*          )1,
-								(TimerCallbackFunction_t)IWDG_ReloadCounter);
+								(TimerCallbackFunction_t)_CMIOT_IWDG_ReloadCounter);
 								
 	xTimerStart(watchDogTimer, 0);
 }

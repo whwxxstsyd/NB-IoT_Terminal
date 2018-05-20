@@ -420,7 +420,7 @@ void _CMIOT_ShowRadioInfo()
 			LCD_Fill(117,45,239,65,WHITE);
 			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"良", DARKGREEN, WHITE);
 		}
-		else if(ue_state_cell.rsrp >= -1200)
+		else if(ue_state_cell.rsrp >= -1150)
 		{
 			LCD_Fill(117,45,239,65,WHITE);
 			LCD_ShowChinese(117, 45, newArial, 16, (u8 *)"中", DARKGREEN, WHITE);

@@ -66,8 +66,8 @@ BaseType_t prvGetWechatHistoryDataCommand	(char *pcWriteBuffer, size_t xWriteBuf
 static CLI_Command_Definition_t CliCommandList[] = 
 {
 	{
-		"at+debuglevel",
-		"at+debuglevel <level>, level can be: 0 or 1\r\n",
+		"at+debug",
+		"at+debug <level>, level can be: 0 or 1\r\n",
 		prvDebugLevelCommand,
 		1
 	},
@@ -140,6 +140,8 @@ void _CMIOT_CLI_Init(void)
 	{
 		FreeRTOS_CLIRegisterCommand(&CliCommandList[i]);
 	}
+	/* CLI初始化完成 */
+	_CMIOT_Debug("%s(ok!)\r\n", __func__);
 }
 
 
@@ -163,7 +165,7 @@ BaseType_t prvDebugLevelCommand(char *pcWriteBuffer,
 	debuglevel_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -218,8 +220,8 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer,
-                                size_t xWriteBufferLen,
-                                const char *pcCommandString)
+                                  size_t xWriteBufferLen,
+                                  const char *pcCommandString)
 {
 	char *msg;
 	msg = pvPortMalloc(64 * sizeof(char));
@@ -253,8 +255,8 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 BaseType_t prvSendAt2NbModuleCommand(char *pcWriteBuffer,
-								size_t xWriteBufferLen,
-								const char *pcCommandString)
+									 size_t xWriteBufferLen,
+									 const char *pcCommandString)
 {
 	BaseType_t paraLen;
 	const uint8_t *at_str;
@@ -279,15 +281,15 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 BaseType_t prvEnableNbDebugModeCommand(char *pcWriteBuffer,
-									size_t xWriteBufferLen,
-									const char *pcCommandString)
+										size_t xWriteBufferLen,
+										const char *pcCommandString)
 {
 	BaseType_t paraLen;
 	const uint8_t *state_str;
 	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -319,8 +321,8 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 BaseType_t prvSendAt2BleModuleCommand(char *pcWriteBuffer,
-									size_t xWriteBufferLen,
-									const char *pcCommandString)
+									  size_t xWriteBufferLen,
+									  const char *pcCommandString)
 {
 	BaseType_t paraLen;
 	const uint8_t *at_str;
@@ -353,7 +355,7 @@ BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer,
 	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -385,8 +387,8 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 BaseType_t prvGetWechatHistoryListCommand(char *pcWriteBuffer,
-										size_t xWriteBufferLen,
-										const char *pcCommandString)
+										  size_t xWriteBufferLen,
+										  const char *pcCommandString)
 {
 	if((menuPosition.xPosition + menuPosition.yPosition * 3) == 5 && menuPosition.subMenu == 1)
 	{
@@ -411,15 +413,15 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 BaseType_t prvGetWechatHistoryDataCommand(char *pcWriteBuffer,
-										size_t xWriteBufferLen,
-										const char *pcCommandString)
+										  size_t xWriteBufferLen,
+										  const char *pcCommandString)
 {
 	BaseType_t paraLen;
 	uint8_t *str;
 	str = (uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
-	if(paraLen != 1)
+	if(paraLen == 0)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter number not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	

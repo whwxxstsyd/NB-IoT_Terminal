@@ -30,7 +30,7 @@ extern uint8_t   UART_M5310_RxBuffer[512];
 extern uint32_t  UART_M5310_RxBufferLen;
 
 /* USART2(UART_CLI_DEBUG)数据接收buffer */
-extern uint8_t   UART_CLI_RxBuffer[128];
+extern uint8_t   UART_CLI_RxBuffer[256];
 extern uint32_t  UART_CLI_RxBufferLen;
 
 /* USART1(UART_BLUETOOTH)数据接收buffer */
@@ -304,6 +304,8 @@ void USART1_IRQHandler(void)
 	// 
 	uint8_t recvByte;
 	BaseType_t bleNotifyValue;
+	char *p_head;
+	char *p_end;
 	
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
@@ -334,11 +336,23 @@ void USART1_IRQHandler(void)
 			UART_BLE_RxBufferLen ++;
 		}
 		/* 接收到完整的请求内容后，向BLE蓝牙线程发送通知 */
-		if((_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Request>") ||  \
-			_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Response>")) \
+		if((_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Request>")) \
 			&& (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
 		{
 			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向CLI任务发送任务通知 */
+		}
+		else if((_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Response>")) \
+			&& (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
+		{
+			p_head = strstr((const char*)UART_BLE_RxBuffer, "<Response>");
+			if(p_head != NULL)
+			{
+				p_head += strlen("<Response>");
+				p_end = strstr((const char*)UART_BLE_RxBuffer, "</Response>");
+				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)p_head, p_end - p_head);
+			}
+			memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+			UART_BLE_RxBufferLen = 0;
 		}
 	}
 }

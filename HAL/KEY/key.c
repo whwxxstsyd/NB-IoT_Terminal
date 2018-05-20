@@ -163,35 +163,11 @@ Return Value	:
 void EXTI2_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
-	
-//	if (EXTI_GetITStatus(EXTI_Line2) == RESET)
-//	{
-//		return;
-//	}
-//	
-//	_CMIOT_Debug("%s(KEY_DOWN Pressed Down)\r\n", __func__);
-//	delay_ms(10);//延时消抖
-//	if(KEY_DOWN==0)    //按键真的被按下
-//	{
-//		if(menuPosition.yPosition < 1 || (menuPosition.yPosition == 1 && menuPosition.xPosition == 0))
-//		{
-//			menuPosition.yPosition++;
-//		}
-//		menuPosition.pressKey = KEYPAD_DOWN;
-//		
-//		// while(KEY_DOWN==0);//等待松手
-//		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-//		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
-//		
-
-//		
-//	}
-//	EXTI_ClearITPendingBit(EXTI_Line2); //清楚中断标志位 
 
 	if(EXTI_GetITStatus(EXTI_Line2) != RESET)
 	{
 		EXTI_ClearITPendingBit(EXTI_Line2); //清楚中断标志位
-		// delay_ms(5);	//延时消抖
+		delay_xms(10);	//延时消抖
 		if(KEY_DOWN == 0)
 		{
 			_CMIOT_Debug("%s(KEY_DOWN Pressed Down)\r\n", __func__);
@@ -202,7 +178,7 @@ void EXTI2_IRQHandler(void)
 				CM_UI_BUSY = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
-				delay_ms(5);
+				delay_ms(1);
 			}
 			else
 			{
@@ -225,32 +201,11 @@ Return Value	:
 void EXTI3_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
-	
-//	if (EXTI_GetITStatus(EXTI_Line3) == RESET)
-//	{
-//		return;
-//	}
-//	delay_ms(10);//延时消抖
-//	if(KEY_UP==0)    //按键真的被按下
-//	{
-//		_CMIOT_Debug("%s(KEY_UP Pressed Down)\r\n", __func__);
-
-//		if(menuPosition.yPosition > 0)
-//		{
-//			menuPosition.yPosition--;
-//		}
-//		menuPosition.pressKey = KEYPAD_UP;
-
-//		// while(KEY_UP==0);//等待松手
-//		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-//		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
-//	}
-//	EXTI_ClearITPendingBit(EXTI_Line3); //清楚中断标志位 
 
 	if(EXTI_GetITStatus(EXTI_Line3) != RESET)
 	{
 		EXTI_ClearITPendingBit(EXTI_Line3); //清楚中断标志位
-		// delay_ms(10);	//延时消抖
+		delay_xms(10);	//延时消抖
 		if(KEY_UP==0)
 		{
 			_CMIOT_Debug("%s(KEY_UP Pressed Down)\r\n", __func__);
@@ -261,7 +216,7 @@ void EXTI3_IRQHandler(void)
 				CM_UI_BUSY = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
-				delay_ms(5);
+				delay_ms(1);
 			}
 			else
 			{
@@ -286,32 +241,11 @@ void EXTI4_IRQHandler(void)
 {
 	BaseType_t cliNotifyValue;
 	
-//	if (EXTI_GetITStatus(EXTI_Line4) == RESET)
-//	{
-//		return;
-//	}
-//	_CMIOT_Debug("%s(KEY_LEFT Pressed Down)\r\n", __func__);
-//	delay_ms(10);//延时消抖
-//	if(KEY_LEFT==0)    //按键真的被按下
-//	{
-//		if(menuPosition.xPosition > 0)
-//		{
-//			menuPosition.xPosition--;
-//		}
-//		menuPosition.pressKey = KEYPAD_LEFT;
-//		
-//		// while(KEY_LEFT==0);//等待松手
-//		_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-//		vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
-//	}
-//	EXTI_ClearITPendingBit(EXTI_Line4); //清楚中断标志位 
-
-	
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
 		EXTI_ClearITPendingBit(EXTI_Line4); //清楚中断标志位 
 		
-		// delay_ms(10);	//延时消抖
+		delay_xms(10);	//延时消抖
 		if(KEY_LEFT==0)
 		{
 			_CMIOT_Debug("%s(KEY_LEFT Pressed Down)\r\n", __func__);
@@ -322,7 +256,7 @@ void EXTI4_IRQHandler(void)
 				CM_UI_BUSY = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
-				delay_ms(5);
+				delay_ms(1);
 			}
 			else
 			{
@@ -349,26 +283,9 @@ void EXTI15_10_IRQHandler(void)
 	
 	if (EXTI_GetITStatus(EXTI_Line12) != RESET)
 	{
-//		_CMIOT_Debug("%s(KEY_RIGHT Pressed Down)\r\n", __func__);
-//		delay_ms(10);//延时消抖
-//		if(KEY_RIGHT==0)    //按键真的被按下
-//		{
-//			if(menuPosition.yPosition < 2 && menuPosition.xPosition < 2)
-//			{
-//				menuPosition.xPosition++;
-//			}
-//			menuPosition.pressKey = KEYPAD_RIGHT;
-//			
-//			// while(KEY_RIGHT==0);//等待松手
-//			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-//			vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
-//		}
-//		EXTI_ClearITPendingBit(EXTI_Line12); //清楚中断标志位 
-		
-		
 		EXTI_ClearITPendingBit(EXTI_Line12); //清楚中断标志位 
 		
-		// delay_ms(10);//延时消抖
+		delay_xms(10);//延时消抖
 		if(KEY_RIGHT==0)
 		{
 			_CMIOT_Debug("%s(KEY_RIGHT Pressed Down)\r\n", __func__);
@@ -379,7 +296,7 @@ void EXTI15_10_IRQHandler(void)
 				CM_UI_BUSY = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
-				delay_ms(5);
+				delay_ms(1);
 			}
 			else
 			{
@@ -390,29 +307,8 @@ void EXTI15_10_IRQHandler(void)
 	
 	if (EXTI_GetITStatus(EXTI_Line11) != RESET)
 	{
-//		_CMIOT_Debug("%s(KEY_ENTER Pressed Down)\r\n", __func__);
-//		delay_ms(10);//延时消抖
-//		if(KEY_ENTER==0)    //按键真的被按下
-//		{
-//			if(menuPosition.subMenu == 0)
-//			{
-//				menuPosition.subMenu = 1;
-//			}
-//			else
-//			{
-//				menuPosition.subMenu = 0;
-//			}
-//			menuPosition.pressKey = KEYPAD_ENTER;
-//			
-//			// while(KEY_ENTER==0);//等待松手
-//			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-//			vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向任务发送任务通知 */
-//		}
-//		EXTI_ClearITPendingBit(EXTI_Line11); //清楚中断标志位 
-		
-		
 		EXTI_ClearITPendingBit(EXTI_Line11); //清楚中断标志位 
-		// delay_ms(10);//延时消抖
+		delay_xms(10);//延时消抖
 		if(KEY_ENTER==0 && !CM_UI_BUSY)
 		{
 			_CMIOT_Debug("%s(KEY_ENTER Pressed Down)\r\n", __func__);
@@ -428,7 +324,7 @@ void EXTI15_10_IRQHandler(void)
 			CM_UI_BUSY = true;
 			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
 			vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向发送任务通知 */
-			delay_ms(5);
+			delay_ms(1);
 		}
 	}
 }

@@ -406,7 +406,6 @@ CMIOT_UE_STATE _CMIOT_M5310_GetUeState(void)
 }
 
 
-
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_GetModuleName
 Author			:	zhaoji
@@ -423,9 +422,9 @@ uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 	uint8_t result;
 	char *p_head, *p_end;
 	
-	memset(ModuleName, 0, buffersize);
 	while(maxRetryCounts > 0)
 	{
+		memset(ModuleName, 0, buffersize);
 		maxRetryCounts--;
 		result = _CMIOT_ExecuteAtCmd((uint8_t *)("AT+CGMM\r\n"), cgmm_MatchStr, 2, 2000);
 		
@@ -442,8 +441,12 @@ uint8_t _CMIOT_GetModuleName(uint8_t *ModuleName, uint32_t buffersize)
 			}
 			p_end  = strstr((const char *)p_head, "\r\n\r\nOK");
 			strncat((char *)ModuleName, p_head, p_end - p_head);
-			_CMIOT_Debug("%s(%s)\r\n", __func__, ModuleName);
-			return 1;
+			/* 模组型号以M开头，避免出现开机启动信息的误判断 */
+			if(_CMIOT_Str_StartWith(ModuleName, (uint8_t *)"M"))
+			{
+				_CMIOT_Debug("%s(%s)\r\n", __func__, ModuleName);
+				return 1;
+			}
 		}
 		delay_ms(500);
 	}

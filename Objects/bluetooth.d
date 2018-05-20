@@ -49,3 +49,4 @@
 .\objects\bluetooth.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 .\objects\bluetooth.o: HAL\BLUETOOTH\bluetooth.h
 .\objects\bluetooth.o: .\FreeRTOS\include\timers.h
+.\objects\bluetooth.o: .\HAL\ADC\adc.h
