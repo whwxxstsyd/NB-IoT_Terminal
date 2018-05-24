@@ -34,3 +34,14 @@
 .\objects\st7789s.o: HAL\LCD\font.h
 .\objects\st7789s.o: .\HAL\USART\usart.h
 .\objects\st7789s.o: .\SYSTEM\delay\delay.h
+.\objects\st7789s.o: .\FreeRTOS\include\FreeRTOS.h
+.\objects\st7789s.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\objects\st7789s.o: .\FreeRTOS\include\FreeRTOSConfig.h
+.\objects\st7789s.o: .\HAL\TIMER\timer.h
+.\objects\st7789s.o: .\FreeRTOS\include\projdefs.h
+.\objects\st7789s.o: .\FreeRTOS\include\portable.h
+.\objects\st7789s.o: .\FreeRTOS\include\deprecated_definitions.h
+.\objects\st7789s.o: .\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h
+.\objects\st7789s.o: .\FreeRTOS\include\mpu_wrappers.h
+.\objects\st7789s.o: .\FreeRTOS\include\task.h
+.\objects\st7789s.o: .\FreeRTOS\include\list.h

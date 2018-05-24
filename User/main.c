@@ -52,8 +52,13 @@ TaskHandle_t cli_task;       	/* CLI任务     */
 TaskHandle_t m5310_task;     	/* M5310任务   */
 TaskHandle_t lcd_task;       	/* LCD任务     */
 TaskHandle_t bluetooth_task;	/* 蓝牙任务    */
+TaskHandle_t bleCmdProcess_task = NULL;	/* 蓝牙命令处理任务 */
+
 
 CM_MENU_POSITION menuPosition = {0, 0, 0, 0, 0, KEYPAD_ENTER};	/* 菜单位置 */
+
+/* 蓝牙执行AT指令标志位 */
+extern bool BLE_AT_EXE_FLAG;
 
 
 /*----------------------------------------------------------------------------*
@@ -86,7 +91,19 @@ Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
 int main(void)
-{	
+{
+	/* 初始化延时 */
+	delay_init();
+	
+	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	
+	/* 初始化串口 */
+	_CMIOT_Uart_Init(UART_CLI_DEBUG, 921600);
+	_CMIOT_Uart_Init(UART_M5310, 9600);
+	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
+	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
+	
 	/* 检查是否被看门狗重启 */
 	if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
 	{
@@ -97,26 +114,14 @@ int main(void)
 		_CMIOT_BleReset();						/* 复位BLE模组，后续重新初始化模组 */
 	}
 	
-	/* 初始化延时 */
-	delay_init();
-	
 	/* ADC初始化 */
 	Adc_Init();
-	
-	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 	
 	/* 初始化LCD */
 	LCD_Init();
 	
 	/* 显示启动界面 */
 	_CMIOT_UI_BootPage();
-	
-	/* 初始化串口 */
-	_CMIOT_Uart_Init(UART_CLI_DEBUG, 921600);
-	_CMIOT_Uart_Init(UART_M5310, 9600);
-	_CMIOT_Uart_Init(UART_BLUETOOTH, 57600);
-	_CMIOT_Debug("%s(UART Init OK!)\r\n", __func__);
 	
 	POINT_COLOR = BLACK;
 	BACK_COLOR = WHITE;
@@ -133,13 +138,8 @@ int main(void)
 	_CMIOT_BLE_Init();
 	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init OK!    ");
 	
-	/* 初始化电池检测 */
-	_CMIOT_BatteryCheckInit();
-	LCD_ShowString(10, 300, 16, (u8 *)"Battery detection OK! ");
-	delay_ms(500);
-	
 	/* FreeRTOS初始化 */
-	LCD_ShowString(10, 300, 16, (u8 *)"FreeRTOS System Init...");
+	LCD_ShowString(10, 300, 16, (u8 *)"FreeRTOS System starting...");
 
 	/* 创建开始任务，开始任务在创建好其它任务后删除 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
@@ -167,13 +167,16 @@ void _CMIOT_StartTaskProc(void *pvParameters)
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
 	_CMIOT_IWDG_Configuration();	/* 初始化看门狗及喂狗定时器 */
-
+	
+	/* 初始化电池检测 */
+	_CMIOT_BatteryCheckInit();
+	
 	taskENTER_CRITICAL();   /* 进入临界区 */
 	
 	/* 创建CLI任务 */
 	xTaskCreate((TaskFunction_t      )_CMIOT_CliTaskProc,
 				(const char*         )"cli_task",
-				(uint16_t            )256,
+				(uint16_t            )512,
 				(void*               )NULL,
 				(UBaseType_t         )1,
 				(TaskHandle_t*       )&cli_task);
@@ -321,6 +324,32 @@ void _CMIOT_M5310TaskProc(void *pvParameters)
 
 
 /*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_BleCmdProcessTaskProc
+Author			:	zhaoji
+Created Time	:	2018.05.21
+Description 	:	蓝牙命令处理任务入口函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_BleCmdProcessTaskProc(void *pvParameters)
+{
+	_CMIOT_Debug("%s() ...\r\n", __func__);
+	/* 处理接收到的蓝牙数据 */
+	_CMIOT_BLE_DataProcess();
+	
+	while(1)
+	{
+		if(!BLE_AT_EXE_FLAG)
+		{
+			_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+			delay_ms(5000);
+		}
+	}
+}
+
+
+/*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_BluetoothTaskProc
 Author			:	zhaoji
 Created Time	:	2018.04.02
@@ -341,8 +370,25 @@ void _CMIOT_BluetoothTaskProc(void *pvParameters)
 		
 		if(notifyValue == 1)   /* 获取到任务通知 */
 		{
-			/* 处理接收到的蓝牙数据 */
-			_CMIOT_BLE_DataProcess();
+			taskENTER_CRITICAL();   /* 进入临界区 */
+			
+			/* 删除创建线程 */
+			if(bleCmdProcess_task != NULL)
+			{
+				vTaskDelete(bleCmdProcess_task);   /* 删除任务 */
+				bleCmdProcess_task = NULL;
+				_CMIOT_Debug("%s(Delete bleCmdProcess task)\r\n", __func__);
+			}
+			
+			/* 创建蓝牙命令处理任务 */
+			xTaskCreate((TaskFunction_t      )_CMIOT_BleCmdProcessTaskProc,
+						(const char*         )"bleCmdProcess_task",
+						(uint16_t            )1024,
+						(void*               )NULL,
+						(UBaseType_t         )1,
+						(TaskHandle_t*       )&bleCmdProcess_task);
+						
+			taskEXIT_CRITICAL();   /* 退出临界区 */
 		}
 	}
 }
@@ -382,13 +428,13 @@ void _CMIOT_IWDG_Configuration(void)
 	
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
     IWDG_SetPrescaler(IWDG_Prescaler_256);
-    IWDG_SetReload(782);	/* 782*256/40 ≈ 5000ms */
+    IWDG_SetReload(1600);	/* 1600*256/40 ≈ 10000ms */
     IWDG_ReloadCounter();
     IWDG_Enable();
 	
 	/* 每3秒喂一次狗 */
 	watchDogTimer = xTimerCreate((const char*   )"WatchDogTimer",
-								(TickType_t     )3000,
+								(TickType_t     )5000,
 								(UBaseType_t    )pdTRUE,
 								(void*          )1,
 								(TimerCallbackFunction_t)_CMIOT_IWDG_ReloadCounter);
@@ -453,6 +499,6 @@ void _CMIOT_BatteryCheckInit(void)
 	/* 初始化IO */
 	_CMIOT_BatteryChargeGpioInit();
 	/* 开启检测 */
-	_CMIOT_StartBatteryStateShow();
+	// _CMIOT_StartBatteryStateShow();
 }
 

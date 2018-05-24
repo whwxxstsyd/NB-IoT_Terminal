@@ -382,9 +382,10 @@ CMIOT_UE_STATE _CMIOT_M5310_GetUeState(void)
 			}
 			
 			/* CELL ID*/
-			pSta = strstr((const char *)UART_M5310_RxBuffer, "Cell ID:") + strlen("Cell ID:");
+			pSta = strstr((const char *)UART_M5310_RxBuffer, "Cell ID:");
 			if(pSta != NULL)
 			{
+				pSta += strlen("Cell ID:");
 				pEnd = strstr(pSta, "\r\n");
 				memcpy(ue_state.cellid, pSta, pEnd-pSta);
 				_CMIOT_Debug("%s(CELLID: %s)\r\n", __func__, ue_state.cellid);
@@ -1394,6 +1395,7 @@ void _CMIOT_M5310PowerGpioInit(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOB, GPIO_Pin_6);
 }
 
 
@@ -1408,35 +1410,18 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_M5310_Init(void)
 {
-	uint8_t maxRetryCounts = 5;
 	_CMIOT_M5310PowerGpioInit();
-	M5310_POWER_OFF;	/* 关机 */
 	delay_ms(1000);
 	M5310_POWER_ON;		/* 开机 */
 	
-	while(maxRetryCounts > 0)
+	if(cm_IsNbModuleAlive())	/* 检测模组是否启动成功 */
 	{
-		if(cm_IsNbModuleAlive())	/* 检测模组是否启动成功 */
-		{
-			break;
-		}
-		delay_ms(1000);
-	}
-	/* 打开扰码 */
-	_CMIOT_SetScramblingState(true);
-	/* 打开自动入网 */
-	_CMIOT_SetAutoConnect(true);
-	/* 重启模组 */
-	_CMIOT_NbModule_Reboot();
-	/* 检测模组是否启动成功 */
-	maxRetryCounts = 5;
-	while(maxRetryCounts > 0)
-	{
-		if(cm_IsNbModuleAlive())
-		{
-			break;
-		}
-		delay_ms(1000);
+		/* 打开扰码 */
+		_CMIOT_SetScramblingState(true);
+		/* 打开自动入网 */
+		_CMIOT_SetAutoConnect(true);
+		/* 重启模组 */
+		_CMIOT_NbModule_Reboot();
 	}
 }
 

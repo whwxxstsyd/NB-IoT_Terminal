@@ -469,7 +469,7 @@ void _CMIOT_BLE_RSP_deviceInfo(void)
 {
 	uint8_t rsp[512] = {0};
 	
-	_CMIOT_Debug("%s...\r\n", __func__);
+	_CMIOT_Debug("%s() ...\r\n", __func__);
 	
 	strcat((char *)rsp, "<Response><deviceInfo>");
 	
@@ -631,7 +631,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_BLE_RSP_pingDelay(void)
 {
-	uint8_t rsp[128] = {0};
+	uint8_t rsp[64] = {0};
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
@@ -704,14 +704,6 @@ void _CMIOT_BLE_DataProcess(void)
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-//	if(strstr((const char*)UART_BLE_RxBuffer, "<Response>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Response>") != NULL)
-//	{
-//		/* 定位并获取命令参数 */
-//		p_head = strstr((const char*)UART_BLE_RxBuffer, "<Response>") + strlen("<Response>");
-//		p_tail = strstr((const char*)UART_BLE_RxBuffer, "</Response>");
-//		_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t*)p_head, p_tail-p_head);
-//	}
-	
 	if(strstr((const char*)UART_BLE_RxBuffer, "<Request>") != NULL && strstr((const char*)UART_BLE_RxBuffer, "</Request>") != NULL)
 	{
 		_CMIOT_Debug("%s(request data)\r\n", __func__);
@@ -730,6 +722,10 @@ void _CMIOT_BLE_DataProcess(void)
 		}
 		
 		memcpy(cmd, p_head, p_tail-p_head);
+		
+		/* 清空BLE接收Buffer */
+		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+		UART_BLE_RxBufferLen = 0;
 		
 		/* 返回响应数据 */
 		if(strcmp((const char*)cmd, "deviceInfo") == 0)
@@ -761,6 +757,7 @@ void _CMIOT_BLE_DataProcess(void)
 		{
 			/* 进入蓝牙AT指令模式（工程模式） */
 			memset(UART_M5310_RxBuffer, 0, sizeof(UART_M5310_RxBuffer));
+			UART_M5310_RxBufferLen = 0;
 			BLE_AT_EXE_FLAG = true;
 			_CMIOT_Debug("%s(bleAtEnable)\r\n", __func__);
 		}
@@ -772,11 +769,12 @@ void _CMIOT_BLE_DataProcess(void)
 		}
 		else if(_CMIOT_Str_StartWith(cmd, (uint8_t *)"<AT>") && _CMIOT_Str_EndWith(cmd, (uint8_t *)"</AT>"))
 		{
+			BLE_AT_EXE_FLAG = true;
 			_CMIOT_Debug("%s(Recv AT Command)\r\n", __func__);
 			/* 发送AT指令 */
 			/* 定位并获取AT指令 */
-			p_head = strstr((const char*)UART_BLE_RxBuffer, "<AT>") + strlen("<AT>");
-			p_tail = strstr((const char*)UART_BLE_RxBuffer, "</AT>");
+			p_head = strstr((const char*)cmd, "<AT>") + strlen("<AT>");
+			p_tail = strstr((const char*)cmd, "</AT>");
 			_CMIOT_Uart_send(UART_M5310, (uint8_t *)p_head, p_tail-p_head);
 		}
 		else

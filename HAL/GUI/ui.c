@@ -35,6 +35,8 @@ static uint8_t msg[128];
 extern uint8_t   UART_BLE_RxBuffer[1024];
 extern uint32_t  UART_BLE_RxBufferLen;
 
+extern TaskHandle_t bleCmdProcess_task;	/* 蓝牙命令处理任务 */
+
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_UI_BootPage
 Author			:	zhaoji
@@ -47,7 +49,8 @@ Return Value	:
 void _CMIOT_UI_BootPage(void)
 {
 	LCD_ShowPicture(70,50,100,100,(u8 *)BootImage);
-	LCD_ShowFontHZ(60, 170, (u8 *)"中移物联网", 24, TITLEBLUE, WHITE);
+	// LCD_ShowFontHZ(75, 170, (u8 *)"中国移动", 24, TITLEBLUE, WHITE);
+	LCD_ShowChinese(75, 170, Arial, 24, (u8 *)"中国移动", TITLEBLUE, WHITE);
 	POINT_COLOR = TITLEBLUE;
 	LCD_ShowFontEN(15, 210, (u8 *)"NB-IoT", 24, TITLEBLUE, WHITE);
 	LCD_ShowFontHZ(110, 210, (u8 *)"网络测试仪", 24, TITLEBLUE, WHITE);
@@ -244,11 +247,13 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 			_CMIOT_Debug("%s(error pressKey)\r\n", __func__);
 		}
 	}
-	/* 刷新显示NB信号强度 */
 	while(1)
 	{
+		/* 显示信号强度状态 */
 		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		delay_ms(5000);
+		/* 显示电池状态 */
+		_CMIOT_ShowBatteryTips();
+		delay_ms(2000);
 	}
 }
 
@@ -656,19 +661,6 @@ void _CMIOT_ShowPingResult(void)
 	BACK_COLOR = LIGHTBLUE;
 	LCD_ShowString(70, 290, 16,  (u8 *)":");
 	
-	if(!_CMIOT_IsPdpAttached())
-	{
-		LCD_ShowChinese(65, 80, newArial, 16, (u8 *)"网络未附着", RED, WHITE);
-		while(1)
-		{
-			if(_CMIOT_IsPdpAttached())
-			{
-				break;
-			}
-			delay_ms(2000);
-		}
-	}
-	
 	/* 显示当前测试服务器地址 */
 	sprintf((char *)msg, "ping %s", PING_ADDR);
 	POINT_COLOR = BLACK;
@@ -901,6 +893,13 @@ void _CMIOT_ShowInstructionMsg(void)
 	
 	LCD_ShowChinese(5, 255, Yahei, 16, (u8 *)"速率测试", LIGHTBLUE, WHITE);
 	LCD_ShowChinese(5, 280, newArial, 16, (u8 *)"获取无线速率参数", BLACK, WHITE);
+	
+	while(1)
+	{
+		/* 显示信号强度状态 */
+		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+		delay_ms(5000);
+	}
 }
 
 
@@ -924,6 +923,8 @@ void _CMIOT_BluetoothMode(void)
 	
 	/* 进入数据透传模式 */
 	_CMIOT_BLE_EnterPassthroughMode();
+	
+	while(1);
 }
 
 
@@ -953,23 +954,7 @@ void _CMIOT_ShowSpeedInfo(void)
 	LCD_ShowString(5, 135, 16,  (uint8_t *)"MAC DL:");
 	LCD_ShowString(5, 205, 16,  (uint8_t *)"RLC UL:");
 	LCD_ShowString(5, 275, 16,  (uint8_t *)"RLC DL:");
-	
-//	LCD_ShowChinese(85, 45, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 65, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 85, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
-//	
-//	LCD_ShowChinese(85, 115, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 135, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 155, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
-//	
-//	LCD_ShowChinese(85, 185, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 205, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 225, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
-//	
-//	LCD_ShowChinese(85, 255, newArial, 16, (u8 *)"平均值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 275, newArial, 16, (u8 *)"最大值：", BLACK, WHITE);
-//	LCD_ShowChinese(85, 295, newArial, 16, (u8 *)"最小值：", BLACK, WHITE);
-	
+
 	while(1)
 	{
 		/* Ping测试防止模组进入PSM模式后射频参数不准确 */
@@ -1011,6 +996,8 @@ void _CMIOT_NBIOT_Measurement(uint8_t index)
 {
 	_CMIOT_Debug("%s(index:%d)\r\n", __func__, index);
 	LCD_Fill(0,40,239,319,WHITE);
+	LCD_Fill(210,10,235,30,WHITE);
+	
 	switch(index)
 	{
 		case 0:
@@ -1077,29 +1064,16 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	
 	index = yIndex * 3 + xIndex;
 	
-	if(index == 5)
-	{
-		_CMIOT_Debug("%s(exit form blemode)\r\n", __func__);
-		/* 退出透传模式 */
-		_CMIOT_BLE_ExitPassthroughMode();
-		/* 清空BLE接收Buffer */
-		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
-		UART_BLE_RxBufferLen = 0;
-	}
-	
 	/* 清屏 */
 	LCD_Clear(WHITE);
-	
-	/* 显示logo */
-	LCD_ShowPicture(5,5,30,30,(u8 *)LogoImage);
-	LCD_ShowChinese(35, 6, Arial, 24, (u8 *)"中移物联网", TITLEBLUE, WHITE);
-	
-	/* 显示基站信号标志符号 */
-	LCD_ShowPicture(160,10,15,20,(u8 *)gImage_signalSign);
 	
 	POINT_COLOR = BLACK;
 	LCD_DrawLine(0, 39, 239, 39);
 	
+	/* 显示logo */
+	LCD_ShowPicture(5,5,30,30,(u8 *)LogoImage);
+	LCD_ShowChinese(35, 6, Arial, 24, (u8 *)"中国移动", TITLEBLUE, WHITE);
+
 	/* 显示APP图标和功能名 */
 	LCD_ShowPicture(15,60,50,50,(u8 *)gImage_settingIcon);
 	if(index == 0){ LCD_ShowChinese(8, 110, newArial, 16, (u8 *)"设备信息", BLACK, LIGHTBLUE); }
@@ -1128,6 +1102,33 @@ void _CMIOT_GUI_Init(int8_t xIndex, int8_t yIndex)
 	LCD_ShowPicture(15,240,50,50,(u8 *)gImage_instructionsIcon);
 	if(index ==6) { LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, LIGHTBLUE); }
 	else { LCD_ShowChinese(8, 290, newArial, 16, (u8 *)"使用说明", BLACK, WHITE); }
+	
+	/* 显示基站信号标志符号 */
+	LCD_ShowPicture(160,10,15,20,(u8 *)gImage_signalSign);
+	/* 显示信号强度状态 */
+	_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+	
+	/* 显示电池状态 */
+	_CMIOT_ShowBatteryTips();
+	
+	/* 从蓝牙模式退出来 */
+	if(index == 5)
+	{
+		_CMIOT_Debug("%s(exit form blemode)\r\n", __func__);
+		/* 退出透传模式 */
+		_CMIOT_BLE_ExitPassthroughMode();
+		/* 清空BLE接收Buffer */
+		memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
+		UART_BLE_RxBufferLen = 0;
+		/* 删除蓝牙命令处理任务 */
+		/* 删除创建线程 */
+		if(bleCmdProcess_task != NULL)
+		{
+			vTaskDelete(bleCmdProcess_task);   /* 删除任务 */
+			bleCmdProcess_task = NULL;
+			_CMIOT_Debug("%s(Delete bleCmdProcess task)\r\n", __func__);
+		}
+	}
 }
 
 
@@ -1144,7 +1145,6 @@ void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 {
 	if(_CMIOT_IsPdpAttached())	/* 当前为附着状态 */
 	{
-		// LCD_ShowPicture(160,10,15,20,(u8 *)gImage_signalSign);
 		if(csqValue > 20 && csqValue <= 31)
 		{
 			LCD_Fill(175,26,178,30,DEEPBLUE);
@@ -1196,8 +1196,6 @@ void _CMIOT_ShowSignalStrength(uint8_t csqValue)
 	}
 	else
 	{
-		// LCD_ShowPicture(160,10,20,20,(u8 *)gImage_signalSign);
-		
 		if(csqValue > 20 && csqValue <= 31)
 		{
 			LCD_Fill(175,26,178,30,DARKBLUE);
@@ -1266,7 +1264,7 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		POINT_COLOR = BLACK;
 		LCD_DrawRectangle(210,12,220,30);
 		LCD_Fill(213,10,217,12,BLACK);
-		LCD_Fill(211,29-(16*percentValue/100),219,29,GREEN);
+		LCD_Fill(211,30-(17*percentValue/100),219,29,GREEN);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
 	else if(percentValue > 20)
@@ -1274,7 +1272,7 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		POINT_COLOR = BLACK;
 		LCD_DrawRectangle(210,12,220,30);
 		LCD_Fill(213,10,217,12,BLACK);
-		LCD_Fill(211,29-(16*percentValue/100),219,29,YELLOW);
+		LCD_Fill(211,30-(17*percentValue/100),219,29,YELLOW);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
 	else
@@ -1282,7 +1280,7 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		POINT_COLOR = RED;
 		LCD_DrawRectangle(210,12,220,30);
 		LCD_Fill(213,10,217,12,RED);
-		LCD_Fill(211,29-(16*percentValue/100),219,29,RED);
+		LCD_Fill(211,30-(17*percentValue/100),219,29,RED);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
 }
@@ -1300,7 +1298,6 @@ Return Value	:
 void _CMIOT_ShowBatteryTips(void)
 {
 	float batteryVol = 0;
-	taskENTER_CRITICAL();   /* 进入临界区 */
 	
 	/* 获取电池电压 */
 	batteryVol = cm_getBatteryVol();
@@ -1321,7 +1318,9 @@ void _CMIOT_ShowBatteryTips(void)
 	{
 		LCD_ShowPicture(225,10,10,20,(u8 *)gImage_chargePowerIcon);
 	}
-	
-	taskEXIT_CRITICAL();   /* 退出临界区 */
+	else
+	{
+		LCD_Fill(225, 10, 235, 30, WHITE);
+	}
 }
 

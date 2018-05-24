@@ -219,7 +219,7 @@ void cm_getbuildVersion(uint8_t *buf, uint32_t bufLen)
 		ptime ++;
 	}
 
-	snprintf((char *)buf, bufLen, "D5200 V1.0 Build%d%02d%02d Rel.%s", YEAR, MONTH + 1, DAY, time);
+	snprintf((char *)buf, bufLen, "%s V%.1f Build%d%02d%02d Rel.%s", __MODEL_NAME__, __HARDWARE_VERSION__, YEAR, MONTH + 1, DAY, time);
 }
 
 

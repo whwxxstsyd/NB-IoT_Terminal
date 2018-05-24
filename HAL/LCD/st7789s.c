@@ -2,7 +2,9 @@
 #include "stdlib.h"
 #include "font.h" 
 #include "usart.h"
-#include "delay.h"	 
+#include "delay.h"	
+#include "FreeRTOS.h"
+#include "task.h"
 					 
 //画笔颜色,背景颜色
 u16 POINT_COLOR = 0x0000,BACK_COLOR = 0xFFFF;  
@@ -274,7 +276,7 @@ void LCD_Init(void)
 //Color:要清屏的填充色
 void LCD_Clear(u16 Color)
 {
-	u32 index=0;      
+	u32 index=0;
 	LCD_SetCursor(0x00,0x0000);//设置光标位置 
 	LCD_WriteRAM_Prepare();     //开始写入GRAM	 	  
 	for(index=0;index<76800;index++)
@@ -286,7 +288,7 @@ void LCD_Clear(u16 Color)
 //区域大小:
 //  (xend-xsta)*(yend-ysta)
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
-{          
+{
 	u16 i,j;
 	u16 xlen=0;
 #if USE_HORIZONTAL==1
@@ -316,8 +318,9 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 			LCD_WR_TDATA(color);
 		}
 	}
-#endif						  	    
+#endif	
 }
+
 //画线
 //x1,y1:起点坐标
 //x2,y2:终点坐标  
@@ -354,7 +357,7 @@ void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2)
 			yerr-=distance; 
 			uCol+=incy; 
 		} 
-	}  
+	}
 }    
 //画矩形
 void LCD_DrawRectangle(u16 x1, u16 y1, u16 x2, u16 y2)
@@ -371,7 +374,7 @@ void Draw_Circle(u16 x0,u16 y0,u8 r)
 {
 	int a,b;
 	int di;
-	a=0;b=r;	  
+	a=0;b=r; 
 	di=3-(r<<1);             //判断下个点位置的标志
 	while(a<=b)
 	{
@@ -761,6 +764,7 @@ void LCD_ShowFontEN(u16 x, u16 y, u8 *cn, u8 size, u16 fontColor, u16 backColor)
 	u16 color;
 	u16 x0=x; 
 	u16 y0=y; 
+	
 	while (*cn != '\0')
 	{
 		if(size == 24)
@@ -845,7 +849,7 @@ void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor,
 			{
 				while (*cn != '\0')
 				{
-					for (wordNum=0; wordNum<13; wordNum++)
+					for (wordNum=0; wordNum<15; wordNum++)
 					{	//wordNum扫描字库的字数
 						if ((Arial24x27[wordNum].Index[0]==*cn)
 							 &&(Arial24x27[wordNum].Index[1]==*(cn+1))&&(Arial24x27[wordNum].Index[2]==*(cn+2)))

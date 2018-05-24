@@ -48,3 +48,4 @@
 .\objects\user_cli.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\objects\user_cli.o: .\HAL\USART\usart.h
 .\objects\user_cli.o: .\HAL\GUI\ui.h
+.\objects\user_cli.o: .\M5310\m5310.h

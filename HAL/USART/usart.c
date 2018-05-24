@@ -16,6 +16,7 @@ Description     :   USART接口
 #include "string.h"
 #include "timers.h"
 #include "ui.h"
+#include "delay.h"
 
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
@@ -42,6 +43,7 @@ extern TaskHandle_t bluetooth_task;		/* 蓝牙任务  */
 
 bool	NB_DEBUG_FLAG  = false;		/* NB模组调试开关标志 为true时将串口接收到的模组数据转发至单片机调试串口 */
 bool	BLE_DEBUG_FLAG = false;		/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
+bool	BLE_WECHAT_FLAG= false;		/* BLE蓝牙微信记录导出模式，为true时仅将串口接收数据发至CLI串口后直接返回 */
 
 /* 蓝牙执行AT指令标志位 */
 extern bool BLE_AT_EXE_FLAG;
@@ -301,16 +303,21 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void USART1_IRQHandler(void)
 {
-	// 
 	uint8_t recvByte;
 	BaseType_t bleNotifyValue;
-	char *p_head;
-	char *p_end;
-	
+
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
 		/* 接收数据并存储到UART3_RxBuffer中 */
 		recvByte = USART_ReceiveData(USART1);
+		/* 微信记录导出模式 */
+		if(BLE_WECHAT_FLAG)
+		{
+			USART_ClearFlag(UART_CLI_DEBUG, USART_FLAG_TC);
+			USART_SendData(UART_CLI_DEBUG, recvByte);
+			while( USART_GetFlagStatus(UART_CLI_DEBUG, USART_FLAG_TC) == RESET );
+			return;
+		}
 		
 		/* 当开启BLE蓝牙模组调试模式时，将接收到的数据发送到调试串口 */
 		if(BLE_DEBUG_FLAG)
@@ -327,6 +334,7 @@ void USART1_IRQHandler(void)
 		}
 		else
 		{
+			_CMIOT_Debug("%s(buffer is full, ready to clear)\r\n", __func__);
 			/* 如果溢出则清空缓存 */
 			memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
 			UART_BLE_RxBufferLen = 0;
@@ -339,20 +347,8 @@ void USART1_IRQHandler(void)
 		if((_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Request>")) \
 			&& (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
 		{
+			_CMIOT_Debug("%s(send task notify)\r\n", __func__);
 			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向CLI任务发送任务通知 */
-		}
-		else if((_CMIOT_Str_EndWith(UART_BLE_RxBuffer, (uint8_t *)"</Response>")) \
-			&& (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
-		{
-			p_head = strstr((const char*)UART_BLE_RxBuffer, "<Response>");
-			if(p_head != NULL)
-			{
-				p_head += strlen("<Response>");
-				p_end = strstr((const char*)UART_BLE_RxBuffer, "</Response>");
-				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)p_head, p_end - p_head);
-			}
-			memset(UART_BLE_RxBuffer, 0, sizeof(UART_BLE_RxBuffer));
-			UART_BLE_RxBufferLen = 0;
 		}
 	}
 }

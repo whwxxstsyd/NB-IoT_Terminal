@@ -47,3 +47,4 @@
 .\objects\usart.o: .\FreeRTOS\include\timers.h
 .\objects\usart.o: .\HAL\GUI\ui.h
 .\objects\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\usart.o: .\SYSTEM\delay\delay.h
