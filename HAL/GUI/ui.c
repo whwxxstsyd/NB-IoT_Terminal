@@ -1259,7 +1259,7 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 {
-	if(percentValue > 30)
+	if(percentValue >= 30)
 	{
 		POINT_COLOR = BLACK;
 		LCD_DrawRectangle(210,12,220,30);
@@ -1267,7 +1267,7 @@ void _CMIOT_ShowBatteryLevel(uint8_t percentValue)
 		LCD_Fill(211,30-(17*percentValue/100),219,29,GREEN);
 		LCD_Fill(211,13,219,29-17*percentValue/100,WHITE);
 	}
-	else if(percentValue > 20)
+	else if(percentValue >= 20)
 	{
 		POINT_COLOR = BLACK;
 		LCD_DrawRectangle(210,12,220,30);
