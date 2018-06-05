@@ -44,3 +44,4 @@
 .\objects\common.o: .\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h
 .\objects\common.o: .\FreeRTOS\include\mpu_wrappers.h
 .\objects\common.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\common.o: HAL\COMMON\build_version.h

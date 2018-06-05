@@ -1313,6 +1313,7 @@ void _CMIOT_ShowBatteryTips(void)
 	else if(batteryVol >= 3.7) { _CMIOT_ShowBatteryLevel(15); }
 	else if(batteryVol >= 3.68) { _CMIOT_ShowBatteryLevel(10); }
 	else if(batteryVol >= 3.5) { _CMIOT_ShowBatteryLevel(5); }
+	else { _CMIOT_ShowBatteryLevel(0); }
 	
 	if(BATTERY_CHRG || BATTERY_STDBY)
 	{

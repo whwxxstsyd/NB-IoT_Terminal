@@ -1,4 +1,4 @@
-Dependencies for Project 'Usart', Target 'NB-IoT_TestTerminal': (DO NOT MODIFY !)
+Dependencies for Project 'D5200', Target 'NB-IoT_TestTerminal': (DO NOT MODIFY !)
 F (.\CMSIS\startup\startup_stm32f10x_hd.s)(0x5AA0AAE6)(--cpu Cortex-M3 -g --apcs=interwork --pd "__MICROLIB SETA 1"-I D:\GitHub\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 514" --pd "STM32F10X_HD SETA 1"--list .\listings\startup_stm32f10x_hd.lst --xref -o .\objects\startup_stm32f10x_hd.o --depend .\objects\startup_stm32f10x_hd.d)
 F (.\FWlib\src\misc.c)(0x5AA0AAE6)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I D:\GitHub\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\misc.o --omf_browse .\objects\misc.crf --depend .\objects\misc.d)
 I (.\FWlib\inc\misc.h)(0x5AA0AAE6)
@@ -1371,7 +1371,7 @@ I (.\FreeRTOS\include\deprecated_definitions.h)(0x5AA0AAE6)
 I (.\FreeRTOS\portable\RVDS\ARM_CM3\portmacro.h)(0x5AA0AAE6)
 I (.\FreeRTOS\include\mpu_wrappers.h)(0x5AA0AAE6)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5475F300)
-I (HAL\COMMON\build_version.h)(0x5B169480)
+I (HAL\COMMON\build_version.h)(0x5B1696E5)
 F (.\FreeRTOS-Plus\FreeRTOS-Plus-CLI\FreeRTOS_CLI.c)(0x5AA0AAE6)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I.\CMSIS -I.\FWlib\inc -I.\User -I.\FreeRTOS\include -I.\FreeRTOS\portable\RVDS\ARM_CM3 -I.\SYSTEM\delay -I.\SYSTEM\sys -I.\HAL\TIMER -I.\HAL\USART -I.\FreeRTOS-Plus\FreeRTOS-Plus-CLI -I.\HAL\COMMON -I.\M5310 -I.\HAL\CLI -I.\HAL\LCD -I.\HAL\GUI -I.\HAL\KEY -I.\HAL\ADC -I.\HAL\BLUETOOTH --locale=english-I D:\GitHub\NB-IoT_Terminal\RTE-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DSTM32F10X_HD-o .\objects\freertos_cli.o --omf_browse .\objects\freertos_cli.crf --depend .\objects\freertos_cli.d)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5475F300)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5475F300)
