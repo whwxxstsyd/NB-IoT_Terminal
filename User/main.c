@@ -92,6 +92,8 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 int main(void)
 {
+	// _CMIOT_BleCtrlGpioInit();	/* 初始BLE控制引脚GPIO */
+	
 	/* 初始化延时 */
 	delay_init();
 	
@@ -109,9 +111,6 @@ int main(void)
 	{
 		_CMIOT_Debug("\r\n*****<ERROR>REBOOT BECAUSE STM32 IWDG!<ERROR>*****\r\n");
 		RCC_ClearFlag();
-		
-		_CMIOT_BleResetGpioInit();				/* 初始BLE复位GPIO */
-		_CMIOT_BleReset();						/* 复位BLE模组，后续重新初始化模组 */
 	}
 	
 	/* ADC初始化 */
@@ -135,6 +134,9 @@ int main(void)
 
 	/* 初始化蓝牙模块 */
 	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init ...    ");
+	
+	// _CMIOT_BleReset();	/* 复位BLE模组 */
+	// delay_ms(1000);
 	_CMIOT_BLE_Init();
 	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init OK!    ");
 	

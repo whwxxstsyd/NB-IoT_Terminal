@@ -104,7 +104,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_BleResetGpioInit(void);
+void _CMIOT_BleCtrlGpioInit(void);
 
 
 

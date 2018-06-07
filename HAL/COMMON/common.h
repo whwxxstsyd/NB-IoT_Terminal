@@ -82,10 +82,10 @@ int cm_split(uint8_t dst[][32], uint8_t *str, const uint8_t *spl);
 
 
 /*-----------------------------------------------------------------------------
-Function Name	:	getbuildtime
+Function Name	:	cm_getbuildVersion
 Author			:	zhaoji
 Created Time	:	2018.05.08
-Description 	:	获取编译时间
+Description 	:	获取版本信息
 Input Argv		:
 Output Argv 	:
 Return Value	:
