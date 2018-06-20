@@ -619,7 +619,7 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 			p_end  = strstr((const char *)p_head, "\r\n\r\nOK\r\n");
 			strncat((char *)IMEI, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMEI);
-			if(_CMIOT_Str_StartWith(IMEI, (uint8_t *)"8658"))
+			if(_CMIOT_Str_StartWith(IMEI, (uint8_t *)"86"))
 			{
 				_CMIOT_Debug("%s(OK)\r\n", __func__);
 				return 1;
@@ -1133,6 +1133,7 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 			p_head = strstr((const char *)UART_M5310_RxBuffer, ",\"IP\",");
 			if(p_head != NULL)
 			{
+
 				p_head += strlen(",\"IP\",");
 				if(*(p_head) == ',')
 				{
