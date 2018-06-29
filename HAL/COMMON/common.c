@@ -20,7 +20,7 @@
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
-bool DEBUG_FLAG = true;	/* 调试信息打印标志位，为true时将调试信息打印至调试串口 */
+bool DEBUG_FLAG = false;	/* 调试信息打印标志位，为true时将调试信息打印至调试串口 */
 
 
 /*-----------------------------------------------------------------------------
@@ -37,15 +37,17 @@ void _CMIOT_Debug(const char *fmt, ...)
 	uint8_t LogMsg[256] = {0};
 	va_list ap;
 	
+	/* 如果标志位为FALSE，直接返回 */
+	if(!DEBUG_FLAG)
+	{
+		return;
+	}
+	
 	va_start(ap, fmt);
 	vsnprintf((char *)LogMsg, (unsigned int)(sizeof(LogMsg)), (const char *)fmt, ap);
 	va_end(ap);
-
-	/* 如果标志位为TRUE，打印至调试串口 */
-	if(DEBUG_FLAG)
-	{
-		_CMIOT_Uart_send(UART_CLI_DEBUG, LogMsg, strlen((const char*)LogMsg));
-	}
+	
+	_CMIOT_Uart_send(UART_CLI_DEBUG, LogMsg, strlen((const char*)LogMsg));
 }
 
 

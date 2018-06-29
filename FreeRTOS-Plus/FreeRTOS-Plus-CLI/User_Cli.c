@@ -20,6 +20,7 @@ Description     :   CLI接口
 #include "usart.h"
 #include "ui.h"
 #include "m5310.h"
+#include "adc.h"
 
 
 /*----------------------------------------------------------------------------*
@@ -49,6 +50,8 @@ extern uint8_t   UART_BLE_RxBuffer[1024];
 extern uint32_t  UART_BLE_RxBufferLen;
 
 extern	CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
+
+bool FACTORY_MODE_FLAG = false;		/* 工厂生产测试模式标志位 */
 
 /*----------------------------------------------------------------------------*
 **                             Function Declare                               *
@@ -207,7 +210,7 @@ BaseType_t prvEnableNbDebugModeCommand(char *pcWriteBuffer,
 	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -221,7 +224,7 @@ BaseType_t prvEnableNbDebugModeCommand(char *pcWriteBuffer,
 	}
 	else
 	{
-		strncpy(pcWriteBuffer, "\r\nState not support!\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 	}
 	
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
@@ -273,7 +276,7 @@ BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer,
 	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -287,7 +290,7 @@ BaseType_t prvEnableBleDebugModeCommand(char *pcWriteBuffer,
 	}
 	else
 	{
-		strncpy(pcWriteBuffer, "\r\nState not support!\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 	}
 	
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
@@ -373,7 +376,7 @@ BaseType_t prvSetPowerEnableCommand(char *pcWriteBuffer, size_t xWriteBufferLen,
 	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -387,7 +390,7 @@ BaseType_t prvSetPowerEnableCommand(char *pcWriteBuffer, size_t xWriteBufferLen,
 	}
 	else
 	{
-		strncpy(pcWriteBuffer, "\r\nState not support!\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 	}
 	
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
@@ -408,7 +411,7 @@ BaseType_t prvGetVersionCommand(char *pcWriteBuffer, size_t xWriteBufferLen, con
 {
 	uint8_t version[40] = {0};
 	cm_getbuildVersion((uint8_t *)version, sizeof(version));
-	snprintf(pcWriteBuffer, xWriteBufferLen, "\r\n%s\r\n\r\nOK\r\n", version);
+	snprintf(pcWriteBuffer, xWriteBufferLen, "\r\n+Version:%s\r\n\r\nOK\r\n", version);
 	return pdFALSE;
 }
 
@@ -429,7 +432,7 @@ BaseType_t prvSetBleWechatFlagCommand(char *pcWriteBuffer, size_t xWriteBufferLe
 	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
 	if(paraLen != 1)
 	{
-		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nOK\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
 		return pdFALSE;
 	}
 	
@@ -443,7 +446,8 @@ BaseType_t prvSetBleWechatFlagCommand(char *pcWriteBuffer, size_t xWriteBufferLe
 	}
 	else
 	{
-		strncpy(pcWriteBuffer, "\r\nState not support!\r\n", xWriteBufferLen);
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
+		return pdFALSE;
 	}
 	
 	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
@@ -451,9 +455,64 @@ BaseType_t prvSetBleWechatFlagCommand(char *pcWriteBuffer, size_t xWriteBufferLe
 }
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	prvSetFactoryModeCommand
+Author			:	zhaoji
+Created Time	:	2018.05.24
+Description 	:	配置工厂生产测试模式
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvSetFactoryModeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString)
+{
+	BaseType_t paraLen;
+	const uint8_t *state_str;
+	state_str = (const uint8_t *)FreeRTOS_CLIGetParameter(pcCommandString, 1, &paraLen);	/* 获取参数 */
+	
+	if(paraLen != 1)
+	{
+		strncpy(pcWriteBuffer, "\r\nParameter length not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
+		return pdFALSE;
+	}
+	
+	if(_CMIOT_atoi(state_str) == 0)
+	{
+		FACTORY_MODE_FLAG = false;
+	}
+	else if(_CMIOT_atoi(state_str) == 1)
+	{
+		FACTORY_MODE_FLAG = true;
+	}
+	else
+	{
+		strncpy(pcWriteBuffer, "\r\nState not support!\r\n\r\nERROR\r\n", xWriteBufferLen);
+	}
+	
+	strncat(pcWriteBuffer, "\r\nOK\r\n", strlen("\r\nOK\r\n"));
+	return pdFALSE;
+}
 
 
-/* 命令列表 */
+/*-----------------------------------------------------------------------------
+Function Name	:	prvGetBatVolCommand
+Author			:	zhaoji
+Created Time	:	2018.05.23
+Description 	:	获取电池电压
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+BaseType_t prvGetBatVolCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString)
+{
+	snprintf(pcWriteBuffer, xWriteBufferLen, "\r\n+Vol:%.1f\r\n\r\nOK\r\n", cm_getBatteryVol());
+	return pdFALSE;
+}
+
+
+
+
+/* cli命令列表 */
 static CLI_Command_Definition_t CliCommandList[] = 
 {
 	{
@@ -527,6 +586,18 @@ static CLI_Command_Definition_t CliCommandList[] =
 		"at+setwechatmode <state>, set wechat mode state\r\n",
 		prvSetBleWechatFlagCommand,
 		1
+	},
+	{
+		"at+setfactorymode",
+		"at+setfactorymode <state>,  set factory mode state\r\n",
+		prvSetFactoryModeCommand,
+		1
+	},
+	{
+		"at+getbatvol",
+		"at+getbatvol, get battery volate\r\n",
+		prvGetBatVolCommand,
+		0
 	},
 };
 

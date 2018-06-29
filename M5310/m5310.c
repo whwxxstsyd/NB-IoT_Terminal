@@ -619,11 +619,12 @@ uint8_t _CMIOT_GetIMEI(uint8_t *IMEI, uint32_t buffersize)
 			p_end  = strstr((const char *)p_head, "\r\n\r\nOK\r\n");
 			strncat((char *)IMEI, p_head, p_end - p_head);
 			_CMIOT_Debug("%s(%s)\r\n", __func__, IMEI);
-			if(_CMIOT_Str_StartWith(IMEI, (uint8_t *)"86"))
-			{
-				_CMIOT_Debug("%s(OK)\r\n", __func__);
-				return 1;
-			}
+			return 1;
+//			if(_CMIOT_Str_StartWith(IMEI, (uint8_t *)"86"))
+//			{
+//				_CMIOT_Debug("%s(OK)\r\n", __func__);
+//				return 1;
+//			}
 		}
 		delay_ms(1000);
 	}
@@ -1121,6 +1122,8 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 	uint8_t result;
 	char *p_head;
 	char *p_tail;
+	uint8_t cgdcontPaserArray[10][32] = {0};
+	uint8_t cgdcontString[256] = {0};
 	
 	memset(apnBuf, 0, bufLen); /* 清空buffer */
 	while(maxRetryCounts > 0)
@@ -1130,30 +1133,38 @@ void cm_getAPN(uint8_t *apnBuf, uint32_t bufLen)
 		
 		if(result == 1)
 		{
-			p_head = strstr((const char *)UART_M5310_RxBuffer, ",\"IP\",");
-			if(p_head != NULL)
-			{
+//			p_head = strstr((const char *)UART_M5310_RxBuffer, ",\"IP\",");
+//			if(p_head != NULL)
+//			{
 
-				p_head += strlen(",\"IP\",");
-				if(*(p_head) == ',')
-				{
-					_CMIOT_Debug("%s(empty apn)\r\n", __func__);
-					return;
-				}
-				p_tail = strstr(p_head, ",");
-				/* 检查apn长度是否超过 */
-				if(p_tail - p_head < bufLen)
-				{
-					memcpy(apnBuf, p_head + 1, p_tail - p_head - 2);
-				}
-				else
-				{
-					memcpy(apnBuf, p_head + 1, bufLen);
-				}
-				_CMIOT_Debug("%s(apn: %s)\r\n", __func__, apnBuf);
-				return;
-			}
-			_CMIOT_Debug("%s(find apn type fail)\r\n", __func__);
+//				p_head += strlen(",\"IP\",");
+//				if(*(p_head) == ',')
+//				{
+//					_CMIOT_Debug("%s(empty apn)\r\n", __func__);
+//					return;
+//				}
+//				p_tail = strstr(p_head, ",");
+//				/* 检查apn长度是否超过 */
+//				if(p_tail - p_head < bufLen)
+//				{
+//					memcpy(apnBuf, p_head + 1, p_tail - p_head - 2);
+//				}
+//				else
+//				{
+//					memcpy(apnBuf, p_head + 1, bufLen);
+//				}
+//				_CMIOT_Debug("%s(apn: %s)\r\n", __func__, apnBuf);
+//				return;
+//			}
+//			_CMIOT_Debug("%s(find apn type fail)\r\n", __func__);
+//			return;
+			
+			p_head = strstr((const char *)UART_M5310_RxBuffer, "+CGDCONT:") + strlen("+CGDCONT:");
+			p_tail = strstr(p_head, "\r\nOK\r\n");
+			memcpy(cgdcontString, p_head, p_tail - p_head);
+			cm_split(cgdcontPaserArray, cgdcontString, (const uint8_t *)",");
+			strncpy((char *)apnBuf, (const char*)cgdcontPaserArray[2], bufLen);
+			_CMIOT_Debug("%s(%s)\r\n", __func__, apnBuf);
 			return;
 		}
 		delay_ms(1000);

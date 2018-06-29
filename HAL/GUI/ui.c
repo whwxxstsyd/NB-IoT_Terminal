@@ -37,6 +37,8 @@ extern uint32_t  UART_BLE_RxBufferLen;
 
 extern TaskHandle_t bleCmdProcess_task;	/* 蓝牙命令处理任务 */
 
+extern bool FACTORY_MODE_FLAG;		/* 工厂生产测试模式标志位 */
+
 /*-----------------------------------------------------------------------------
 Function Name	:	_CMIOT_UI_BootPage
 Author			:	zhaoji
@@ -249,10 +251,13 @@ void _CMIOT_TabIndex(CM_MENU_POSITION *position)
 	}
 	while(1)
 	{
-		/* 显示信号强度状态 */
-		_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
-		/* 显示电池状态 */
-		_CMIOT_ShowBatteryTips();
+		if(!FACTORY_MODE_FLAG)
+		{
+			/* 显示信号强度状态 */
+			_CMIOT_ShowSignalStrength(_CMIOT_M5310_GetSignalstrength());
+			/* 显示电池状态 */
+			_CMIOT_ShowBatteryTips();
+		}
 		delay_ms(2000);
 	}
 }

@@ -18,6 +18,8 @@ Description     :   按键接口
 #include "task.h"
 #include "common.h"
 #include "ui.h"
+#include "usart.h"
+#include "string.h"
 
 #define KEY_LEFT	PBin(4)
 #define KEY_RIGHT	PCin(12)
@@ -32,6 +34,8 @@ extern	TaskHandle_t m5310_task;     	/* M5310任务  */
 extern	CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
 
 extern	bool CM_UI_BUSY;	/* UI界面切换状态忙标识（此时不响应按键请求） */
+
+extern bool FACTORY_MODE_FLAG;		/* 工厂生产测试模式标志位 */
 
 /*-----------------------------------------------------------------------------
 Function Name	:	cm_key_init
@@ -171,6 +175,13 @@ void EXTI2_IRQHandler(void)
 		if(KEY_DOWN == 0)
 		{
 			_CMIOT_Debug("%s(KEY_DOWN Pressed Down)\r\n", __func__);
+			/* 打印工厂测试按键信息 */
+			if(FACTORY_MODE_FLAG)
+			{
+				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)"\r\nKEYDOWN PRESSED\r\n", strlen((const char*)"\r\nKEYDOWN_PRESSED\r\n"));
+				return;
+			}
+			
 			if(((menuPosition.yPosition + 1)*3 + menuPosition.xPosition < 7) && menuPosition.subMenu == 0 && !CM_UI_BUSY)
 			{
 				menuPosition.yPosition++;
@@ -209,6 +220,13 @@ void EXTI3_IRQHandler(void)
 		if(KEY_UP==0)
 		{
 			_CMIOT_Debug("%s(KEY_UP Pressed Down)\r\n", __func__);
+			/* 打印工厂测试按键信息 */
+			if(FACTORY_MODE_FLAG)
+			{
+				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)"\r\nKEYUP PRESSED\r\n", strlen((const char*)"\r\nKEYUP PRESSED\r\n"));
+				return;
+			}
+			
 			if(menuPosition.yPosition > 0 && menuPosition.subMenu == 0 && !CM_UI_BUSY)
 			{
 				menuPosition.yPosition--;
@@ -249,6 +267,13 @@ void EXTI4_IRQHandler(void)
 		if(KEY_LEFT==0)
 		{
 			_CMIOT_Debug("%s(KEY_LEFT Pressed Down)\r\n", __func__);
+			/* 打印工厂测试按键信息 */
+			if(FACTORY_MODE_FLAG)
+			{
+				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)"\r\nKEYLEFT PRESSED\r\n", strlen((const char*)"\r\nKEYLEFT PRESSED\r\n"));
+				return;
+			}
+			
 			if(menuPosition.xPosition > 0 && menuPosition.subMenu == 0 && !CM_UI_BUSY)
 			{
 				menuPosition.xPosition--;
@@ -289,6 +314,13 @@ void EXTI15_10_IRQHandler(void)
 		if(KEY_RIGHT==0)
 		{
 			_CMIOT_Debug("%s(KEY_RIGHT Pressed Down)\r\n", __func__);
+			/* 打印工厂测试按键信息 */
+			if(FACTORY_MODE_FLAG)
+			{
+				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)"\r\nKEYRIGHT PRESSED\r\n", strlen((const char*)"\r\nKEYRIGHT PRESSED\r\n"));
+				return;
+			}
+			
 			if(menuPosition.yPosition < 2 && menuPosition.xPosition < 2 && menuPosition.subMenu == 0 && !CM_UI_BUSY)
 			{
 				menuPosition.xPosition++;
@@ -312,6 +344,13 @@ void EXTI15_10_IRQHandler(void)
 		if(KEY_ENTER==0 && !CM_UI_BUSY)
 		{
 			_CMIOT_Debug("%s(KEY_ENTER Pressed Down)\r\n", __func__);
+			/* 打印工厂测试按键信息 */
+			if(FACTORY_MODE_FLAG)
+			{
+				_CMIOT_Uart_send(UART_CLI_DEBUG, (uint8_t *)"\r\nKEYENTER PRESSED\r\n", strlen((const char*)"\r\nKEYENTER PRESSED\r\n"));
+				return;
+			}
+			
 			if(menuPosition.subMenu == 0)
 			{
 				menuPosition.subMenu = 1;

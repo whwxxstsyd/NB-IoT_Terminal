@@ -92,13 +92,38 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 int main(void)
 {
-	// _CMIOT_BleCtrlGpioInit();	/* 初始BLE控制引脚GPIO */
-	
 	/* 初始化延时 */
 	delay_init();
 	
 	/* 最高1位用来配置抢占优先级，低3位用来配置响应优先级 */
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	
+	/* 创建开始任务，开始任务在创建好其它任务后删除 */
+	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
+				(const char*         )"start_task",
+				(uint16_t            )256,
+				(void*               )NULL,
+				(UBaseType_t         )1,
+				(TaskHandle_t*       )&start_task);
+					
+	vTaskStartScheduler();    /* 开启任务调度 */
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_StartTaskProc
+Author			:	zhaoji
+Created Time	:	2018.02.23
+Description 	:	开启任务入口函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_StartTaskProc(void *pvParameters)
+{
+	_CMIOT_IWDG_Configuration();	/* 初始化看门狗及喂狗定时器 */
+	
+	// _CMIOT_BleCtrlGpioInit();	/* 初始BLE控制引脚GPIO */
 	
 	/* 初始化串口 */
 	_CMIOT_Uart_Init(UART_CLI_DEBUG, 921600);
@@ -131,7 +156,7 @@ int main(void)
 	LCD_ShowString(10, 300, 16, (u8 *)"NB-IoT Module Init ...");
 	_CMIOT_M5310_Init();
 	LCD_ShowString(10, 300, 16, (u8 *)"NB-IoT Module Init OK!");
-
+	
 	/* 初始化蓝牙模块 */
 	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init ...    ");
 	
@@ -139,36 +164,6 @@ int main(void)
 	// delay_ms(1000);
 	_CMIOT_BLE_Init();
 	LCD_ShowString(10, 300, 16, (u8 *)"Bluetooth Init OK!    ");
-	
-	/* FreeRTOS初始化 */
-	LCD_ShowString(10, 300, 16, (u8 *)"FreeRTOS System starting...");
-
-	/* 创建开始任务，开始任务在创建好其它任务后删除 */
-	xTaskCreate((TaskFunction_t      )_CMIOT_StartTaskProc,
-				(const char*         )"start_task",
-				(uint16_t            )256,
-				(void*               )NULL,
-				(UBaseType_t         )1,
-				(TaskHandle_t*       )&start_task);
-					
-	vTaskStartScheduler();    /* 开启任务调度 */
-}
-
-
-/*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_StartTaskProc
-Author			:	zhaoji
-Created Time	:	2018.02.23
-Description 	:	开启任务入口函数
-Input Argv		:
-Output Argv 	:
-Return Value	:
------------------------------------------------------------------------------*/
-void _CMIOT_StartTaskProc(void *pvParameters)
-{
-	_CMIOT_Debug("%s...\r\n", __func__);
-	
-	_CMIOT_IWDG_Configuration();	/* 初始化看门狗及喂狗定时器 */
 	
 	/* 初始化电池检测 */
 	_CMIOT_BatteryCheckInit();
