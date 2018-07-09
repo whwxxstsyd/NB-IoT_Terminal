@@ -177,17 +177,30 @@ void LCD_GPIO_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
  	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE); //使能PORTB,C时钟和AFIO时钟
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_7|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;	   ///PORTC6~10复用推挽输出
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;	   ///PORTC6~10复用推挽输出
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure); //RS CS WR RD  PB7(LCD_BLK)
-
+	GPIO_Init(GPIOB, &GPIO_InitStructure); //RS CS WR RD
 	GPIO_SetBits(GPIOB,GPIO_Pin_0|GPIO_Pin_7|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-
+	/* PC0 ~ PC7 LCD Data线 */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7|GPIO_Pin_6|GPIO_Pin_5|GPIO_Pin_4|GPIO_Pin_3|GPIO_Pin_2|GPIO_Pin_1|GPIO_Pin_0;	//  PORTB推挽输出
 	GPIO_Init(GPIOC, &GPIO_InitStructure); //D0 ~ D7
-	
 	GPIO_SetBits(GPIOC,GPIO_Pin_7|GPIO_Pin_6|GPIO_Pin_5|GPIO_Pin_4|GPIO_Pin_3|GPIO_Pin_2|GPIO_Pin_1|GPIO_Pin_0);
+	
+}
+
+
+void _CMIOT_LCD_BlkInit(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO, ENABLE);
+	/* PA0 LCD背光 */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	/* 拉低IO，打开背光 */
+	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
 }
 
 

@@ -166,7 +166,7 @@ typedef enum
 void LCD_ShowChinese(u16 x, u16 y, CN_FONT font, u8 size, u8 *cn, u16 fontColor, u16 backColor);
 
 
-
+void _CMIOT_LCD_BlkInit(void);
 
 
 

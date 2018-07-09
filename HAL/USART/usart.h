@@ -18,9 +18,9 @@ Description		:   USART接口
 /*----------------------------------------------------------------------------*
 **                             Mcaro Definitions                              *
 **----------------------------------------------------------------------------*/
-#define	UART_CLI_DEBUG          USART2    /* UART For FreeRTOS CLI and output Application Log */
+#define	UART_CLI_DEBUG          USART1    /* UART For FreeRTOS CLI and output Application Log */
 #define	UART_M5310              USART3    /* UART is used to communicate with NB-IoT Module M5310 */
-#define	UART_BLUETOOTH          USART1    /* UART is used to communicate with Bluetooth Module */
+#define	UART_BLUETOOTH          USART2    /* UART is used to communicate with Bluetooth Module */
 
 
 /*-----------------------------------------------------------------------------

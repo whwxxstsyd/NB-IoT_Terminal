@@ -35,8 +35,8 @@ extern volatile unsigned long long FreeRTOSRunTimeTicks;	/* FreeRTOS时间统计
 
 extern TaskHandle_t start_task;     /* 开始任务   */
 extern TaskHandle_t cli_task;       /* CLI任务    */
-extern TaskHandle_t m5310_task;     /* M5310任务  */
-extern TaskHandle_t lcd_task;       /* LCD任务    */
+extern TaskHandle_t keylisten_task;     /* M5310任务  */
+extern TaskHandle_t gui_task;       /* LCD任务    */
 extern TaskHandle_t bluetooth_task;	/* 蓝牙任务    */
 extern TaskHandle_t bleCmdProcess_task;	/* 蓝牙命令处理任务 */
 
@@ -147,10 +147,10 @@ BaseType_t prvGetHeapUsageCommand(char *pcWriteBuffer,
 	sprintf(msg, "+cli_task: %ld\r\n", uxTaskGetStackHighWaterMark(cli_task));		/* CLI任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
-	sprintf(msg, "+m5310_task: %ld\r\n", uxTaskGetStackHighWaterMark(m5310_task));	/* M5310任务栈空间的高水线(High Water Mark) */
+	sprintf(msg, "+keylisten_task: %ld\r\n", uxTaskGetStackHighWaterMark(keylisten_task));	/* M5310任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
-	sprintf(msg, "+lcd_task: %ld\r\n", uxTaskGetStackHighWaterMark(lcd_task));		/* LCD任务栈空间的高水线(High Water Mark) */
+	sprintf(msg, "+gui_task: %ld\r\n", uxTaskGetStackHighWaterMark(gui_task));		/* GUI任务栈空间的高水线(High Water Mark) */
 	strncat(pcWriteBuffer, msg, strlen(msg));
 	
 	sprintf(msg, "+bluetooth_task: %ld\r\n", uxTaskGetStackHighWaterMark(bluetooth_task));		/* LCD任务栈空间的高水线(High Water Mark) */
@@ -604,7 +604,7 @@ static CLI_Command_Definition_t CliCommandList[] =
 
 
 /*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_CLI_Init
+Function Name	:	_CMIOT_Cli_Init
 Author			:	zhaoji
 Created Time	:	2018.02.28
 Description 	:	CLI命令初始化
@@ -612,7 +612,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_CLI_Init(void)
+void _CMIOT_Cli_Init(void)
 {
 	uint8_t i;
 	/* 注册所有支持的命令 */

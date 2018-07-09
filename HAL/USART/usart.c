@@ -41,16 +41,16 @@ extern uint32_t  UART_BLE_RxBufferLen;
 extern TaskHandle_t cli_task;			/* CLI任务   */
 extern TaskHandle_t bluetooth_task;		/* 蓝牙任务  */
 
-bool	NB_DEBUG_FLAG  = false;		/* NB模组调试开关标志 为true时将串口接收到的模组数据转发至单片机调试串口 */
-bool	BLE_DEBUG_FLAG = false;		/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口 */
-bool	BLE_WECHAT_FLAG= false;		/* BLE蓝牙微信记录导出模式，为true时仅将串口接收数据发至CLI串口后直接返回 */
+bool	NB_DEBUG_FLAG  = false;		/* NB模组调试开关标志 为true时将串口接收到的模组数据转发至单片机调试串口		*/
+bool	BLE_DEBUG_FLAG = false;		/* BLE蓝牙模组调试标志位，为true时将串口接收到的模组数据转发至单片机调试串口	*/
+bool	BLE_WECHAT_FLAG= false;		/* BLE蓝牙微信记录导出模式，为true时仅将串口接收数据发至CLI串口后直接返回		*/
 
 /* 蓝牙执行AT指令标志位 */
 extern bool BLE_AT_EXE_FLAG;
 
 extern TimerHandle_t bleAtExeTimer;	/* 蓝牙执行AT指令时的M5310串口定时器，定时器到达时将M5310串口接收buffer数据通过蓝牙发送到APP */
 
-extern CM_MENU_POSITION menuPosition;
+extern CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
 
 /*----------------------------------------------------------------------------*
 **                             Local Vars                                     *
@@ -296,7 +296,7 @@ void USART3_IRQHandler(void)
 Function Name	:	USART1_IRQHandler
 Author			:	zhaoji
 Created Time	:	2018.02.13
-Description 	: 	USART1接收中断处理函数(UART_BLUETOOTH)
+Description 	: 	USART1接收中断处理函数(UART_CLI_DEBUG)
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -304,12 +304,55 @@ Return Value	:
 void USART1_IRQHandler(void)
 {
 	uint8_t recvByte;
-	BaseType_t bleNotifyValue;
-
+	
+	BaseType_t cliNotifyValue;
+	
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
-		/* 接收数据并存储到UART3_RxBuffer中 */
+		/* 接收数据并存储到UART_CLI_RxBufferLen中 */
 		recvByte = USART_ReceiveData(USART1);
+		
+		if(recvByte == '\r')    /* 接收到CLI命令结束符（回车符） */
+		{
+			USART_SendData(UART_CLI_DEBUG, recvByte);
+			vTaskNotifyGiveFromISR(cli_task, &cliNotifyValue);   /* 向CLI任务发送任务通知 */
+			return;
+		}
+		
+		if(recvByte == '\n')    /* 忽略换行符 */
+		{
+			return;
+		}
+
+		/* 存储数据到CLI串口接收缓冲区 */
+		if(UART_CLI_RxBufferLen < sizeof(UART_CLI_RxBuffer)-1)
+		{
+			USART_SendData(UART_CLI_DEBUG, recvByte);
+			UART_CLI_RxBuffer[UART_CLI_RxBufferLen] = recvByte;
+			UART_CLI_RxBufferLen ++;
+		}
+	}
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	USART2_IRQHandler
+Author			:	zhaoji
+Created Time	:	2018.02.13
+Description 	: 	USART2接收中断处理函数(UART_BLUETOOTH)
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void USART2_IRQHandler(void)
+{
+	uint8_t recvByte;
+	BaseType_t bleNotifyValue;
+	
+	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
+	{
+		/* 接收数据并存储 */
+		recvByte = USART_ReceiveData(USART2);
 		/* 微信记录导出模式 */
 		if(BLE_WECHAT_FLAG)
 		{
@@ -348,60 +391,7 @@ void USART1_IRQHandler(void)
 			&& (menuPosition.xPosition + menuPosition.yPosition * 3) == 5)
 		{
 			_CMIOT_Debug("%s(send task notify)\r\n", __func__);
-			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向CLI任务发送任务通知 */
-		}
-	}
-}
-
-
-/*-----------------------------------------------------------------------------
-Function Name	:	USART2_IRQHandler
-Author			:	zhaoji
-Created Time	:	2018.02.13
-Description 	: 	USART2接收中断处理函数(UART_CLI_DEBUG)
-Input Argv		:
-Output Argv 	:
-Return Value	:
------------------------------------------------------------------------------*/
-void USART2_IRQHandler(void)
-{
-	uint8_t recvByte;
-	
-	BaseType_t cliNotifyValue;
-	
-	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
-	{
-		/* 接收数据并存储到UART_CLI_RxBufferLen中 */
-		recvByte = USART_ReceiveData(USART2);
-		
-		if(recvByte == '\r')    /* 接收到CLI命令结束符（回车符） */
-		{
-			USART_SendData(UART_CLI_DEBUG, recvByte);
-			vTaskNotifyGiveFromISR(cli_task, &cliNotifyValue);   /* 向CLI任务发送任务通知 */
-			return;
-		}
-		
-		if(recvByte == '\n')    /* 忽略换行符 */
-		{
-			return;
-		}
-		
-		if(recvByte == '\b')    /* 接收删除符 */
-		{
-			USART_SendData(UART_CLI_DEBUG, recvByte);
-			if(UART_CLI_RxBufferLen > 0)
-			{
-				UART_CLI_RxBufferLen --;
-				UART_CLI_RxBuffer[UART_CLI_RxBufferLen] = '\0';
-			}
-			return;
-		}
-		/* 存储数据到CLI串口接收缓冲区 */
-		if(UART_CLI_RxBufferLen < sizeof(UART_CLI_RxBuffer)-1)
-		{
-			USART_SendData(UART_CLI_DEBUG, recvByte);
-			UART_CLI_RxBuffer[UART_CLI_RxBufferLen] = recvByte;
-			UART_CLI_RxBufferLen ++;
+			vTaskNotifyGiveFromISR(bluetooth_task, &bleNotifyValue);   /* 向蓝牙任务发送任务通知 */
 		}
 	}
 }

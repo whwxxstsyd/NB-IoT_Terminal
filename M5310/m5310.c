@@ -1407,7 +1407,8 @@ void _CMIOT_M5310PowerGpioInit(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOB, GPIO_Pin_6);
+	/* 高电平NB模组开机 */
+	GPIO_SetBits(GPIOB, GPIO_Pin_6);
 }
 
 
@@ -1422,10 +1423,6 @@ Return Value	:
 -----------------------------------------------------------------------------*/
 void _CMIOT_M5310_Init(void)
 {
-	_CMIOT_M5310PowerGpioInit();
-	delay_ms(1000);
-	M5310_POWER_ON;		/* 开机 */
-	
 	if(cm_IsNbModuleAlive())	/* 检测模组是否启动成功 */
 	{
 		/* 打开扰码 */

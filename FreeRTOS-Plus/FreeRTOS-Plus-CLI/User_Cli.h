@@ -17,7 +17,7 @@ Description     :   CLI接口
 
 
 /*-----------------------------------------------------------------------------
-Function Name	:	_CMIOT_CLI_Init
+Function Name	:	_CMIOT_Cli_Init
 Author			:	zhaoji
 Created Time	:	2018.02.28
 Description 	:	CLI命令初始化
@@ -25,7 +25,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void _CMIOT_CLI_Init(void);
+void _CMIOT_Cli_Init(void);
 
 
 

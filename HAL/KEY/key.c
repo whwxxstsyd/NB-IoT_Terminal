@@ -20,25 +20,29 @@ Description     :   按键接口
 #include "ui.h"
 #include "usart.h"
 #include "string.h"
+#include "timers.h"
+
+
 
 #define KEY_LEFT	PBin(4)
 #define KEY_RIGHT	PCin(12)
 #define KEY_UP		PBin(3)
 #define KEY_DOWN	PDin(2)
 #define KEY_ENTER	PCin(11)
+#define KEY_POWER	PBin(5)
 
 /*----------------------------------------------------------------------------*
 **                             Global Vars                                    *
 **----------------------------------------------------------------------------*/
-extern	TaskHandle_t m5310_task;     	/* M5310任务  */
+extern	TaskHandle_t keylisten_task;     	/* M5310任务  */
 extern	CM_MENU_POSITION menuPosition;	/* 菜单坐标信息 */
 
-extern	bool CM_UI_BUSY;	/* UI界面切换状态忙标识（此时不响应按键请求） */
+extern	bool _CM_GUI_BUSY_FLAG_;	/* UI界面切换状态忙标识（此时不响应按键请求） */
 
 extern bool FACTORY_MODE_FLAG;		/* 工厂生产测试模式标志位 */
 
 /*-----------------------------------------------------------------------------
-Function Name	:	cm_key_init
+Function Name	:	_CMIOT_UserKeypad_Init
 Author			:	zhaoji
 Created Time	:	2018.03.14
 Description 	: 	初始化按键
@@ -46,7 +50,7 @@ Input Argv		:
 Output Argv 	:
 Return Value	:
 -----------------------------------------------------------------------------*/
-void cm_key_init(void)
+void _CMIOT_UserKeypad_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;//定义结构体
 	EXTI_InitTypeDef EXTI_InitStructure;//定义初始化结构体
@@ -154,6 +158,103 @@ void cm_key_init(void)
 }
 
 
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_PowerKey_Init
+Author			:	zhaoji
+Created Time	:	2018.07.05
+Description 	: 	初始化开关机按键IO
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_PowerKey_Init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;//定义结构体
+	EXTI_InitTypeDef EXTI_InitStructure;//定义初始化结构体
+	NVIC_InitTypeDef NVIC_InitStructure;//定义结构体
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO,ENABLE);//使能时钟
+	
+	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_5;//选择IO口
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;//设置成上拉输入
+	GPIO_Init(GPIOB, &GPIO_InitStructure);//使用结构体信息进行初始化IO口
+	
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB,GPIO_PinSource5);
+	EXTI_InitStructure.EXTI_Line=EXTI_Line5; //中断线的标号 取值范围为EXTI_Line0~EXTI_Line15
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断模式，可选值为中断 EXTI_Mode_Interrupt 和事件 EXTI_Mode_Event。
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;//触发方式，可以是下降沿触发 EXTI_Trigger_Falling，上升沿触发 EXTI_Trigger_Rising，或者任意电平（上升沿和下降沿）触发EXTI_Trigger_Rising_Falling
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);//根据结构体信息进行初始化
+	
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn; //使能外部中断所在的通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; //抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4; //子优先级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //使能外部中断通道
+	NVIC_Init(&NVIC_InitStructure); //根据结构体信息进行优先级初始化
+}
+
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	_CMIOT_PowerOff
+Author			:	zhaoji
+Created Time	:	2018.07.05
+Description 	: 	设备关机（拉低开关芯片PS_HOLD PA15引脚）
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void _CMIOT_PowerOff(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	/* 判断开关机按键是否被按下 */
+	if(KEY_POWER == 0)
+	{
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO, ENABLE);
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
+		_CMIOT_Debug("%s()...\r\n", __func__);
+		/* 拉低PS_HOLD关机 */
+		GPIO_ResetBits(GPIOA, GPIO_Pin_15);
+		return;
+	}
+	/* 关机按键时长不够，取消关机动作 */
+	_CMIOT_Debug("%s(Power off cancled!)\r\n", __func__);
+}
+
+
+/*-----------------------------------------------------------------------------
+Function Name	:	EXTI9_5_IRQHandler
+Author			:	zhaoji
+Created Time	:	2018.03.30
+Description 	: 	EXTI_Line9~5中断处理函数
+Input Argv		:
+Output Argv 	:
+Return Value	:
+-----------------------------------------------------------------------------*/
+void EXTI9_5_IRQHandler(void)
+{
+	if (EXTI_GetITStatus(EXTI_Line5) != RESET)
+	{
+		EXTI_ClearITPendingBit(EXTI_Line5); //清楚中断标志位 
+		
+		delay_xms(10);//延时消抖
+		if(KEY_POWER==0)
+		{
+			/* 2S后检测开关机按键状态关机 */
+			TimerHandle_t powerOffTimer = xTimerCreate((const char*   )"powerOffTimer",
+													  (TickType_t     )2000,
+													  (UBaseType_t    )pdFALSE,
+													  (void*          )5,
+													  (TimerCallbackFunction_t)_CMIOT_PowerOff);
+			xTimerStartFromISR(powerOffTimer, 0);
+		}
+	}
+}
+
+
 
 /*-----------------------------------------------------------------------------
 Function Name	:	EXTI2_IRQHandler
@@ -182,13 +283,13 @@ void EXTI2_IRQHandler(void)
 				return;
 			}
 			
-			if(((menuPosition.yPosition + 1)*3 + menuPosition.xPosition < 7) && menuPosition.subMenu == 0 && !CM_UI_BUSY)
+			if(((menuPosition.yPosition + 1)*3 + menuPosition.xPosition < 7) && menuPosition.subMenu == 0 && !_CM_GUI_BUSY_FLAG_)
 			{
 				menuPosition.yPosition++;
 				menuPosition.pressKey = KEYPAD_DOWN;
-				CM_UI_BUSY = true;
+				_CM_GUI_BUSY_FLAG_ = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
+				vTaskNotifyGiveFromISR(keylisten_task, &cliNotifyValue);   /* 发送任务通知 */
 				delay_ms(1);
 			}
 			else
@@ -227,13 +328,13 @@ void EXTI3_IRQHandler(void)
 				return;
 			}
 			
-			if(menuPosition.yPosition > 0 && menuPosition.subMenu == 0 && !CM_UI_BUSY)
+			if(menuPosition.yPosition > 0 && menuPosition.subMenu == 0 && !_CM_GUI_BUSY_FLAG_)
 			{
 				menuPosition.yPosition--;
 				menuPosition.pressKey = KEYPAD_UP;
-				CM_UI_BUSY = true;
+				_CM_GUI_BUSY_FLAG_ = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
+				vTaskNotifyGiveFromISR(keylisten_task, &cliNotifyValue);   /* 发送任务通知 */
 				delay_ms(1);
 			}
 			else
@@ -274,13 +375,13 @@ void EXTI4_IRQHandler(void)
 				return;
 			}
 			
-			if(menuPosition.xPosition > 0 && menuPosition.subMenu == 0 && !CM_UI_BUSY)
+			if(menuPosition.xPosition > 0 && menuPosition.subMenu == 0 && !_CM_GUI_BUSY_FLAG_)
 			{
 				menuPosition.xPosition--;
 				menuPosition.pressKey = KEYPAD_LEFT;
-				CM_UI_BUSY = true;
+				_CM_GUI_BUSY_FLAG_ = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
+				vTaskNotifyGiveFromISR(keylisten_task, &cliNotifyValue);   /* 发送任务通知 */
 				delay_ms(1);
 			}
 			else
@@ -321,13 +422,13 @@ void EXTI15_10_IRQHandler(void)
 				return;
 			}
 			
-			if(menuPosition.yPosition < 2 && menuPosition.xPosition < 2 && menuPosition.subMenu == 0 && !CM_UI_BUSY)
+			if(menuPosition.yPosition < 2 && menuPosition.xPosition < 2 && menuPosition.subMenu == 0 && !_CM_GUI_BUSY_FLAG_)
 			{
 				menuPosition.xPosition++;
 				menuPosition.pressKey = KEYPAD_RIGHT;
-				CM_UI_BUSY = true;
+				_CM_GUI_BUSY_FLAG_ = true;
 				_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-				vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 发送任务通知 */
+				vTaskNotifyGiveFromISR(keylisten_task, &cliNotifyValue);   /* 发送任务通知 */
 				delay_ms(1);
 			}
 			else
@@ -341,7 +442,7 @@ void EXTI15_10_IRQHandler(void)
 	{
 		EXTI_ClearITPendingBit(EXTI_Line11); //清楚中断标志位 
 		delay_xms(10);//延时消抖
-		if(KEY_ENTER==0 && !CM_UI_BUSY)
+		if(KEY_ENTER==0 && !_CM_GUI_BUSY_FLAG_)
 		{
 			_CMIOT_Debug("%s(KEY_ENTER Pressed Down)\r\n", __func__);
 			/* 打印工厂测试按键信息 */
@@ -360,9 +461,9 @@ void EXTI15_10_IRQHandler(void)
 				menuPosition.subMenu = 0;
 			}
 			menuPosition.pressKey = KEYPAD_ENTER;
-			CM_UI_BUSY = true;
+			_CM_GUI_BUSY_FLAG_ = true;
 			_CMIOT_Debug("%s(sendTaskMsg)\r\n", __func__);
-			vTaskNotifyGiveFromISR(m5310_task, &cliNotifyValue);   /* 向发送任务通知 */
+			vTaskNotifyGiveFromISR(keylisten_task, &cliNotifyValue);   /* 向发送任务通知 */
 			delay_ms(1);
 		}
 	}

@@ -106,7 +106,7 @@ uint32_t _CMIOT_ExecuteBLEAtCmd(uint8_t *AtCmd, uint8_t MatchRsp[][20], uint8_t 
 Function Name	:	_CMIOT_BleResetGpioInit
 Author			:	zhaoji
 Created Time	:	2018.05.19
-Description 	: 	蓝牙复位引脚初始化
+Description 	: 	蓝牙电源控制引脚GPIO初始化
 Input Argv		:
 Output Argv 	:
 Return Value	:
@@ -114,19 +114,13 @@ Return Value	:
 void _CMIOT_BleCtrlGpioInit(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
- 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOC|RCC_APB2Periph_AFIO, ENABLE);
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO, ENABLE);
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOA, GPIO_Pin_15);
-	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOC, GPIO_Pin_10);
+	GPIO_SetBits(GPIOA, GPIO_Pin_12);
 }
 
 
@@ -221,6 +215,7 @@ uint8_t _CMIOT_BLE_ExitPassthroughMode(void)
 		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("+++a"), MatchStr, 2, 2000);   /* 退出透传模式 */
 		if(result == 1)
 		{
+			_CMIOT_Debug("%s() success!\r\n", __func__);
 			return 1;
 		}
 		maxRetryCounts--;
@@ -252,6 +247,7 @@ uint8_t _CMIOT_BLE_OffMaxPut(void)
 		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+MAXPUT=OFF\r\n"), MatchStr, 2, 2000);   /* 配置为20字节分包发送 */
 		if(result == 1)
 		{
+			_CMIOT_Debug("%s() success!\r\n", __func__);
 			return 1;
 		}
 		maxRetryCounts--;
@@ -283,6 +279,7 @@ uint8_t _CMIOT_BLE_SetPacketInterval(void)
 		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+UARTTM=100\r\n"), MatchStr, 2, 2000);   /* 设置打包间隔 */
 		if(result == 1)
 		{
+			_CMIOT_Debug("%s() success!\r\n", __func__);
 			return 1;
 		}
 		maxRetryCounts--;
@@ -311,10 +308,18 @@ uint8_t _CMIOT_BLE_SetName(void)
 	
 	_CMIOT_Debug("%s...\r\n", __func__);
 	
-	_CMIOT_GetIMEI(imei, sizeof(imei));
-	
 	strcat((char *)bleNameCmd, "AT+NAME=D5200_");
-	strcat((char *)bleNameCmd, (char *)(imei + strlen((const char *)imei) - 4));
+	
+
+	/* 判断IMEI是否查询成功 */
+	if(	_CMIOT_GetIMEI(imei, sizeof(imei)))
+	{
+		strcat((char *)bleNameCmd, (char *)(imei + strlen((const char *)imei) - 4));
+	}
+	else
+	{
+		strcat((char *)bleNameCmd, "xxxx");
+	}
 	strcat((char *)bleNameCmd, "\r\n");
 	
 	while(maxRetryCounts > 0)
@@ -322,6 +327,7 @@ uint8_t _CMIOT_BLE_SetName(void)
 		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)bleNameCmd, MatchStr, 2, 2000);   /* 配置BLE设备名称 */
 		if(result == 1)
 		{
+			_CMIOT_Debug("%s() success!\r\n", __func__);
 			return 1;
 		}
 		maxRetryCounts--;
@@ -353,6 +359,7 @@ uint8_t _CMIOT_BLE_EnterPassthroughMode(void)
 		result = _CMIOT_ExecuteBLEAtCmd((uint8_t *)("AT+ENTM\r\n"), MatchStr, 2, 2000);   /* 进入透传模式 */
 		if(result == 1)
 		{
+			_CMIOT_Debug("%s() success!\r\n", __func__);
 			return 1;
 		}
 		maxRetryCounts--;
@@ -460,6 +467,7 @@ void _CMIOT_BLE_Init(void)
 	_CMIOT_BLE_Reboot();					/* 重启 */
 	delay_ms(1000);
 	_CMIOT_BLE_ExitPassthroughMode();		/* 退出透传模式 */
+	_CMIOT_Debug("%s() success!\r\n", __func__);
 }
 
 
